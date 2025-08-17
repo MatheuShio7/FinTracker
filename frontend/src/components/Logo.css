@@ -1,0 +1,28 @@
+.logo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  padding: 25px;
+}
+
+.logo-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 15px;
+  object-fit: cover;
+}
+
+.logo-text {
+  font-family: 'Poppins', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffffff;
+  user-select: none;
+} 

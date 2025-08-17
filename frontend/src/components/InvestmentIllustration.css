@@ -1,0 +1,51 @@
+.investment-illustration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 4.5% 7%;
+  max-width: 500px;
+  padding: 20px;
+  position: relative;
+}
+
+.investment-svg {
+  width: 100%;
+  width: 130%;
+  height: auto;
+  position: relative;
+  z-index: 2;
+}
+
+.ellipse {
+  width: 500px;
+  height: 275px;
+  background-color: #16171b;
+  border-radius: 50%;
+  margin-top: -330px;
+  margin-bottom: 0;
+  margin-left: 27px;
+  position: relative;
+  z-index: 1;
+}
+
+.attribution {
+  z-index: 2;
+  position: absolute;
+  bottom: -18px;
+  margin-left: 25px;
+}
+
+.attribution-link {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: #888888;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.attribution-link:hover {
+  opacity: 1;
+  color: #aaaaaa;
+} 
