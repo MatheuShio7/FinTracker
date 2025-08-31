@@ -8,7 +8,7 @@ function Login() {
     <div className="login-page">
       <Logo />
       <InvestmentIllustration />
-      <AuthCard title="Login" />
+      <AuthCard title="Login" type="login" />
     </div>
   )
 }
