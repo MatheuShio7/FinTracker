@@ -1,6 +1,13 @@
 import './AuthCard.css'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 function AuthCard({ title, type }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  
+  const isFormValid = email.trim() !== '' && password.trim() !== ''
+
   return (
     <div className="auth-card">
       <div className="auth-card-header">
@@ -20,6 +27,8 @@ function AuthCard({ title, type }) {
               type="email"
               placeholder="Endereço de email"
               className="auth-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           
@@ -29,7 +38,26 @@ function AuthCard({ title, type }) {
               type="password"
               placeholder="Senha"
               className="auth-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
+          </div>
+          
+          <button 
+            className={`auth-button ${isFormValid ? 'auth-button-active' : ''}`}
+            disabled={!isFormValid}
+          >
+            Entrar
+          </button>
+          
+          <div className="auth-links">
+            <p className="signup-text">
+              Ainda não possui conta? <Link to="/cadastro" className="signup-link">Cadastre-se</Link>
+            </p>
+            
+            <a href="#" className="forgot-password-link">
+              Esqueceu a senha?
+            </a>
           </div>
         </div>
       )}

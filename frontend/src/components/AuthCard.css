@@ -8,13 +8,18 @@
   background-color: #16171b;
   border-radius: 40px;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
 }
 
 .auth-card-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 40px;
+  margin-bottom: 30px;
 }
 
 .auth-card-logo {
@@ -38,7 +43,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 20px;
+  width: 100%;
   gap: 20px;
 }
 
@@ -59,10 +64,10 @@
 
 .auth-input {
   width: 100%;
-  height: 50px;
+  height: 45px;
   background-color: #111111;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 0 20px 0 50px;
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
@@ -73,4 +78,89 @@
 .auth-input::placeholder {
   color: #9f9f9f;
   font-family: 'Poppins', sans-serif;
+}
+
+.auth-button {
+  width: 30%;
+  height: 50px;
+  border: none;
+  border-radius: 25px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+  position: relative;
+  
+  /* Estado padrão (campos vazios) */
+  background-color: #111111;
+  color: #9f9f9f;
+}
+
+.auth-button-active {
+  /* Estado ativo (campos preenchidos) */
+  background-color: #111111;
+  color: white;
+  border: 1px solid #f65308;
+  animation: glow-border 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow-border {
+  0% {
+    border-color: #f65308;
+    box-shadow: 0 0 3px rgba(246, 83, 8, 0.3);
+  }
+  100% {
+    border-color: #ff8c42;
+    box-shadow: 0 0 8px rgba(246, 83, 8, 0.5);
+  }
+}
+
+.auth-button-active:hover {
+  transform: scale(1.02);
+}
+
+.auth-button:disabled {
+  cursor: not-allowed;
+}
+
+.auth-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.signup-text {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  color: #9f9f9f;
+  margin: 0;
+  text-align: center;
+}
+
+.signup-link {
+  font-weight: 600;
+  color: #9f9f9f;
+  text-decoration: none;
+  transition: text-decoration 0.2s ease;
+}
+
+.signup-link:hover {
+  text-decoration: underline;
+}
+
+.forgot-password-link {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #f65308;
+  text-decoration: none;
+  transition: text-decoration 0.2s ease;
+}
+
+.forgot-password-link:hover {
+  text-decoration: underline;
 } 

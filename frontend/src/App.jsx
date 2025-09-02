@@ -18,9 +18,9 @@ function App() {
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/carteira" element={<Carteira />} />
           <Route path="/explorar" element={<Explorar />} />
+          <Route path="/conteudo" element={<Conteudo />} />
           <Route path="/acao" element={<Acao />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
-          <Route path="/conteudo" element={<Conteudo />} />
         </Routes>
       </div>
     </Router>
