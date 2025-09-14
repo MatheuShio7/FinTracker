@@ -47,9 +47,19 @@
   gap: 20px;
 }
 
+.name-inputs {
+  display: flex;
+  width: 80%;
+  gap: 10px;
+}
+
 .input-group {
   position: relative;
   width: 80%;
+}
+
+.input-group.half-width {
+  width: 50%;
 }
 
 .input-icon {

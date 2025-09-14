@@ -8,7 +8,7 @@ function Cadastro() {
     <div className="cadastro-page">
       <Logo />
       <InvestmentIllustration />
-      <AuthCard title="Cadastro" />
+      <AuthCard title="Cadastro" type="cadastro" />
     </div>
   )
 }

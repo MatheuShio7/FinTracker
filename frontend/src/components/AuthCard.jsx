@@ -5,8 +5,14 @@ import { Link } from 'react-router-dom'
 function AuthCard({ title, type }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   
-  const isFormValid = email.trim() !== '' && password.trim() !== ''
+  const isLoginFormValid = email.trim() !== '' && password.trim() !== ''
+  const isCadastroFormValid = firstName.trim() !== '' && lastName.trim() !== '' && 
+                             email.trim() !== '' && password.trim() !== '' && 
+                             confirmPassword.trim() !== ''
 
   return (
     <div className="auth-card">
@@ -44,8 +50,8 @@ function AuthCard({ title, type }) {
           </div>
           
           <button 
-            className={`auth-button ${isFormValid ? 'auth-button-active' : ''}`}
-            disabled={!isFormValid}
+            className={`auth-button ${isLoginFormValid ? 'auth-button-active' : ''}`}
+            disabled={!isLoginFormValid}
           >
             Entrar
           </button>
@@ -59,6 +65,74 @@ function AuthCard({ title, type }) {
               Esqueceu a senha?
             </a>
           </div>
+        </div>
+      )}
+
+      {type === 'cadastro' && (
+        <div className="auth-card-content">
+          <div className="name-inputs">
+            <div className="input-group half-width">
+              <i className="bi bi-person-fill input-icon"></i>
+              <input 
+                type="text"
+                placeholder="Nome"
+                className="auth-input"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </div>
+            
+            <div className="input-group half-width">
+              <i className="bi bi-person-fill input-icon"></i>
+              <input 
+                type="text"
+                placeholder="Último nome"
+                className="auth-input"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="input-group">
+            <i className="bi bi-envelope-fill input-icon"></i>
+            <input 
+              type="email"
+              placeholder="Endereço de email"
+              className="auth-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          
+          <div className="input-group">
+            <i className="bi bi-shield-lock-fill input-icon"></i>
+            <input 
+              type="password"
+              placeholder="Senha"
+              className="auth-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <div className="input-group">
+            <i className="bi bi-shield-lock-fill input-icon"></i>
+            <input 
+              type="password"
+              placeholder="Confirmar senha"
+              className="auth-input"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
+          
+          <button 
+            className={`auth-button ${isCadastroFormValid ? 'auth-button-active' : ''}`}
+            disabled={!isCadastroFormValid}
+          >
+            Cadastrar
+          </button>
         </div>
       )}
     </div>
