@@ -56,7 +56,7 @@ function AuthCard({ title, type }) {
             Entrar
           </button>
           
-          <div className="auth-links">
+          <div className="auth-links login-links">
             <p className="signup-text">
               Ainda não possui conta? <Link to="/cadastro" className="signup-link">Cadastre-se</Link>
             </p>
@@ -133,6 +133,12 @@ function AuthCard({ title, type }) {
           >
             Cadastrar
           </button>
+
+          <div className="auth-links cadastro-links">
+            <p className="login-text">
+              Já possui conta? <Link to="/login" className="login-link">Entrar</Link>
+            </p>
+          </div>
         </div>
       )}
     </div>
