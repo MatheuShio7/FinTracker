@@ -1,6 +1,6 @@
 import './AuthCard.css'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 function AuthCard({ title, type }) {
   const [email, setEmail] = useState('')
@@ -9,10 +9,24 @@ function AuthCard({ title, type }) {
   const [lastName, setLastName] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   
+  const navigate = useNavigate()
+  
   const isLoginFormValid = email.trim() !== '' && password.trim() !== ''
   const isCadastroFormValid = firstName.trim() !== '' && lastName.trim() !== '' && 
                              email.trim() !== '' && password.trim() !== '' && 
                              confirmPassword.trim() !== ''
+
+  const handleLogin = () => {
+    if (isLoginFormValid) {
+      navigate('/carteira')
+    }
+  }
+
+  const handleCadastro = () => {
+    if (isCadastroFormValid) {
+      navigate('/carteira')
+    }
+  }
 
   return (
     <div className="auth-card">
@@ -52,6 +66,7 @@ function AuthCard({ title, type }) {
           <button 
             className={`auth-button ${isLoginFormValid ? 'auth-button-active' : ''}`}
             disabled={!isLoginFormValid}
+            onClick={handleLogin}
           >
             Entrar
           </button>
@@ -130,6 +145,7 @@ function AuthCard({ title, type }) {
           <button 
             className={`auth-button ${isCadastroFormValid ? 'auth-button-active' : ''}`}
             disabled={!isCadastroFormValid}
+            onClick={handleCadastro}
           >
             Cadastrar
           </button>
