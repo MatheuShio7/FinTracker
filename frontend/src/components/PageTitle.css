@@ -1,0 +1,17 @@
+.page-title {
+  position: fixed;
+  top: 0;
+  left: 300px; /* Posicionado após a logo que tem ~170px de largura */
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+}
+
+.page-title-text {
+  font-family: 'Poppins', sans-serif;
+  font-size: 100px;
+  font-weight: 700;
+  color: #202128;
+  margin: 0;
+  user-select: none;
+} 

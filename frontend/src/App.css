@@ -1,4 +1,22 @@
 .app {
   min-height: 100vh;
   background-color: #111111;
+  display: flex;
+}
+
+.app-content {
+  flex: 1;
+  margin-left: 225px;
+  transition: margin-left 0.3s ease;
+}
+
+/* Para páginas de login e cadastro, remover margem */
+.app-content.no-sidebar {
+  margin-left: 0;
+}
+
+@media (max-width: 768px) {
+  .app-content {
+    margin-left: 0;
+  }
 } 
