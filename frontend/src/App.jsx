@@ -25,7 +25,7 @@ function AppContent() {
           <Route path="/carteira" element={<Carteira />} />
           <Route path="/explorar" element={<Explorar />} />
           <Route path="/conteudo" element={<Conteudo />} />
-          <Route path="/acao" element={<Acao />} />
+          <Route path="/:ticker" element={<Acao />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
         </Routes>
       </div>
