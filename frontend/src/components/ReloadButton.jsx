@@ -2,11 +2,9 @@ import './ReloadButton.css'
 
 function ReloadButton({ onClick }) {
   const handleClick = () => {
+    // Função placeholder - será implementada futuramente
     if (onClick) {
       onClick()
-    } else {
-      // Comportamento padrão: recarregar a página
-      window.location.reload()
     }
   }
 
@@ -18,4 +16,5 @@ function ReloadButton({ onClick }) {
 }
 
 export default ReloadButton
+
 

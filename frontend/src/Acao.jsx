@@ -46,16 +46,11 @@ function Acao() {
     fetchStockData()
   }, [ticker])
 
-  const handleReload = () => {
-    // Recarrega os dados da ação
-    window.location.reload()
-  }
-
   return (
     <div className="acao-page">
       <Logo />
       <BackNavigation from={from} />
-      <ReloadButton onClick={handleReload} />
+      <ReloadButton />
       <PageTitle title={ticker} />
       {!isLoading && companyName && <PageSubtitle subtitle={companyName} />}
     </div>

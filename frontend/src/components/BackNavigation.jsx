@@ -22,3 +22,4 @@ function BackNavigation({ from = 'Explorar' }) {
 
 export default BackNavigation
 
+

@@ -5,8 +5,8 @@
     z-index: 1001;
     width: 50px;
     height: 50px;
-    background-color: #c6531e;
-    border: 5px solid #f65308;
+    background-color: #f65308;
+    border: none;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -16,8 +16,8 @@
   }
   
   .reload-button:hover {
-    background-color: #d15e22;
-    transform: scale(1.05);
+    background-color: #f65308;
+    transform: scale(1.03);
   }
   
   .reload-button:active {
@@ -26,7 +26,7 @@
   
   .reload-button i {
     color: white;
-    font-size: 28px;
+    font-size: 26px;
     transition: transform 0.5s ease;
   }
   
