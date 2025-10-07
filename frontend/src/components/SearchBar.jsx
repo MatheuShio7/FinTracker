@@ -67,7 +67,7 @@ function SearchBar() {
   const handleResultClick = (stock) => {
     setShowDropdown(false);
     setSearchTerm('');
-    navigate(`/${stock.ticker}`);
+    navigate(`/${stock.ticker}`, { state: { from: 'Explorar' } });
   };
 
   return (

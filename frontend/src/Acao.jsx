@@ -1,15 +1,21 @@
-import { useParams } from 'react-router-dom'
+import { useParams, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
 import './Acao.css'
 import Logo from './components/Logo'
 import PageTitle from './components/PageTitle'
 import PageSubtitle from './components/PageSubtitle'
+import BackNavigation from './components/BackNavigation'
+import ReloadButton from './components/ReloadButton'
 
 function Acao() {
   const { ticker } = useParams()
+  const location = useLocation()
   const [companyName, setCompanyName] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  
+  // Captura de onde o usuário veio (padrão: Explorar)
+  const from = location.state?.from || 'Explorar'
 
   useEffect(() => {
     const fetchStockData = async () => {
@@ -40,9 +46,16 @@ function Acao() {
     fetchStockData()
   }, [ticker])
 
+  const handleReload = () => {
+    // Recarrega os dados da ação
+    window.location.reload()
+  }
+
   return (
     <div className="acao-page">
       <Logo />
+      <BackNavigation from={from} />
+      <ReloadButton onClick={handleReload} />
       <PageTitle title={ticker} />
       {!isLoading && companyName && <PageSubtitle subtitle={companyName} />}
     </div>

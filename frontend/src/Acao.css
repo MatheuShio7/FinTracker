@@ -3,4 +3,17 @@
 .acao-page {
   width: 100%;
   min-height: 100vh;
+}
+
+/* Ajuste de posicionamento do título e subtítulo na página de ações */
+.acao-page .back-navigation {
+  top: 20px;
+}
+
+.acao-page .page-title {
+  top: 40px;
+}
+
+.acao-page .page-subtitle {
+  top: 170px;
 } 
