@@ -1,25 +1,68 @@
-import requests
-from datetime import datetime
+import yfinance as yf
 
-# URL para os dividendos de PETR4
-url_dividendos = "https://brapi.dev/api/quote/PETR4?dividends=true"
-
-# Realizando a requisição GET para os dividendos
-response_dividendos = requests.get(url_dividendos)
-
-if response_dividendos.status_code == 200:
-    data_dividendos = response_dividendos.json()  # Converte a resposta JSON em um dicionário Python
-    print("\nHistórico de Dividendos de PETR4:")
-    # Extraindo apenas a data de pagamento e o valor do dividendo
-    for item in data_dividendos['results'][0]['dividendsData']['cashDividends']:
-        # Verifica se a data de pagamento não é None
-        if item['paymentDate']:
-            data_pagamento = item['paymentDate']
-            valor_dividendo = item['rate']
-            # Converte a data para o formato desejado
-            data_formatada = datetime.strptime(data_pagamento, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d')
-            print(f"Data: {data_formatada} | Valor do Dividendo: {valor_dividendo}")
+def buscar_dividendos(ticker):
+    """
+    Busca o histórico de dividendos de uma ação usando Yahoo Finance
+    
+    Args:
+        ticker (str): Símbolo da ação (ex: PETR4.SA, VALE3.SA)
+    """
+    
+    try:
+        # Adiciona .SA para ações brasileiras se não estiver presente
+        if not ticker.endswith('.SA'):
+            ticker = ticker + '.SA'
+        
+        # Cria um objeto Ticker
+        acao = yf.Ticker(ticker)
+        
+        print(f"\n{'='*60}")
+        print(f"Histórico de Dividendos de {ticker}")
+        print(f"{'='*60}\n")
+        
+        # Obtém o histórico de dividendos
+        dividendos = acao.dividends
+        
+        if dividendos.empty:
+            print("Nenhum dividendo encontrado para esta ação.")
         else:
-            print("Data de pagamento não disponível para este dividendo.")
-else:
-    print(f"Erro ao buscar histórico de dividendos: {response_dividendos.status_code}")
+            # Filtra apenas dividendos com valor maior que 0
+            dividendos_validos = dividendos[dividendos > 0]
+            
+            # Pega apenas os últimos 12 dividendos válidos
+            ultimos_12 = dividendos_validos.tail(12)
+            
+            if ultimos_12.empty:
+                print("Nenhum dividendo com valor válido encontrado para esta ação.")
+            else:
+                # Itera sobre os dividendos
+                for data, valor in ultimos_12.items():
+                    data_formatada = data.strftime('%Y-%m-%d')
+                    print(f"{data_formatada} | Dividendo: R$ {valor:.2f}")
+        
+    except Exception as e:
+        print(f"Erro ao buscar dados: {e}")
+        print("Verifique se o ticker está correto. Use o formato: PETR4 ou PETR4.SA")
+
+def main():
+    """Função principal"""
+    print("\n" + "="*60)
+    print("Consultor de Dividendos - Yahoo Finance")
+    print("="*60)
+    print("Digite o ticker da ação brasileira (ex: PETR4, VALE3, WEGE3)")
+    
+    while True:
+        ticker = input("\nDigite o ticker da ação (ou 'sair' para encerrar): ").upper().strip()
+        
+        if ticker.lower() == 'sair':
+            print("\nAté logo!")
+            break
+        
+        if not ticker:
+            print("Por favor, digite um ticker válido.")
+            continue
+        
+        buscar_dividendos(ticker)
+
+if __name__ == "__main__":
+    main()
