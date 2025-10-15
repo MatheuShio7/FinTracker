@@ -10,11 +10,6 @@ def convert_timestamp_to_date(timestamp):
 def buscar_historico_precos(ticker, range_period="3mo", interval="1d"):
     """
     Busca o histórico de preços de uma ação
-    
-    Args:
-        ticker (str): Símbolo da ação (ex: PETR4, VALE3)
-        range_period (str): Período de dados (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)
-        interval (str): Intervalo dos dados (1m, 5m, 15m, 30m, 60m, 1h, 1d, etc)
     """
     
     # URL da API
@@ -53,18 +48,23 @@ def buscar_historico_precos(ticker, range_period="3mo", interval="1d"):
                 if 'historicalDataPrice' in resultado:
                     historico = resultado['historicalDataPrice']
                     if historico:
+                        # Extrai as datas do histórico
+                        datas_historico = [convert_timestamp_to_date(item['date']) for item in historico]
+                        
                         for item in historico:
                             data_formatada = convert_timestamp_to_date(item['date'])
                             fechamento = item['close']
                             print(f"{data_formatada} | Fechamento: R$ {fechamento:.2f}")
+                        
+                        # Verifica se hoje está no histórico
+                        hoje = datetime.now().strftime('%Y-%m-%d')
+                        if hoje not in datas_historico:
+                            # Se não estiver, exibe o preço atual
+                            preco_atual = resultado.get('regularMarketPrice')
+                            if preco_atual:
+                                print(f"{hoje} | Fechamento: R$ {preco_atual:.2f}")
                     else:
                         print("Nenhum dado histórico disponível para este período.")
-                
-                # Exibir cotação atual ao final
-                preco_atual = resultado.get('regularMarketPrice')
-                hora_atualizacao = resultado.get('regularMarketTime')
-                if preco_atual and hora_atualizacao:
-                    print(f"{hora_atualizacao[:10]} | Fechamento: R$ {preco_atual:.2f}")
                 else:
                     print("Sem dados históricos para este ticker.")
             else:
@@ -106,11 +106,7 @@ def main():
             print("Por favor, digite um ticker válido.")
             continue
         
-        # Opcionalmente, perguntar pelo período e intervalo
-        range_choice = input("Período (padrão: 3mo - últimos 3 meses)? Digite ou pressione Enter: ").strip() or "3mo"
-        interval_choice = input("Intervalo (padrão: 1d - diário)? Digite ou pressione Enter: ").strip() or "1d"
-        
-        buscar_historico_precos(ticker, range_period=range_choice, interval=interval_choice)
+        buscar_historico_precos(ticker)
 
 if __name__ == "__main__":
     main()
