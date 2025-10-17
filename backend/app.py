@@ -8,6 +8,10 @@ import os
 
 from config.config import Config
 from routes import health_routes
+from routes import supabase_example_routes  # Descomente para habilitar rotas de exemplo do Supabase
+from routes import price_routes  # Rotas de preços de ações
+from routes import dividend_routes  # Rotas de dividendos de ações
+from routes import stock_view_routes  # Rota de visualização de ações
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -22,6 +26,10 @@ def create_app(config_class=Config):
     
     # Registra blueprints (rotas)
     app.register_blueprint(health_routes.bp)
+    app.register_blueprint(supabase_example_routes.bp)  # Rotas de exemplo do Supabase
+    app.register_blueprint(price_routes.bp)  # Rotas de preços de ações
+    app.register_blueprint(dividend_routes.bp)  # Rotas de dividendos de ações
+    app.register_blueprint(stock_view_routes.bp)  # Rota de visualização de ações
     
     return app
 
