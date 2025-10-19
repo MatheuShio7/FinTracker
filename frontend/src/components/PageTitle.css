@@ -1,5 +1,5 @@
 .page-title {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 300px; /* Posicionado após a logo que tem ~170px de largura */
   z-index: 1000;

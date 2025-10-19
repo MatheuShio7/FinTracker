@@ -1,0 +1,97 @@
+.price-chart-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 16rem auto 2rem auto;
+  padding: 1.5rem;
+  background: #16171b;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.chart-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #9ca3af;
+}
+
+.chart-empty p {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Tooltip customizado */
+.custom-tooltip {
+  background: rgba(0, 0, 0, 0.85);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tooltip-date {
+  font-size: 0.75rem;
+  color: #d1d5db;
+  margin: 0 0 0.25rem 0;
+  font-weight: 500;
+}
+
+.tooltip-price {
+  font-size: 1rem;
+  color: #ffffff;
+  margin: 0;
+  font-weight: 700;
+}
+
+/* Footer com estatísticas */
+.chart-footer {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #333333;
+}
+
+.chart-stats {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 1.125rem;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .price-chart-container {
+    padding: 1rem;
+    margin: 16rem 0.5rem 2rem 0.5rem;
+  }
+
+  .chart-stats {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .stat-item {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+

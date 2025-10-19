@@ -1,5 +1,5 @@
 .page-subtitle {
-  position: fixed;
+  position: absolute;
   top: 130px;
   left: 300px;
   z-index: 999;

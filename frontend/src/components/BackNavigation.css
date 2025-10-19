@@ -1,5 +1,5 @@
 .back-navigation {
-  position: fixed;
+  position: absolute;
   left: 300px;
   z-index: 1001;
   display: flex;

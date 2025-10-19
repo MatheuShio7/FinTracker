@@ -1,5 +1,5 @@
 .reload-button {
-    position: fixed;
+    position: absolute;
     top: 100px;
     right: 80px;
     z-index: 1001;

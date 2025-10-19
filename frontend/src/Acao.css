@@ -3,6 +3,7 @@
 .acao-page {
   width: 100%;
   min-height: 100vh;
+  padding-bottom: 2rem;
 }
 
 /* Ajuste de posicionamento do título e subtítulo na página de ações */
@@ -16,4 +17,39 @@
 
 .acao-page .page-subtitle {
   top: 170px;
+}
+
+/* Loading e erro do backend */
+.backend-loading,
+.backend-error {
+  width: 100%;
+  max-width: 1200px;
+  margin: 16rem auto 2rem auto;
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.backend-loading {
+  background: #111111;
+  border: 2px dashed #333333;
+}
+
+.backend-loading p {
+  color: #9ca3af;
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+.backend-error {
+  background: #111111;
+  border: 2px solid #dc2626;
+}
+
+.backend-error p {
+  color: #fca5a5;
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
 } 

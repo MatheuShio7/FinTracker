@@ -3,4 +3,9 @@
 .explorar-page {
   width: 100%;
   position: relative;
+}
+
+/* Ajuste de posicionamento do título na página Explorar */
+.explorar-page .page-title {
+  left: 72px;
 } 

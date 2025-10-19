@@ -7,6 +7,7 @@ import PageTitle from './components/PageTitle'
 import PageSubtitle from './components/PageSubtitle'
 import BackNavigation from './components/BackNavigation'
 import ReloadButton from './components/ReloadButton'
+import PriceChart from './components/PriceChart'
 
 function Acao() {
   const { ticker } = useParams()
@@ -108,7 +109,26 @@ function Acao() {
       <BackNavigation from={from} />
       <ReloadButton />
       <PageTitle title={ticker} />
-      {!isLoading && companyName && <PageSubtitle subtitle={companyName} />}
+      {companyName && <PageSubtitle subtitle={companyName} />}
+      
+      {/* Gráfico de Histórico de Preços */}
+      {stockData && stockData.prices && (
+        <PriceChart prices={stockData.prices} ticker={ticker} />
+      )}
+      
+      {/* Loading do backend */}
+      {isLoading && (
+        <div className="backend-loading">
+          <p>🔄 Carregando dados de preços...</p>
+        </div>
+      )}
+      
+      {/* Erro do backend */}
+      {backendError && !stockData && (
+        <div className="backend-error">
+          <p>❌ {backendError}</p>
+        </div>
+      )}
     </div>
   )
 }
