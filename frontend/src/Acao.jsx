@@ -13,6 +13,8 @@ function Acao() {
   const location = useLocation()
   const [companyName, setCompanyName] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [stockData, setStockData] = useState(null) // Dados do backend (preços e dividendos)
+  const [backendError, setBackendError] = useState(null) // Erros do backend
   
   // Captura de onde o usuário veio (padrão: Explorar)
   const from = location.state?.from || 'Explorar'
@@ -22,7 +24,11 @@ function Acao() {
       if (!ticker) return
 
       setIsLoading(true)
+      
       try {
+        // =====================================================================
+        // BUSCA 1: Company Name do Supabase
+        // =====================================================================
         const { data, error } = await supabase
           .from('stocks')
           .select('company_name')
@@ -35,10 +41,60 @@ function Acao() {
         } else if (data) {
           setCompanyName(data.company_name)
         }
+
+        // =====================================================================
+        // BUSCA 2: Preços e Dividendos do Backend Flask
+        // =====================================================================
+        try {
+          console.log(`🔄 Buscando dados de ${ticker} do backend...`)
+          
+          const response = await fetch(
+            `http://localhost:5000/api/stocks/${ticker}/view?range=3m`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          )
+
+          const result = await response.json()
+
+          if (response.ok && result.status === 'success') {
+            // Sucesso - Salvar dados
+            setStockData(result.data)
+            setBackendError(null)
+            
+            // Logs para debug
+            console.log(`✅ Dados recebidos com sucesso!`)
+            console.log(`Preços recebidos: ${result.data.prices.length}`)
+            console.log(`Dividendos recebidos: ${result.data.dividends.length}`)
+            console.log(`Preços atualizados: ${result.data.prices_updated}`)
+            console.log(`Dividendos atualizados: ${result.data.dividends_updated}`)
+            console.log(`Dados completos:`, result.data)
+          } else {
+            // Erro retornado pela API
+            if (response.status === 404) {
+              console.error('❌ Ação não encontrada no backend')
+              setBackendError('Ação não encontrada no backend')
+            } else {
+              console.error(`❌ Erro ao buscar dados: ${result.message}`)
+              setBackendError(result.message || 'Erro ao buscar dados')
+            }
+            setStockData(null)
+          }
+        } catch (fetchError) {
+          // Erro de conexão
+          console.error('❌ Erro ao conectar com backend:', fetchError)
+          setBackendError('Erro ao conectar com backend')
+          setStockData(null)
+        }
+
       } catch (error) {
         console.error('Erro na busca:', error)
         setCompanyName('Erro ao carregar')
       } finally {
+        // Remove loading somente após AMBAS as buscas terminarem
         setIsLoading(false)
       }
     }
