@@ -51,7 +51,7 @@ function Acao() {
           console.log(`🔄 Buscando dados de ${ticker} do backend...`)
           
           const response = await fetch(
-            `http://localhost:5000/api/stocks/${ticker}/view?range=3m`,
+            `http://localhost:5001/api/stocks/${ticker}/view?range=3m`,
             {
               method: 'POST',
               headers: {
