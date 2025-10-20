@@ -8,6 +8,7 @@ import PageSubtitle from './components/PageSubtitle'
 import BackNavigation from './components/BackNavigation'
 import ReloadButton from './components/ReloadButton'
 import PriceChart from './components/PriceChart'
+import DividendsChart from './components/DividendsChart'
 
 function Acao() {
   const { ticker } = useParams()
@@ -116,10 +117,15 @@ function Acao() {
         <PriceChart prices={stockData.prices} ticker={ticker} />
       )}
       
+      {/* Gráfico de Dividendos */}
+      {stockData && stockData.dividends && (
+        <DividendsChart dividends={stockData.dividends} ticker={ticker} />
+      )}
+      
       {/* Loading do backend */}
       {isLoading && (
         <div className="backend-loading">
-          <p>🔄 Carregando dados de preços...</p>
+          <p>🔄 Carregando dados de {ticker}...</p>
         </div>
       )}
       
