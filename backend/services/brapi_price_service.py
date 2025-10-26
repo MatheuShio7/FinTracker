@@ -7,6 +7,7 @@ import requests
 from datetime import datetime
 from typing import List, Dict, Optional
 from dotenv import load_dotenv
+from services.update_detection_service import get_last_trading_day
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -156,12 +157,18 @@ def fetch_prices_from_brapi(ticker: str, range_period: str = "3m") -> Optional[L
             # Verifica se há dados históricos
             if 'historicalDataPrice' not in resultado:
                 print(f"[AVISO] Sem dados históricos para {ticker}")
-                # Tenta retornar pelo menos o preço atual
-                if 'regularMarketPrice' in resultado:
-                    hoje = datetime.now().strftime('%Y-%m-%d')
+                # Tenta retornar pelo menos o preço atual (APENAS EM DIAS ÚTEIS)
+                hoje_weekday = datetime.now().date().weekday()
+                is_weekday = hoje_weekday < 5  # 0-4 = segunda a sexta
+                
+                if is_weekday and 'regularMarketPrice' in resultado:
+                    last_trading_day = get_last_trading_day()
+                    last_trading_day_str = last_trading_day.strftime('%Y-%m-%d')
                     preco_atual = resultado['regularMarketPrice']
-                    print(f"[OK] Retornando preço atual: R$ {preco_atual:.2f}")
-                    return [{"date": hoje, "price": preco_atual}]
+                    print(f"[OK] Retornando preço atual: R$ {preco_atual:.2f} (data: {last_trading_day_str})")
+                    return [{"date": last_trading_day_str, "price": preco_atual}]
+                elif not is_weekday:
+                    print(f"[INFO] Final de semana - Sem dados disponíveis")
                 return None
             
             historico = resultado['historicalDataPrice']
@@ -186,16 +193,28 @@ def fetch_prices_from_brapi(ticker: str, range_period: str = "3m") -> Optional[L
                     print(f"[AVISO] Erro ao processar item do histórico: {str(e)}")
                     continue
             
-            # Adiciona o preço atual se não estiver no histórico
-            hoje = datetime.now().strftime('%Y-%m-%d')
+            # Adiciona o preço atual se não estiver no histórico (APENAS EM DIAS ÚTEIS)
+            # Usa a data do último pregão ao invés de "hoje" para evitar registros em finais de semana
+            last_trading_day = get_last_trading_day()
+            last_trading_day_str = last_trading_day.strftime('%Y-%m-%d')
             datas_historico = [item['date'] for item in prices_list]
             
-            if hoje not in datas_historico and 'regularMarketPrice' in resultado:
+            # Só adiciona se:
+            # 1. A data do último pregão não estiver no histórico
+            # 2. Houver um preço de mercado disponível
+            # 3. Hoje for dia útil (segunda a sexta)
+            hoje_weekday = datetime.now().date().weekday()
+            is_weekday = hoje_weekday < 5  # 0-4 = segunda a sexta
+            
+            if is_weekday and last_trading_day_str not in datas_historico and 'regularMarketPrice' in resultado:
                 preco_atual = float(resultado['regularMarketPrice'])
                 prices_list.append({
-                    "date": hoje,
+                    "date": last_trading_day_str,
                     "price": preco_atual
                 })
+                print(f"[INFO] Adicionado preço atual ({preco_atual}) para {last_trading_day_str}")
+            elif not is_weekday:
+                print(f"[INFO] Final de semana detectado - Não adicionando preço atual")
             
             print(f"[OK] Sucesso! {len(prices_list)} preços encontrados para {ticker}")
             return prices_list
