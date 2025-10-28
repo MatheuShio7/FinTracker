@@ -1,10 +1,41 @@
+import { useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import './PriceChart.css'
 
-function PriceChart({ prices, ticker }) {
+function PriceChart({ prices, ticker, onRangeChange, loading }) {
+  const [selectedRange, setSelectedRange] = useState('3m')
+
+  const handleRangeChange = (newRange) => {
+    setSelectedRange(newRange)
+    if (onRangeChange) {
+      onRangeChange(newRange)
+    }
+  }
+
+  // Labels dos botões
+  const rangeLabels = {
+    '7d': '7 dias',
+    '1m': '1 mês',
+    '3m': '3 meses'
+  }
+
   if (!prices || prices.length === 0) {
     return (
       <div className="price-chart-container">
+        <div className="chart-header">
+          <h2>Histórico de Preços</h2>
+          <div className="range-selector">
+            {Object.keys(rangeLabels).map((range) => (
+              <button
+                key={range}
+                onClick={() => handleRangeChange(range)}
+                className={selectedRange === range ? 'selected' : ''}
+              >
+                {rangeLabels[range]}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="chart-empty">
           <p>📊 Sem dados de preços disponíveis</p>
         </div>
@@ -55,7 +86,28 @@ function PriceChart({ prices, ticker }) {
   
   return (
     <div className="price-chart-container">
-      <ResponsiveContainer width="100%" height={400}>
+      <div className="chart-header">
+        <h2>Histórico de Preços</h2>
+        <div className="range-selector">
+          {Object.keys(rangeLabels).map((range) => (
+            <button
+              key={range}
+              onClick={() => handleRangeChange(range)}
+              className={selectedRange === range ? 'selected' : ''}
+              disabled={loading}
+            >
+              {rangeLabels[range]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="chart-loading">
+          <p>🔄 Carregando dados...</p>
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={400}>
         <LineChart
           data={chartData}
           margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
@@ -95,23 +147,26 @@ function PriceChart({ prices, ticker }) {
           />
         </LineChart>
       </ResponsiveContainer>
+      )}
 
-      <div className="chart-footer">
-        <div className="chart-stats">
-          <div className="stat-item">
-            <span className="stat-label">Mínimo</span>
-            <span className="stat-value">{formatPrice(minPrice)}</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Máximo</span>
-            <span className="stat-value">{formatPrice(maxPrice)}</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Último</span>
-            <span className="stat-value">{formatPrice(prices_values[prices_values.length - 1])}</span>
+      {!loading && (
+        <div className="chart-footer">
+          <div className="chart-stats">
+            <div className="stat-item">
+              <span className="stat-label">Mínimo</span>
+              <span className="stat-value">{formatPrice(minPrice)}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Máximo</span>
+              <span className="stat-value">{formatPrice(maxPrice)}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Último</span>
+              <span className="stat-value">{formatPrice(prices_values[prices_values.length - 1])}</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -9,7 +9,7 @@ from config.supabase_config import get_supabase_client
 
 def save_prices(stock_id: str, prices_list: List[Dict[str, any]]) -> int:
     """
-    Salva preços no Supabase
+    Salva preços no Supabase usando UPSERT
     
     Args:
         stock_id: UUID da ação
@@ -17,6 +17,10 @@ def save_prices(stock_id: str, prices_list: List[Dict[str, any]]) -> int:
         
     Returns:
         Número de registros salvos (int) ou 0 se erro
+        
+    Note:
+        Usa UPSERT para atualizar preços existentes ou inserir novos
+        Quando há conflito em (stock_id, date), atualiza o preço
         
     Example:
         >>> prices = [
@@ -42,7 +46,25 @@ def save_prices(stock_id: str, prices_list: List[Dict[str, any]]) -> int:
         # Obtém o cliente Supabase
         supabase = get_supabase_client()
         
-        # Prepara os dados para inserção
+        # ANTES DO UPSERT: Busca preços existentes para comparação (só das datas que vamos salvar)
+        dates_to_save = [item['date'] for item in prices_list if 'date' in item]
+        existing_prices = {}
+        
+        if dates_to_save:
+            try:
+                response_existing = supabase.table('stock_prices')\
+                    .select('date, price')\
+                    .eq('stock_id', stock_id)\
+                    .in_('date', dates_to_save)\
+                    .execute()
+                
+                if response_existing.data:
+                    existing_prices = {item['date']: float(item['price']) for item in response_existing.data}
+                    print(f"[INFO] Encontrados {len(existing_prices)} preços existentes para comparação")
+            except Exception as e:
+                print(f"[AVISO] Não foi possível buscar preços existentes: {str(e)}")
+        
+        # Prepara os dados para inserção/atualização
         records_to_insert = []
         current_timestamp = datetime.utcnow().isoformat()
         
@@ -53,12 +75,26 @@ def save_prices(stock_id: str, prices_list: List[Dict[str, any]]) -> int:
                     print(f"[AVISO] Item sem chaves necessárias ignorado: {item}")
                     continue
                 
-                # Monta o registro para inserção
+                date_str = item['date']
+                new_price = float(item['price'])
+                
+                # Verifica se é INSERT ou UPDATE
+                if date_str in existing_prices:
+                    old_price = existing_prices[date_str]
+                    if abs(old_price - new_price) > 0.01:  # Diferença significativa (mais de R$ 0,01)
+                        print(f"[UPSERT] UPDATE para {date_str}: R$ {old_price:.2f} → R$ {new_price:.2f}")
+                    else:
+                        print(f"[UPSERT] UPDATE para {date_str}: R$ {new_price:.2f} (sem mudança significativa)")
+                else:
+                    print(f"[UPSERT] INSERT novo preço para {date_str}: R$ {new_price:.2f}")
+                
+                # Monta o registro para inserção/atualização
+                # IMPORTANTE: created_at será atualizado no UPDATE também (para rastrear última modificação)
                 record = {
                     'stock_id': stock_id,
-                    'date': item['date'],
-                    'price': float(item['price']),
-                    'created_at': current_timestamp
+                    'date': date_str,
+                    'price': new_price,
+                    'created_at': current_timestamp  # Timestamp da última modificação
                 }
                 
                 records_to_insert.append(record)
@@ -73,7 +109,8 @@ def save_prices(stock_id: str, prices_list: List[Dict[str, any]]) -> int:
             return 0
         
         # Faz UPSERT na tabela stock_prices
-        # onConflict especifica que duplicatas em (stock_id, date) serão ignoradas
+        # onConflict especifica que duplicatas em (stock_id, date) serão ATUALIZADAS
+        print(f"[INFO] Executando UPSERT de {len(records_to_insert)} registros...")
         response = supabase.table('stock_prices')\
             .upsert(records_to_insert, on_conflict='stock_id,date')\
             .execute()
@@ -81,7 +118,7 @@ def save_prices(stock_id: str, prices_list: List[Dict[str, any]]) -> int:
         # Conta quantos registros foram salvos
         saved_count = len(response.data) if response.data else 0
         
-        print(f"[OK] {saved_count} preços salvos com sucesso")
+        print(f"[OK] ✓ {saved_count} preços processados com sucesso (INSERT + UPDATE)")
         return saved_count
         
     except Exception as e:

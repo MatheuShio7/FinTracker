@@ -8,6 +8,65 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
+/* Header do gráfico com título e seletores */
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.chart-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Seletores de período */
+.range-selector {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.range-selector button {
+  padding: 8px 17px;
+  border-radius: 18px;
+  border: none;
+  font-size: 0.9rem;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #202128;
+  color: #9f9f9f;
+}
+
+.range-selector button:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.range-selector button.selected {
+  background: #ffffff;
+  color: #111111;
+}
+
+.range-selector button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Loading do gráfico */
+.chart-loading {
+  text-align: center;
+  padding: 6rem 1rem;
+  color: #9ca3af;
+  font-size: 1rem;
+}
+
 .chart-empty {
   text-align: center;
   padding: 3rem 1rem;
@@ -81,6 +140,26 @@
   .price-chart-container {
     padding: 1rem;
     margin: 16rem 0.5rem 2rem 0.5rem;
+  }
+
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chart-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .range-selector {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .range-selector button {
+    flex: 1;
+    padding: 10px 8px;
+    font-size: 0.75rem;
   }
 
   .chart-stats {

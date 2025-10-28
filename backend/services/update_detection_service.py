@@ -69,11 +69,41 @@ def should_update_prices(last_price_date: Optional[date], range_days: int) -> bo
         # Obtém o último dia de pregão (considera fins de semana)
         last_trading_day = get_last_trading_day()
         
+        # Obtém data e hora atual
+        now = datetime.now()
+        today = now.date()
+        
+        # HORÁRIO DO MERCADO BRASILEIRO (B3):
+        # - Abertura: 10h00
+        # - Fechamento: 17h00 (after-hours até 17h30)
+        # - Consideramos fechado após 18h00 para segurança
+        
+        # Define horário de fechamento do mercado (18h00)
+        market_close_hour = 18
+        market_close_minute = 0
+        
         # Verifica se os dados estão atualizados até o último pregão
         if last_price_date < last_trading_day:
             days_missing = (last_trading_day - last_price_date).days
             print(f"[INFO] Faltam {days_missing} dia(s) de dados - Precisa atualizar preços")
             return True
+        
+        # NOVO: Verifica se tem preço de hoje MAS mercado já fechou
+        # Neste caso, precisa revalidar para pegar o preço de fechamento atualizado
+        if last_price_date == today:
+            # Verifica se mercado já fechou (passou das 18h)
+            if now.hour >= market_close_hour:
+                # Mercado fechou, mas preço pode ser parcial (buscado durante o pregão)
+                # Precisa atualizar para obter o preço de fechamento real
+                print(f"[INFO] Preço de hoje encontrado ({last_price_date}), mas mercado já fechou (agora: {now.hour:02d}:{now.minute:02d})")
+                print(f"[INFO] Revalidando para obter preço de fechamento atualizado - Precisa atualizar")
+                return True
+            else:
+                # Mercado ainda está aberto ou acabou de abrir
+                # Preço atual é suficiente (será o intraday)
+                print(f"[INFO] Preço de hoje encontrado ({last_price_date}) e mercado ainda aberto (agora: {now.hour:02d}:{now.minute:02d})")
+                print(f"[INFO] Cache OK com preço intraday - Não precisa atualizar")
+                return False
         
         # Cache está atualizado
         print(f"[INFO] Cache atualizado até {last_price_date} - Não precisa atualizar")

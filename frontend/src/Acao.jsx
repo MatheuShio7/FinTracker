@@ -1,5 +1,5 @@
 import { useParams, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from './lib/supabase'
 import './Acao.css'
 import Logo from './components/Logo'
@@ -17,6 +17,11 @@ function Acao() {
   const [isLoading, setIsLoading] = useState(true)
   const [stockData, setStockData] = useState(null) // Dados do backend (preços e dividendos)
   const [backendError, setBackendError] = useState(null) // Erros do backend
+  const [selectedRange, setSelectedRange] = useState('3m') // Range de preços selecionado
+  const [chartLoading, setChartLoading] = useState(false) // Loading específico do chart
+  
+  // Ref para rastrear o ticker anterior (inicializa com null para detectar primeiro carregamento)
+  const previousTickerRef = useRef(null)
   
   // Captura de onde o usuário veio (padrão: Explorar)
   const from = location.state?.from || 'Explorar'
@@ -25,23 +30,33 @@ function Acao() {
     const fetchStockData = async () => {
       if (!ticker) return
 
-      setIsLoading(true)
+      // Detectar se é mudança de ticker (carregamento inicial) ou apenas mudança de range
+      const isTickerChange = previousTickerRef.current !== ticker
+      
+      if (isTickerChange) {
+        // Carregamento inicial: mostrar loading geral
+        setIsLoading(true)
+        previousTickerRef.current = ticker
+        setSelectedRange('3m') // Reset do range ao mudar de ação
+      }
       
       try {
         // =====================================================================
-        // BUSCA 1: Company Name do Supabase
+        // BUSCA 1: Company Name do Supabase (apenas se mudou o ticker)
         // =====================================================================
-        const { data, error } = await supabase
-          .from('stocks')
-          .select('company_name')
-          .eq('ticker', ticker)
-          .single()
+        if (isTickerChange) {
+          const { data, error } = await supabase
+            .from('stocks')
+            .select('company_name')
+            .eq('ticker', ticker)
+            .single()
 
-        if (error) {
-          console.error('Erro ao buscar dados da ação:', error)
-          setCompanyName('Empresa não encontrada')
-        } else if (data) {
-          setCompanyName(data.company_name)
+          if (error) {
+            console.error('Erro ao buscar dados da ação:', error)
+            setCompanyName('Empresa não encontrada')
+          } else if (data) {
+            setCompanyName(data.company_name)
+          }
         }
 
         // =====================================================================
@@ -51,7 +66,7 @@ function Acao() {
           console.log(`🔄 Buscando dados de ${ticker} do backend...`)
           
           const response = await fetch(
-            `http://localhost:5000/api/stocks/${ticker}/view?range=3m`,
+            `http://localhost:5000/api/stocks/${ticker}/view?range=${selectedRange}`,
             {
               method: 'POST',
               headers: {
@@ -94,15 +109,28 @@ function Acao() {
 
       } catch (error) {
         console.error('Erro na busca:', error)
-        setCompanyName('Erro ao carregar')
+        if (isTickerChange) {
+          setCompanyName('Erro ao carregar')
+        }
       } finally {
-        // Remove loading somente após AMBAS as buscas terminarem
-        setIsLoading(false)
+        // Remove loading apropriado
+        if (isTickerChange) {
+          setIsLoading(false)
+        }
+        setChartLoading(false)
       }
     }
 
     fetchStockData()
-  }, [ticker])
+  }, [ticker, selectedRange])
+
+  // Função para mudar o range e recarregar os dados
+  const handleRangeChange = async (newRange) => {
+    if (newRange === selectedRange) return // Não recarregar se já é o mesmo range
+    
+    setChartLoading(true)
+    setSelectedRange(newRange)
+  }
 
   return (
     <div className="acao-page">
@@ -114,7 +142,12 @@ function Acao() {
       
       {/* Gráfico de Histórico de Preços */}
       {stockData && stockData.prices && (
-        <PriceChart prices={stockData.prices} ticker={ticker} />
+        <PriceChart 
+          prices={stockData.prices} 
+          ticker={ticker}
+          onRangeChange={handleRangeChange}
+          loading={chartLoading}
+        />
       )}
       
       {/* Gráfico de Dividendos */}
