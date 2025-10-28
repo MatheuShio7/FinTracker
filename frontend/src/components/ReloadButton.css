@@ -5,9 +5,9 @@
     z-index: 1001;
     width: 50px;
     height: 50px;
-    background-color: #f65308;
-    border: none;
-    border-radius: 12px;
+    background-color: transparent;
+    border: 3px solid #202128;
+    border-radius: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -16,20 +16,42 @@
   }
   
   .reload-button:hover {
-    background-color: #f65308;
-    transform: scale(1.03);
+    border: 3px solid #f65308;
+    transform: scale(1.015);
   }
   
   .reload-button:active {
     transform: scale(0.95);
   }
   
+  .reload-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
+  }
+  
+  .reload-button.loading {
+    background-color: #f65308;
+  }
+  
   .reload-button i {
     color: white;
     font-size: 26px;
-    transition: transform 0.5s ease;
+    transition: transform 0.6s ease;
   }
   
   .reload-button:hover i {
-    transform: rotate(180deg);
+    transform: rotate(120deg);
+  }
+  
+  .reload-button i.spinning {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }

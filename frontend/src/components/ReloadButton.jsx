@@ -1,16 +1,20 @@
 import './ReloadButton.css'
 
-function ReloadButton({ onClick }) {
+function ReloadButton({ onClick, isLoading = false }) {
   const handleClick = () => {
-    // Função placeholder - será implementada futuramente
-    if (onClick) {
+    if (onClick && !isLoading) {
       onClick()
     }
   }
 
   return (
-    <button className="reload-button" onClick={handleClick}>
-      <i className="bi bi-arrow-clockwise"></i>
+    <button 
+      className={`reload-button ${isLoading ? 'loading' : ''}`}
+      onClick={handleClick}
+      disabled={isLoading}
+      title={isLoading ? 'Atualizando...' : 'Atualizar dados'}
+    >
+      <i className={`bi bi-arrow-clockwise ${isLoading ? 'spinning' : ''}`}></i>
     </button>
   )
 }

@@ -196,4 +196,28 @@
 
 .forgot-password-link:hover {
   text-decoration: underline;
+}
+
+.auth-error {
+  width: 80%;
+  padding: 12px 20px;
+  background-color: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  text-align: center;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 } 

@@ -19,6 +19,7 @@ function Acao() {
   const [backendError, setBackendError] = useState(null) // Erros do backend
   const [selectedRange, setSelectedRange] = useState('3m') // Range de preços selecionado
   const [chartLoading, setChartLoading] = useState(false) // Loading específico do chart
+  const [isRefreshing, setIsRefreshing] = useState(false) // Loading do botão de reload
   
   // Ref para rastrear o ticker anterior (inicializa com null para detectar primeiro carregamento)
   const previousTickerRef = useRef(null)
@@ -132,11 +133,74 @@ function Acao() {
     setSelectedRange(newRange)
   }
 
+  // Função para forçar atualização de preço atual e dividendos
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    
+    try {
+      console.log(`🔄 Iniciando atualização forçada de ${ticker}...`)
+      
+      // Chamar novo endpoint de refresh
+      const response = await fetch(
+        `http://localhost:5000/api/stocks/${ticker}/refresh`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+      
+      const data = await response.json()
+      
+      if (response.ok && data.status === 'success') {
+        // Atualizar stockData com novos dados
+        setStockData(prevData => {
+          if (!prevData) return prevData
+          
+          // Atualizar preço atual nos dados de preços
+          let updatedPrices = prevData.prices || []
+          
+          // Se há preço atual, atualizar no array de preços
+          if (data.current_price && updatedPrices.length > 0) {
+            // Pegar a data do último preço ou usar hoje
+            const lastPrice = updatedPrices[updatedPrices.length - 1]
+            const lastDate = lastPrice.date
+            
+            // Criar novo array com preço atualizado
+            updatedPrices = [...updatedPrices]
+            updatedPrices[updatedPrices.length - 1] = {
+              date: lastDate,
+              price: data.current_price
+            }
+          }
+          
+          return {
+            ...prevData,
+            prices: updatedPrices,
+            dividends: data.dividends,
+            timestamp: data.timestamp
+          }
+        })
+        
+        console.log('✅ Dados atualizados com sucesso!')
+        console.log(`Preço atual: R$ ${data.current_price?.toFixed(2) || 'N/A'}`)
+        console.log(`Dividendos: ${data.dividends?.length || 0} registros`)
+      } else {
+        console.error('❌ Erro ao atualizar:', data.message)
+      }
+    } catch (error) {
+      console.error('❌ Erro ao conectar com backend:', error)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
   return (
     <div className="acao-page">
       <Logo />
       <BackNavigation from={from} />
-      <ReloadButton />
+      <ReloadButton onClick={handleRefresh} isLoading={isRefreshing} />
       <PageTitle title={ticker} />
       {companyName && <PageSubtitle subtitle={companyName} />}
       

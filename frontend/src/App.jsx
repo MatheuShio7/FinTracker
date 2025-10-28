@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
 import Login from './Login'
 import Cadastro from './Cadastro'
 import Carteira from './Carteira'
@@ -22,11 +24,31 @@ function AppContent() {
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
-          <Route path="/carteira" element={<Carteira />} />
-          <Route path="/explorar" element={<Explorar />} />
-          <Route path="/conteudo" element={<Conteudo />} />
-          <Route path="/:ticker" element={<Acao />} />
-          <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/carteira" element={
+            <ProtectedRoute>
+              <Carteira />
+            </ProtectedRoute>
+          } />
+          <Route path="/explorar" element={
+            <ProtectedRoute>
+              <Explorar />
+            </ProtectedRoute>
+          } />
+          <Route path="/conteudo" element={
+            <ProtectedRoute>
+              <Conteudo />
+            </ProtectedRoute>
+          } />
+          <Route path="/:ticker" element={
+            <ProtectedRoute>
+              <Acao />
+            </ProtectedRoute>
+          } />
+          <Route path="/configuracoes" element={
+            <ProtectedRoute>
+              <Configuracoes />
+            </ProtectedRoute>
+          } />
         </Routes>
       </div>
     </div>
@@ -36,7 +58,9 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   )
 }

@@ -12,6 +12,7 @@ from routes import supabase_example_routes  # Descomente para habilitar rotas de
 from routes import price_routes  # Rotas de preços de ações
 from routes import dividend_routes  # Rotas de dividendos de ações
 from routes import stock_view_routes  # Rota de visualização de ações
+from routes import auth_routes  # Rotas de autenticação
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -30,6 +31,7 @@ def create_app(config_class=Config):
     app.register_blueprint(price_routes.bp)  # Rotas de preços de ações
     app.register_blueprint(dividend_routes.bp)  # Rotas de dividendos de ações
     app.register_blueprint(stock_view_routes.bp)  # Rota de visualização de ações
+    app.register_blueprint(auth_routes.bp)  # Rotas de autenticação
     
     return app
 
