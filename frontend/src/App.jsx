@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { PortfolioProvider } from './contexts/PortfolioContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './Login'
 import Cadastro from './Cadastro'
@@ -59,7 +60,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppContent />
+        <PortfolioProvider>
+          <AppContent />
+        </PortfolioProvider>
       </AuthProvider>
     </Router>
   )
