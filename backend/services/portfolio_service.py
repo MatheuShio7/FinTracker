@@ -360,3 +360,162 @@ def get_user_watchlist(user_id):
         print(f"Erro ao buscar watchlist: {str(e)}")
         return []
 
+
+def get_stock_quantity(user_id, ticker):
+    """
+    Busca a quantidade de uma ação na carteira do usuário
+    
+    Args:
+        user_id: ID do usuário
+        ticker: Código da ação (ex: PETR4)
+        
+    Returns:
+        dict: {
+            "success": bool,
+            "quantity": int,
+            "message": str (opcional)
+        }
+    """
+    try:
+        supabase = get_supabase_client()
+        
+        # 1. Buscar stock_id pelo ticker
+        stock_response = supabase.table('stocks').select('id').eq('ticker', ticker).execute()
+        
+        if not stock_response.data or len(stock_response.data) == 0:
+            return {
+                "success": False,
+                "quantity": 0,
+                "message": f"Ação {ticker} não encontrada no sistema"
+            }
+        
+        stock_id = stock_response.data[0]['id']
+        
+        # 2. Buscar quantidade na carteira
+        portfolio_response = supabase.table('user_portfolio')\
+            .select('quantity')\
+            .eq('user_id', user_id)\
+            .eq('stock_id', stock_id)\
+            .execute()
+        
+        if portfolio_response.data and len(portfolio_response.data) > 0:
+            # Tem na carteira
+            return {
+                "success": True,
+                "quantity": portfolio_response.data[0]['quantity']
+            }
+        else:
+            # Não tem na carteira
+            return {
+                "success": True,
+                "quantity": 0
+            }
+            
+    except Exception as e:
+        print(f"Erro ao buscar quantidade: {str(e)}")
+        return {
+            "success": False,
+            "quantity": 0,
+            "message": f"Erro ao buscar quantidade: {str(e)}"
+        }
+
+
+def update_stock_quantity(user_id, ticker, quantity):
+    """
+    Atualiza a quantidade de uma ação na carteira do usuário
+    
+    Regras:
+    - Se quantity = 0: DELETAR registro da carteira
+    - Se quantity > 0 E já existe: UPDATE do quantity
+    - Se quantity > 0 E não existe: INSERT novo registro
+    
+    Args:
+        user_id: ID do usuário
+        ticker: Código da ação (ex: PETR4)
+        quantity: Nova quantidade (0 para remover)
+        
+    Returns:
+        dict: {
+            "success": bool,
+            "quantity": int,
+            "message": str
+        }
+    """
+    try:
+        supabase = get_supabase_client()
+        
+        # Validar quantidade
+        if quantity < 0:
+            return {
+                "success": False,
+                "quantity": 0,
+                "message": "Quantidade não pode ser negativa"
+            }
+        
+        # 1. Buscar stock_id pelo ticker
+        stock_response = supabase.table('stocks').select('id').eq('ticker', ticker).execute()
+        
+        if not stock_response.data or len(stock_response.data) == 0:
+            return {
+                "success": False,
+                "quantity": 0,
+                "message": f"Ação {ticker} não encontrada no sistema"
+            }
+        
+        stock_id = stock_response.data[0]['id']
+        
+        # 2. Verificar se já existe na carteira
+        existing = supabase.table('user_portfolio')\
+            .select('*')\
+            .eq('user_id', user_id)\
+            .eq('stock_id', stock_id)\
+            .execute()
+        
+        if quantity == 0:
+            # Remover da carteira
+            supabase.table('user_portfolio')\
+                .delete()\
+                .eq('user_id', user_id)\
+                .eq('stock_id', stock_id)\
+                .execute()
+            
+            return {
+                "success": True,
+                "quantity": 0,
+                "message": "Ação removida da carteira!"
+            }
+        
+        elif existing.data and len(existing.data) > 0:
+            # Já existe - atualizar quantidade
+            supabase.table('user_portfolio')\
+                .update({'quantity': quantity})\
+                .eq('user_id', user_id)\
+                .eq('stock_id', stock_id)\
+                .execute()
+            
+            return {
+                "success": True,
+                "quantity": quantity,
+                "message": f"Quantidade atualizada para {quantity}"
+            }
+        else:
+            # Não existe - inserir novo registro
+            supabase.table('user_portfolio').insert({
+                'user_id': user_id,
+                'stock_id': stock_id,
+                'quantity': quantity
+            }).execute()
+            
+            return {
+                "success": True,
+                "quantity": quantity,
+                "message": f"Ação adicionada à carteira com {quantity} unidades"
+            }
+            
+    except Exception as e:
+        print(f"Erro ao atualizar quantidade: {str(e)}")
+        return {
+            "success": False,
+            "quantity": 0,
+            "message": f"Erro ao atualizar quantidade: {str(e)}"
+        }

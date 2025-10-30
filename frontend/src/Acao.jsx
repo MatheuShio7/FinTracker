@@ -9,6 +9,7 @@ import BackNavigation from './components/BackNavigation'
 import ReloadButton from './components/ReloadButton'
 import PriceChart from './components/PriceChart'
 import DividendsChart from './components/DividendsChart'
+import StockEditor from './components/StockEditor'
 
 function Acao() {
   const { ticker } = useParams()
@@ -217,6 +218,11 @@ function Acao() {
       {/* Gráfico de Dividendos */}
       {stockData && stockData.dividends && (
         <DividendsChart dividends={stockData.dividends} ticker={ticker} />
+      )}
+      
+      {/* Editor de Quantidade e Observações */}
+      {stockData && (
+        <StockEditor ticker={ticker} />
       )}
       
       {/* Loading do backend */}

@@ -1,0 +1,232 @@
+.stock-editor {
+  width: 100%;
+  max-width: 1200px;
+  margin: 40px auto 0;
+  padding: 30px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.stock-editor-loading {
+  text-align: center;
+  color: #9f9f9f;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  padding: 20px;
+}
+
+.stock-editor-error {
+  width: 100%;
+  padding: 12px 20px;
+  background-color: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  text-align: center;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Campo genérico */
+.stock-editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stock-editor-label {
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+/* Campo de Quantidade */
+.quantity-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 180px;
+}
+
+.quantity-input {
+  width: 80px;
+  height: 45px;
+  background-color: #16171b;
+  border: 1px solid #2a2b30;
+  border-radius: 8px;
+  padding: 0 15px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  color: #ffffff;
+  outline: none;
+  transition: border-color 0.2s ease;
+  text-align: center;
+}
+
+.quantity-input:focus {
+  border-color: #f65308;
+}
+
+.quantity-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Remover spinners do input number */
+.quantity-input::-webkit-inner-spin-button,
+.quantity-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.quantity-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Botões de quantidade */
+.quantity-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+
+.quantity-btn {
+  width: 45px;
+  height: 45px;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.quantity-btn:hover:not(:disabled) {
+  color: #f65308;
+  transform: scale(1.1);
+}
+
+.quantity-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.quantity-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.quantity-btn i {
+  font-size: 20px;
+}
+
+/* Campo de Observações */
+.notes-textarea {
+  width: 100%;
+  min-height: 120px;
+  background-color: #16171b;
+  border: 1px solid #2a2b30;
+  border-radius: 8px;
+  padding: 15px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  color: #ffffff;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.notes-textarea::placeholder {
+  color: #9f9f9f;
+}
+
+.notes-textarea:focus {
+  border-color: #f65308;
+}
+
+.notes-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Botão Salvar - Estilo igual ao botão de login */
+.save-button {
+  width: 200px;
+  height: 50px;
+  border: none;
+  border-radius: 25px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+  align-self: center;
+  
+  /* Estado padrão (sem mudanças) */
+  background-color: #16171b;
+  color: #9f9f9f;
+}
+
+.save-button-active {
+  /* Estado ativo (com mudanças) */
+  background-color: #16171b;
+  color: white;
+  border: 1px solid #f65308;
+  animation: glow-border 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow-border {
+  0% {
+    border-color: #f65308;
+    box-shadow: 0 0 3px rgba(246, 83, 8, 0.3);
+  }
+  100% {
+    border-color: #ff8c42;
+    box-shadow: 0 0 8px rgba(246, 83, 8, 0.5);
+  }
+}
+
+.save-button-active:hover {
+  transform: scale(1.02);
+}
+
+.save-button:disabled {
+  cursor: not-allowed;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .stock-editor {
+    padding: 20px;
+    margin: 20px auto 0;
+  }
+  
+  .quantity-input-container {
+    max-width: 100%;
+  }
+  
+  .save-button {
+    width: 100%;
+  }
+}
+
