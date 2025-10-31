@@ -70,7 +70,13 @@ def get_stock_note(user_id, ticker):
 
 def save_stock_note(user_id, ticker, note_text):
     """
-    Salva ou atualiza a observação do usuário sobre uma ação
+    Salva, atualiza ou deleta a observação do usuário sobre uma ação
+    
+    Regras:
+    - Se note_text vazio E já existe: DELETAR registro
+    - Se note_text vazio E não existe: não fazer nada
+    - Se note_text com conteúdo E já existe: UPDATE
+    - Se note_text com conteúdo E não existe: INSERT
     
     Args:
         user_id: ID do usuário
@@ -82,7 +88,7 @@ def save_stock_note(user_id, ticker, note_text):
             "success": bool,
             "message": str,
             "note_text": str,
-            "updated_at": str
+            "updated_at": str ou None
         }
     """
     try:
@@ -106,13 +112,44 @@ def save_stock_note(user_id, ticker, note_text):
             .eq('stock_id', stock_id)\
             .execute()
         
+        # 3. Limpar espaços do note_text
+        note_text_clean = note_text.strip() if note_text else ""
+        
+        # 4. Se note_text está vazio, deletar registro se existir
+        if not note_text_clean:
+            if existing.data and len(existing.data) > 0:
+                # Deletar registro existente
+                supabase.table('user_stock_notes')\
+                    .delete()\
+                    .eq('user_id', user_id)\
+                    .eq('stock_id', stock_id)\
+                    .execute()
+                
+                print(f"✅ Observação deletada para {ticker} (campo vazio)")
+                
+                return {
+                    "success": True,
+                    "message": "Observação removida com sucesso!",
+                    "note_text": "",
+                    "updated_at": None
+                }
+            else:
+                # Não existe e está vazio - não fazer nada
+                return {
+                    "success": True,
+                    "message": "Nenhuma alteração necessária",
+                    "note_text": "",
+                    "updated_at": None
+                }
+        
+        # 5. Se note_text tem conteúdo
         current_time = datetime.utcnow().isoformat()
         
         if existing.data and len(existing.data) > 0:
             # Já existe - atualizar
             supabase.table('user_stock_notes')\
                 .update({
-                    'note_text': note_text,
+                    'note_text': note_text_clean,
                     'updated_at': current_time
                 })\
                 .eq('user_id', user_id)\
@@ -122,7 +159,7 @@ def save_stock_note(user_id, ticker, note_text):
             return {
                 "success": True,
                 "message": "Observação atualizada com sucesso!",
-                "note_text": note_text,
+                "note_text": note_text_clean,
                 "updated_at": current_time
             }
         else:
@@ -130,7 +167,7 @@ def save_stock_note(user_id, ticker, note_text):
             supabase.table('user_stock_notes').insert({
                 'user_id': user_id,
                 'stock_id': stock_id,
-                'note_text': note_text,
+                'note_text': note_text_clean,
                 'created_at': current_time,
                 'updated_at': current_time
             }).execute()
@@ -138,7 +175,7 @@ def save_stock_note(user_id, ticker, note_text):
             return {
                 "success": True,
                 "message": "Observação salva com sucesso!",
-                "note_text": note_text,
+                "note_text": note_text_clean,
                 "updated_at": current_time
             }
             

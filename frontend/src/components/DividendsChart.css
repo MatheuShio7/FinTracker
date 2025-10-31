@@ -1,7 +1,7 @@
 .dividends-chart-container {
   width: 100%;
   max-width: 1200px;
-  margin: 2rem auto;
+  margin: 2rem auto 0.5rem auto;
   padding: 1.5rem;
   background: #16171b;
   border-radius: 12px;

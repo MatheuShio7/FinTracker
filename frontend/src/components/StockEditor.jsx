@@ -146,7 +146,9 @@ function StockEditor({ ticker }) {
       
       console.log(`✅ Quantidade salva: ${quantityData.quantity}`)
       
-      // Salvar observação
+      // Salvar observação (trim para limpar espaços)
+      const notesTrimmed = notes.trim()
+      
       const notesResponse = await fetch(
         'http://localhost:5000/api/notes/save',
         {
@@ -157,7 +159,7 @@ function StockEditor({ ticker }) {
           body: JSON.stringify({
             user_id: user.id,
             ticker: ticker,
-            note_text: notes
+            note_text: notesTrimmed
           })
         }
       )
@@ -170,9 +172,17 @@ function StockEditor({ ticker }) {
       
       console.log(`✅ Observação salva com sucesso!`)
       
-      // Atualizar estados originais
+      // Se a observação foi deletada (campo vazio), atualizar states
+      if (!notesTrimmed) {
+        console.log(`🗑️ Observação removida do banco (campo vazio)`)
+      }
+      
+      // Atualizar estados originais com os valores retornados do backend
       setOriginalQuantity(quantityData.quantity)
-      setOriginalNotes(notes)
+      setOriginalNotes(notesData.note_text || '')
+      
+      // Atualizar o campo atual com o valor limpo
+      setNotes(notesData.note_text || '')
       
       console.log('✅ Alterações salvas com sucesso!')
       
@@ -202,54 +212,57 @@ function StockEditor({ ticker }) {
         </div>
       )}
       
-      {/* Campo de Quantidade */}
-      <div className="stock-editor-field">
-        <label className="stock-editor-label">Quantidade</label>
-        
-        <div className="quantity-input-container">
-          <input
-            type="number"
-            className="quantity-input"
-            value={quantity}
-            onChange={handleQuantityChange}
-            onBlur={handleQuantityBlur}
-            min="0"
-            disabled={saving}
-          />
+      {/* Container dos campos lado a lado */}
+      <div className="stock-editor-fields-container">
+        {/* Campo de Quantidade */}
+        <div className="stock-editor-field quantity-field">
+          <label className="stock-editor-label">Quantidade</label>
           
-          <div className="quantity-buttons">
-            <button
-              className="quantity-btn quantity-btn-increase"
-              onClick={handleIncrease}
+          <div className="quantity-input-container">
+            <input
+              type="number"
+              className="quantity-input"
+              value={quantity}
+              onChange={handleQuantityChange}
+              onBlur={handleQuantityBlur}
+              min="0"
               disabled={saving}
-              aria-label="Aumentar quantidade"
-            >
-              <i className="bi bi-plus"></i>
-            </button>
-            <button
-              className="quantity-btn quantity-btn-decrease"
-              onClick={handleDecrease}
-              disabled={saving}
-              aria-label="Diminuir quantidade"
-            >
-              <i className="bi bi-dash"></i>
-            </button>
+            />
+            
+            <div className="quantity-buttons">
+              <button
+                className="quantity-btn quantity-btn-increase"
+                onClick={handleIncrease}
+                disabled={saving}
+                aria-label="Aumentar quantidade"
+              >
+                <i className="bi bi-plus"></i>
+              </button>
+              <button
+                className="quantity-btn quantity-btn-decrease"
+                onClick={handleDecrease}
+                disabled={saving}
+                aria-label="Diminuir quantidade"
+              >
+                <i className="bi bi-dash"></i>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      
-      {/* Campo de Observações */}
-      <div className="stock-editor-field">
-        <label className="stock-editor-label">Observações</label>
         
-        <textarea
-          className="notes-textarea"
-          placeholder={`Observações sobre ${ticker}`}
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={4}
-          disabled={saving}
-        />
+        {/* Campo de Observações */}
+        <div className="stock-editor-field notes-field">
+          <label className="stock-editor-label">Observações</label>
+          
+          <textarea
+            className="notes-textarea"
+            placeholder={`Observações sobre ${ticker}`}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={4}
+            disabled={saving}
+          />
+        </div>
       </div>
       
       {/* Botão Salvar */}
