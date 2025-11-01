@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { buildApiUrl } from '../config/api'
 
 const AuthContext = createContext()
 
@@ -29,7 +30,7 @@ export function AuthProvider({ children }) {
   // Busca dados do usuário pelo ID
   const fetchUser = async (userId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/user/${userId}`)
+      const response = await fetch(buildApiUrl(`api/auth/user/${userId}`))
       const data = await response.json()
       
       if (data.status === 'success') {
@@ -51,7 +52,7 @@ export function AuthProvider({ children }) {
   // Função de cadastro
   const signup = async (name, lastName, email, password) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch(buildApiUrl('api/auth/register'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +84,7 @@ export function AuthProvider({ children }) {
   // Função de login
   const login = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(buildApiUrl('api/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

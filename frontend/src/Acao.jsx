@@ -1,5 +1,6 @@
 import { useParams, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
+import { buildApiUrl } from './config/api'
 import { supabase } from './lib/supabase'
 import './Acao.css'
 import Logo from './components/Logo'
@@ -68,7 +69,7 @@ function Acao() {
           console.log(`🔄 Buscando dados de ${ticker} do backend...`)
           
           const response = await fetch(
-            `http://localhost:5000/api/stocks/${ticker}/view?range=${selectedRange}`,
+            buildApiUrl(`api/stocks/${ticker}/view?range=${selectedRange}`),
             {
               method: 'POST',
               headers: {
@@ -143,7 +144,7 @@ function Acao() {
       
       // Chamar novo endpoint de refresh
       const response = await fetch(
-        `http://localhost:5000/api/stocks/${ticker}/refresh`,
+        buildApiUrl(`api/stocks/${ticker}/refresh`),
         {
           method: 'POST',
           headers: {

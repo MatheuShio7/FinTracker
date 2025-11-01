@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
+import { buildApiUrl } from '../config/api';
 
 const PortfolioContext = createContext();
 
@@ -90,11 +91,11 @@ export function PortfolioProvider({ children }) {
       console.log('🔄 Carregando dados do servidor...');
       
       // Buscar portfolio
-      const portfolioResponse = await fetch(`http://localhost:5000/api/portfolio?user_id=${user.id}`);
+      const portfolioResponse = await fetch(buildApiUrl(`api/portfolio?user_id=${user.id}`));
       const portfolioData = await portfolioResponse.json();
       
       // Buscar watchlist
-      const watchlistResponse = await fetch(`http://localhost:5000/api/watchlist?user_id=${user.id}`);
+      const watchlistResponse = await fetch(buildApiUrl(`api/watchlist?user_id=${user.id}`));
       const watchlistData = await watchlistResponse.json();
 
       const newCache = {

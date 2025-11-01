@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { buildApiUrl } from '../config/api'
 import './StockEditor.css'
 
 function StockEditor({ ticker }) {
@@ -34,13 +35,13 @@ function StockEditor({ ticker }) {
         
         // Buscar quantidade
         const quantityResponse = await fetch(
-          `http://localhost:5000/api/portfolio/quantity/${ticker}?user_id=${user.id}`
+          buildApiUrl(`api/portfolio/quantity/${ticker}?user_id=${user.id}`)
         )
         const quantityData = await quantityResponse.json()
         
         // Buscar observações
         const notesResponse = await fetch(
-          `http://localhost:5000/api/notes/${ticker}?user_id=${user.id}`
+          buildApiUrl(`api/notes/${ticker}?user_id=${user.id}`)
         )
         const notesData = await notesResponse.json()
         
@@ -124,7 +125,7 @@ function StockEditor({ ticker }) {
       
       // Salvar quantidade
       const quantityResponse = await fetch(
-        'http://localhost:5000/api/portfolio/update-quantity',
+        buildApiUrl('api/portfolio/update-quantity'),
         {
           method: 'POST',
           headers: {
@@ -150,7 +151,7 @@ function StockEditor({ ticker }) {
       const notesTrimmed = notes.trim()
       
       const notesResponse = await fetch(
-        'http://localhost:5000/api/notes/save',
+        buildApiUrl('api/notes/save'),
         {
           method: 'POST',
           headers: {

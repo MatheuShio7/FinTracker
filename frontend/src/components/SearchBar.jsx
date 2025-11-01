@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { usePortfolio } from '../contexts/PortfolioContext';
+import { buildApiUrl } from '../config/api';
 import { supabase } from '../lib/supabase';
 import './SearchBar.css';
 
@@ -112,7 +113,7 @@ function SearchBar() {
     try {
       if (isInPortfolio) {
         // Remover da carteira
-        const response = await fetch(`http://localhost:5000/api/portfolio/remove/${ticker}?user_id=${user.id}`, {
+        const response = await fetch(buildApiUrl(`api/portfolio/remove/${ticker}?user_id=${user.id}`), {
           method: 'DELETE'
         });
 
@@ -133,7 +134,7 @@ function SearchBar() {
         }
       } else {
         // Adicionar à carteira
-        const response = await fetch('http://localhost:5000/api/portfolio/add', {
+        const response = await fetch(buildApiUrl('api/portfolio/add'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -180,7 +181,7 @@ function SearchBar() {
     try {
       if (isInWatchlist) {
         // Remover da watchlist
-        const response = await fetch(`http://localhost:5000/api/watchlist/remove/${ticker}?user_id=${user.id}`, {
+        const response = await fetch(buildApiUrl(`api/watchlist/remove/${ticker}?user_id=${user.id}`), {
           method: 'DELETE'
         });
 
@@ -201,7 +202,7 @@ function SearchBar() {
         }
       } else {
         // Adicionar à watchlist
-        const response = await fetch('http://localhost:5000/api/watchlist/add', {
+        const response = await fetch(buildApiUrl('api/watchlist/add'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
