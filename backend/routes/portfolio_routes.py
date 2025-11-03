@@ -11,7 +11,8 @@ from services.portfolio_service import (
     get_user_portfolio,
     get_user_watchlist,
     get_stock_quantity,
-    update_stock_quantity
+    update_stock_quantity,
+    get_user_portfolio_full
 )
 
 portfolio_bp = Blueprint('portfolio', __name__)
@@ -413,6 +414,50 @@ def update_quantity():
             
     except Exception as e:
         print(f"Erro ao atualizar quantidade: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": f"Erro interno: {str(e)}"
+        }), 500
+
+
+@portfolio_bp.route('/api/portfolio/full', methods=['GET'])
+def get_portfolio_full():
+    """
+    GET /api/portfolio/full?user_id=...
+    
+    Retorna carteira completa do usuário com preços atuais e valores calculados
+    
+    Response: {
+        "status": "success",
+        "data": [
+            {
+                "ticker": "PETR4",
+                "current_price": 30.50,
+                "quantity": 43,
+                "total_value": 1311.50
+            },
+            ...
+        ]
+    }
+    """
+    try:
+        user_id = request.args.get('user_id')
+        
+        if not user_id:
+            return jsonify({
+                "status": "error",
+                "message": "user_id é obrigatório"
+            }), 400
+        
+        result = get_user_portfolio_full(user_id)
+        
+        return jsonify({
+            "status": "success",
+            "data": result
+        }), 200
+            
+    except Exception as e:
+        print(f"Erro ao buscar portfolio completo: {str(e)}")
         return jsonify({
             "status": "error",
             "message": f"Erro interno: {str(e)}"

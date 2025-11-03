@@ -2,6 +2,64 @@
 Serviço para gerenciamento de portfolio e watchlist de usuários
 """
 from config.supabase_config import get_supabase_client
+from datetime import datetime, timedelta
+
+
+def ensure_stock_price(stock_id, ticker):
+    """
+    Garante que a ação tenha preço recente no banco de dados.
+    Se não tiver, busca da BraAPI e salva.
+    
+    Args:
+        stock_id: UUID da ação
+        ticker: Código da ação (ex: PETR4)
+        
+    Returns:
+        bool: True se garantiu preço, False se houve erro
+    """
+    try:
+        from services.brapi_price_service import fetch_prices_from_brapi
+        from services.save_service import save_prices
+        
+        supabase = get_supabase_client()
+        
+        # Verificar se já tem preço recente (últimos 7 dias)
+        seven_days_ago = (datetime.now() - timedelta(days=7)).date().isoformat()
+        
+        price_check = supabase.table('stock_prices')\
+            .select('date, price')\
+            .eq('stock_id', stock_id)\
+            .gte('date', seven_days_ago)\
+            .order('date', desc=True)\
+            .limit(1)\
+            .execute()
+        
+        if price_check.data and len(price_check.data) > 0:
+            print(f"[INFO] {ticker} já tem preço recente no banco: {price_check.data[0]['date']}")
+            return True
+        
+        # Não tem preço recente - buscar da BraAPI
+        print(f"[INFO] {ticker} sem preço recente, buscando da BraAPI...")
+        prices = fetch_prices_from_brapi(ticker, range_period="7d")
+        
+        if not prices or len(prices) == 0:
+            print(f"[AVISO] Não foi possível buscar preços para {ticker}")
+            return False
+        
+        # Salvar preços no banco
+        saved_count = save_prices(stock_id, prices)
+        
+        if saved_count > 0:
+            print(f"[OK] {saved_count} preços salvos para {ticker}")
+            return True
+        else:
+            print(f"[AVISO] Nenhum preço foi salvo para {ticker}")
+            return False
+            
+    except Exception as e:
+        print(f"[ERRO] Erro ao garantir preço para {ticker}: {str(e)}")
+        return False
+
 
 def add_to_portfolio(user_id, ticker, quantity=1):
     """
@@ -47,6 +105,9 @@ def add_to_portfolio(user_id, ticker, quantity=1):
                 .eq('stock_id', stock_id)\
                 .execute()
             
+            # Garantir que tem preço recente
+            ensure_stock_price(stock_id, ticker)
+            
             return {
                 "success": True,
                 "message": f"Quantidade atualizada! Total: {new_quantity}"
@@ -58,6 +119,9 @@ def add_to_portfolio(user_id, ticker, quantity=1):
                 'stock_id': stock_id,
                 'quantity': quantity
             }).execute()
+            
+            # Garantir que tem preço recente
+            ensure_stock_price(stock_id, ticker)
             
             return {
                 "success": True,
@@ -493,6 +557,9 @@ def update_stock_quantity(user_id, ticker, quantity):
                 .eq('stock_id', stock_id)\
                 .execute()
             
+            # Garantir que tem preço recente
+            ensure_stock_price(stock_id, ticker)
+            
             return {
                 "success": True,
                 "quantity": quantity,
@@ -505,6 +572,9 @@ def update_stock_quantity(user_id, ticker, quantity):
                 'stock_id': stock_id,
                 'quantity': quantity
             }).execute()
+            
+            # Garantir que tem preço recente
+            ensure_stock_price(stock_id, ticker)
             
             return {
                 "success": True,
@@ -519,3 +589,88 @@ def update_stock_quantity(user_id, ticker, quantity):
             "quantity": 0,
             "message": f"Erro ao atualizar quantidade: {str(e)}"
         }
+
+
+def get_user_portfolio_full(user_id):
+    """
+    Retorna carteira completa do usuário com preços atuais e valores calculados
+    
+    Args:
+        user_id: ID do usuário
+        
+    Returns:
+        list: [
+            {
+                "ticker": "PETR4",
+                "current_price": 30.50,
+                "quantity": 43,
+                "total_value": 1311.50
+            },
+            ...
+        ]
+        Retorna lista vazia [] se usuário não tiver ações
+    """
+    try:
+        supabase = get_supabase_client()
+        
+        # 1. Buscar portfolio com join nas tabelas stocks e stock_prices
+        # Query complexa para buscar:
+        # - user_portfolio (quantity)
+        # - stocks (ticker, id)
+        # - stock_prices (price mais recente)
+        
+        portfolio_response = supabase.table('user_portfolio')\
+            .select('quantity, stock_id, stocks(ticker, id)')\
+            .eq('user_id', user_id)\
+            .execute()
+        
+        if not portfolio_response.data or len(portfolio_response.data) == 0:
+            print(f"[INFO] Usuário {user_id} não tem ações na carteira")
+            return []
+        
+        # 2. Para cada ação, buscar preço mais recente
+        result = []
+        for item in portfolio_response.data:
+            try:
+                if not item.get('stocks'):
+                    continue
+                
+                ticker = item['stocks']['ticker']
+                stock_id = item['stock_id']
+                quantity = item['quantity']
+                
+                # Buscar preço mais recente dessa ação
+                price_response = supabase.table('stock_prices')\
+                    .select('price')\
+                    .eq('stock_id', stock_id)\
+                    .order('date', desc=True)\
+                    .limit(1)\
+                    .execute()
+                
+                # Se não encontrou preço, usar None
+                current_price = None
+                if price_response.data and len(price_response.data) > 0:
+                    current_price = float(price_response.data[0]['price'])
+                
+                # Calcular valor total
+                total_value = None
+                if current_price is not None:
+                    total_value = quantity * current_price
+                
+                result.append({
+                    'ticker': ticker,
+                    'current_price': current_price,
+                    'quantity': quantity,
+                    'total_value': total_value
+                })
+                
+            except Exception as e:
+                print(f"[ERRO] Erro ao processar ação: {str(e)}")
+                continue
+        
+        print(f"[OK] Portfolio completo retornado: {len(result)} ações")
+        return result
+        
+    except Exception as e:
+        print(f"[ERRO] Erro ao buscar portfolio completo: {str(e)}")
+        return []
