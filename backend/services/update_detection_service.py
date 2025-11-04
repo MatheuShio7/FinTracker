@@ -88,25 +88,10 @@ def should_update_prices(last_price_date: Optional[date], range_days: int) -> bo
             print(f"[INFO] Faltam {days_missing} dia(s) de dados - Precisa atualizar preços")
             return True
         
-        # NOVO: Verifica se tem preço de hoje MAS mercado já fechou
-        # Neste caso, precisa revalidar para pegar o preço de fechamento atualizado
-        if last_price_date == today:
-            # Verifica se mercado já fechou (passou das 18h)
-            if now.hour >= market_close_hour:
-                # Mercado fechou, mas preço pode ser parcial (buscado durante o pregão)
-                # Precisa atualizar para obter o preço de fechamento real
-                print(f"[INFO] Preço de hoje encontrado ({last_price_date}), mas mercado já fechou (agora: {now.hour:02d}:{now.minute:02d})")
-                print(f"[INFO] Revalidando para obter preço de fechamento atualizado - Precisa atualizar")
-                return True
-            else:
-                # Mercado ainda está aberto ou acabou de abrir
-                # Preço atual é suficiente (será o intraday)
-                print(f"[INFO] Preço de hoje encontrado ({last_price_date}) e mercado ainda aberto (agora: {now.hour:02d}:{now.minute:02d})")
-                print(f"[INFO] Cache OK com preço intraday - Não precisa atualizar")
-                return False
-        
-        # Cache está atualizado
-        print(f"[INFO] Cache atualizado até {last_price_date} - Não precisa atualizar")
+        # Se chegou aqui, significa que tem preço do último pregão
+        # Não precisa atualizar (use force_update=True para forçar atualização)
+        print(f"[INFO] Cache atualizado até {last_price_date} (último pregão: {last_trading_day}) - Não precisa atualizar")
+        print(f"[INFO] Use force_update=True para forçar atualização de preços intraday")
         return False
         
     except Exception as e:

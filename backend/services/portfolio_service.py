@@ -5,7 +5,7 @@ from config.supabase_config import get_supabase_client
 from datetime import datetime, timedelta
 
 
-def ensure_stock_price(stock_id, ticker):
+def ensure_stock_price(stock_id, ticker, force_update=False):
     """
     Garante que a ação tenha preço recente no banco de dados.
     Se não tiver, busca da BraAPI e salva.
@@ -13,6 +13,7 @@ def ensure_stock_price(stock_id, ticker):
     Args:
         stock_id: UUID da ação
         ticker: Código da ação (ex: PETR4)
+        force_update: Se True, sempre busca da API ignorando cache (padrão: False)
         
     Returns:
         bool: True se garantiu preço, False se houve erro
@@ -22,6 +23,25 @@ def ensure_stock_price(stock_id, ticker):
         from services.save_service import save_prices
         
         supabase = get_supabase_client()
+        
+        # Se force_update=True, pula verificação de cache e busca direto da API
+        if force_update:
+            print(f"[INFO] force_update=True - Buscando {ticker} da BraAPI (ignorando cache)...")
+            prices = fetch_prices_from_brapi(ticker, range_period="7d")
+            
+            if not prices or len(prices) == 0:
+                print(f"[AVISO] Não foi possível buscar preços para {ticker}")
+                return False
+            
+            # Salvar preços no banco
+            saved_count = save_prices(stock_id, prices)
+            
+            if saved_count > 0:
+                print(f"[OK] {saved_count} preços salvos para {ticker}")
+                return True
+            else:
+                print(f"[AVISO] Nenhum preço foi salvo para {ticker}")
+                return False
         
         # Verificar se já tem preço recente (últimos 7 dias)
         seven_days_ago = (datetime.now() - timedelta(days=7)).date().isoformat()
@@ -105,8 +125,8 @@ def add_to_portfolio(user_id, ticker, quantity=1):
                 .eq('stock_id', stock_id)\
                 .execute()
             
-            # Garantir que tem preço recente
-            ensure_stock_price(stock_id, ticker)
+            # Garantir que tem preço atualizado (força busca da API)
+            ensure_stock_price(stock_id, ticker, force_update=True)
             
             return {
                 "success": True,
@@ -120,8 +140,8 @@ def add_to_portfolio(user_id, ticker, quantity=1):
                 'quantity': quantity
             }).execute()
             
-            # Garantir que tem preço recente
-            ensure_stock_price(stock_id, ticker)
+            # Garantir que tem preço atualizado (força busca da API)
+            ensure_stock_price(stock_id, ticker, force_update=True)
             
             return {
                 "success": True,
@@ -557,8 +577,8 @@ def update_stock_quantity(user_id, ticker, quantity):
                 .eq('stock_id', stock_id)\
                 .execute()
             
-            # Garantir que tem preço recente
-            ensure_stock_price(stock_id, ticker)
+            # Garantir que tem preço atualizado (força busca da API)
+            ensure_stock_price(stock_id, ticker, force_update=True)
             
             return {
                 "success": True,
@@ -573,8 +593,8 @@ def update_stock_quantity(user_id, ticker, quantity):
                 'quantity': quantity
             }).execute()
             
-            # Garantir que tem preço recente
-            ensure_stock_price(stock_id, ticker)
+            # Garantir que tem preço atualizado (força busca da API)
+            ensure_stock_price(stock_id, ticker, force_update=True)
             
             return {
                 "success": True,
@@ -628,7 +648,10 @@ def get_user_portfolio_full(user_id):
             print(f"[INFO] Usuário {user_id} não tem ações na carteira")
             return []
         
-        # 2. Para cada ação, buscar preço mais recente
+        print(f"[INFO] Buscando preços atualizados para {len(portfolio_response.data)} ações...")
+        print(f"[INFO] SEMPRE atualiza preços da API ao carregar carteira")
+        
+        # 2. Para cada ação, garantir que tem preço atualizado e depois buscar
         result = []
         for item in portfolio_response.data:
             try:
@@ -639,7 +662,10 @@ def get_user_portfolio_full(user_id):
                 stock_id = item['stock_id']
                 quantity = item['quantity']
                 
-                # Buscar preço mais recente dessa ação
+                # FORÇA atualização de preços ao carregar carteira (sempre busca API)
+                ensure_stock_price(stock_id, ticker, force_update=True)
+                
+                # Buscar preço mais recente dessa ação (agora atualizado)
                 price_response = supabase.table('stock_prices')\
                     .select('price')\
                     .eq('stock_id', stock_id)\

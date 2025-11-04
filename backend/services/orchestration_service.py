@@ -32,13 +32,14 @@ from services.update_detection_service import (
 from services.save_service import save_prices, save_dividends
 
 
-def update_stock_on_page_view(ticker: str, range_param: str) -> Dict[str, any]:
+def update_stock_on_page_view(ticker: str, range_param: str, force_update: bool = False) -> Dict[str, any]:
     """
     Orquestra todas as operações para atualizar dados quando usuário acessa a página
     
     Args:
         ticker: Código da ação (ex: "PETR4")
         range_param: Período do histórico ("7d", "1m" ou "3m")
+        force_update: Se True, força atualização ignorando cache (padrão: False)
         
     Returns:
         Dicionário com resultado da operação:
@@ -117,7 +118,13 @@ def update_stock_on_page_view(ticker: str, range_param: str) -> Dict[str, any]:
             
             # PASSO 3b: Verificar se precisa atualizar
             print("\n[PASSO 3b] Verificando se precisa atualizar preços...")
-            needs_update = should_update_prices(last_price_date, range_days)
+            
+            # Se force_update=True, sempre atualiza (ignora cache)
+            if force_update:
+                print("[INFO] force_update=True - Forçando atualização de preços")
+                needs_update = True
+            else:
+                needs_update = should_update_prices(last_price_date, range_days)
             
             # PASSO 3c: Atualizar se necessário
             if needs_update:
@@ -180,7 +187,13 @@ def update_stock_on_page_view(ticker: str, range_param: str) -> Dict[str, any]:
             
             # PASSO 4b: Verificar se precisa atualizar
             print("\n[PASSO 4b] Verificando se precisa atualizar dividendos...")
-            needs_update = should_update_dividends(last_dividend_date, has_dividends)
+            
+            # Se force_update=True, sempre atualiza (ignora cache)
+            if force_update:
+                print("[INFO] force_update=True - Forçando atualização de dividendos")
+                needs_update = True
+            else:
+                needs_update = should_update_dividends(last_dividend_date, has_dividends)
             
             # PASSO 4c: Atualizar se necessário
             if needs_update:

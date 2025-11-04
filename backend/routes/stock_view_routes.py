@@ -63,9 +63,10 @@ def view_stock(ticker: str):
             }), 400
         
         # ========================================================================
-        # EXTRAÇÃO: Obter range do query parameter (padrão "3m")
+        # EXTRAÇÃO: Obter range e force_update dos query parameters
         # ========================================================================
         range_param = request.args.get('range', default='3m', type=str)
+        force_update = request.args.get('force_update', default='false', type=str).lower() == 'true'
         
         # ========================================================================
         # VALIDAÇÃO: Verificar se range é válido
@@ -82,7 +83,8 @@ def view_stock(ticker: str):
         # ========================================================================
         # ORQUESTRAÇÃO: Chamar função que coordena todas as operações
         # ========================================================================
-        result = update_stock_on_page_view(ticker, range_param)
+        print(f"[INFO] force_update={force_update}")
+        result = update_stock_on_page_view(ticker, range_param, force_update)
         
         # ========================================================================
         # RESPOSTA: Processar resultado da orquestração

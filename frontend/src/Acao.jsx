@@ -68,8 +68,13 @@ function Acao() {
         try {
           console.log(`🔄 Buscando dados de ${ticker} do backend...`)
           
+          // NOVO: Só força atualização no primeiro carregamento (quando muda o ticker)
+          // Ao trocar período, apenas filtra dados do cache
+          const forceUpdate = isTickerChange
+          console.log(`⚙️ force_update=${forceUpdate} (isTickerChange=${isTickerChange})`)
+          
           const response = await fetch(
-            buildApiUrl(`api/stocks/${ticker}/view?range=${selectedRange}`),
+            buildApiUrl(`api/stocks/${ticker}/view?range=${selectedRange}&force_update=${forceUpdate}`),
             {
               method: 'POST',
               headers: {
@@ -142,7 +147,7 @@ function Acao() {
     try {
       console.log(`🔄 Iniciando atualização forçada de ${ticker}...`)
       
-      // Chamar novo endpoint de refresh
+      // Usar endpoint /refresh que busca especificamente o preço atual (1d)
       const response = await fetch(
         buildApiUrl(`api/stocks/${ticker}/refresh`),
         {
@@ -156,31 +161,32 @@ function Acao() {
       const data = await response.json()
       
       if (response.ok && data.status === 'success') {
-        // Atualizar stockData com novos dados
+        // Atualizar stockData com preço atual e dividendos
         setStockData(prevData => {
           if (!prevData) return prevData
           
-          // Atualizar preço atual nos dados de preços
-          let updatedPrices = prevData.prices || []
+          // Criar cópia do array de preços
+          let updatedPrices = [...(prevData.prices || [])]
           
-          // Se há preço atual, atualizar no array de preços
+          // Se há preço atual retornado, atualizar/adicionar no array
           if (data.current_price && updatedPrices.length > 0) {
-            // Pegar a data do último preço ou usar hoje
-            const lastPrice = updatedPrices[updatedPrices.length - 1]
-            const lastDate = lastPrice.date
+            // Pegar a data do último preço
+            const lastPriceEntry = updatedPrices[updatedPrices.length - 1]
+            const lastDate = lastPriceEntry.date
             
-            // Criar novo array com preço atualizado
-            updatedPrices = [...updatedPrices]
+            // Atualizar o último preço com o valor mais recente
             updatedPrices[updatedPrices.length - 1] = {
               date: lastDate,
               price: data.current_price
             }
+            
+            console.log(`✅ Preço atualizado: R$ ${data.current_price.toFixed(2)} (data: ${lastDate})`)
           }
           
           return {
             ...prevData,
             prices: updatedPrices,
-            dividends: data.dividends,
+            dividends: data.dividends || prevData.dividends,
             timestamp: data.timestamp
           }
         })
