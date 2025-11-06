@@ -3,13 +3,7 @@ import './PortfolioPieChart.css'
 
 function PortfolioPieChart({ portfolio }) {
   if (!portfolio || portfolio.length === 0) {
-    return (
-      <div className="portfolio-pie-chart-container">
-        <div className="chart-empty">
-          <p>📊 Nenhuma ação na carteira</p>
-        </div>
-      </div>
-    )
+    return null
   }
 
   // Calcular valor total da carteira
@@ -59,7 +53,7 @@ function PortfolioPieChart({ portfolio }) {
         <PieChart>
           <Pie
             data={chartData}
-            cx="50%"
+            cx="30%"
             cy="50%"
             labelLine={false}
             label={renderLabel}
@@ -67,7 +61,6 @@ function PortfolioPieChart({ portfolio }) {
             innerRadius={0}
             fill={COLORS.default}
             dataKey="value"
-            paddingAngle={3}
           >
             {chartData.map((entry, index) => (
               <Cell 
@@ -80,6 +73,15 @@ function PortfolioPieChart({ portfolio }) {
           <Tooltip content={<CustomTooltip />} />
         </PieChart>
       </ResponsiveContainer>
+      <div className="portfolio-total-info">
+        <div className="total-label">Total</div>
+        <div className="total-value">
+          {new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+          }).format(totalValue)}
+        </div>
+      </div>
     </div>
   )
 }
