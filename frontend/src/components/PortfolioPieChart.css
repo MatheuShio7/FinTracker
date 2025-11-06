@@ -1,0 +1,105 @@
+/* Portfolio Pie Chart Styles */
+.portfolio-pie-chart-container {
+  margin: 20px 0;
+}
+
+
+.chart-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #9ca3af;
+  font-size: 1.1rem;
+}
+
+.chart-empty p {
+  margin: 0;
+}
+
+/* Estilos das fatias do gráfico */
+.pie-cell {
+  fill: #202128;
+  stroke: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pie-cell:hover {
+  fill: #f65308 !important;
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 10px rgba(246, 83, 8, 0.5));
+}
+
+/* Labels das fatias */
+.recharts-pie-label-text {
+  fill: #ffffff !important;
+  font-size: 14px;
+  font-weight: 500;
+  text-anchor: middle;
+}
+
+/* Tooltip customizado */
+.custom-tooltip {
+  background: rgba(32, 33, 40, 0.95);
+  border: 1px solid #f65308;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.tooltip-ticker {
+  color: #f65308;
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0 0 4px 0;
+}
+
+.tooltip-value {
+  color: #ffffff;
+  font-size: 13px;
+  margin: 0 0 4px 0;
+}
+
+.tooltip-percentage {
+  color: #9ca3af;
+  font-size: 12px;
+  margin: 0;
+}
+
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .portfolio-pie-chart-container {
+    margin: 15px 0;
+  }
+  
+  .recharts-pie-label-text {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .portfolio-pie-chart-container {
+    margin: 10px 0;
+  }
+  
+  .recharts-pie-label-text {
+    font-size: 11px;
+  }
+}
+
+/* Animações */
+@keyframes pieSliceHover {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.05);
+  }
+}
+
+.pie-cell:hover {
+  animation: pieSliceHover 0.3s ease-in-out;
+}

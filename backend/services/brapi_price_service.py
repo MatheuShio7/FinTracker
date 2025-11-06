@@ -220,6 +220,13 @@ def fetch_prices_from_brapi(ticker: str, range_period: str = "3m") -> Optional[L
             print("Verifique se o ticker está correto (ex: PETR4, VALE3, ITUB4)")
             return None
             
+        elif response.status_code == 403:
+            print("[ERRO 403] Acesso negado - Limitação do plano")
+            print("Seu plano não permite acessar este range de dados históricos")
+            print("Ranges permitidos pelo plano gratuito: 1d, 5d, 1mo, 3mo")
+            print("Considere usar um range menor ou fazer upgrade do plano")
+            return None
+            
         elif response.status_code == 429:
             print("[ERRO 429] Muitas requisições")
             print("Aguarde alguns instantes antes de tentar novamente")
@@ -320,4 +327,158 @@ def get_price_summary(ticker: str, range_period: str = "3m") -> Optional[Dict[st
         "period": range_period,
         "last_update": prices_sorted[-1]['date']
     }
+
+
+def get_current_stock_price(ticker: str) -> Optional[Dict[str, any]]:
+    """
+    Busca APENAS o preço atual de uma ação (otimizado para carteira)
+    
+    Esta função é otimizada para buscar apenas o preço atual, sem histórico.
+    É muito mais rápida que fetch_prices_from_brapi() para casos onde só
+    precisamos do valor atual (como na carteira).
+    
+    Args:
+        ticker: Código da ação (ex: "PETR4", "VALE3")
+        
+    Returns:
+        Dicionário com preço atual:
+        {
+            "ticker": "PETR4",
+            "current_price": 30.50,
+            "date": "2024-11-05",
+            "market_status": "open|closed"
+        }
+        Retorna None em caso de erro
+        
+    Example:
+        >>> price_data = get_current_stock_price("PETR4")
+        >>> if price_data:
+        ...     print(f"PETR4: R$ {price_data['current_price']:.2f}")
+    """
+    
+    # Valida se o token está configurado
+    if not BRAPI_TOKEN:
+        print("[ERRO] Token da BraAPI não configurado!")
+        print("Configure a variável BRAPI_TOKEN no arquivo .env")
+        return None
+    
+    # Formata o ticker (sempre em maiúsculas e sem espaços)
+    ticker = ticker.upper().strip()
+    
+    # Monta a URL da requisição (sem range - busca apenas dados atuais)
+    url = f"{BRAPI_BASE_URL}/{ticker}"
+    
+    # Parâmetros mínimos para buscar apenas preço atual
+    params = {
+        "token": BRAPI_TOKEN
+        # Sem range = apenas dados atuais (mais rápido)
+    }
+    
+    # Headers da requisição
+    headers = {
+        "User-Agent": "FinTracker/1.0",
+        "Accept": "application/json"
+    }
+    
+    try:
+        print(f"[INFO] Buscando preço atual de {ticker}...")
+        
+        # Faz a requisição para a BraAPI
+        response = requests.get(url, params=params, headers=headers, timeout=10)
+        
+        # Tratamento de diferentes códigos de status HTTP
+        if response.status_code == 200:
+            # Sucesso - processa os dados
+            try:
+                data = response.json()
+            except ValueError as json_error:
+                print(f"[ERRO] Falha ao decodificar resposta JSON")
+                print(f"Detalhes: {str(json_error)}")
+                return None
+            
+            # Valida estrutura da resposta
+            if 'results' not in data or not data['results']:
+                print(f"[ERRO] Nenhum dado encontrado para {ticker}")
+                return None
+            
+            # Extrai o primeiro resultado (dados da ação)
+            resultado = data['results'][0]
+            
+            # Busca o preço atual (regularMarketPrice é o mais atualizado)
+            current_price = None
+            market_status = "unknown"
+            
+            if 'regularMarketPrice' in resultado and resultado['regularMarketPrice']:
+                current_price = float(resultado['regularMarketPrice'])
+                market_status = "open" if 'marketState' in resultado and resultado['marketState'] == 'REGULAR' else "closed"
+            elif 'regularMarketPreviousClose' in resultado and resultado['regularMarketPreviousClose']:
+                # Fallback: preço de fechamento anterior
+                current_price = float(resultado['regularMarketPreviousClose'])
+                market_status = "closed"
+            
+            if current_price is None:
+                print(f"[ERRO] Não foi possível obter preço atual para {ticker}")
+                return None
+            
+            # Determina a data (hoje ou último dia de pregão)
+            from services.update_detection_service import get_last_trading_day
+            price_date = get_last_trading_day().strftime('%Y-%m-%d')
+            
+            result = {
+                "ticker": ticker,
+                "current_price": current_price,
+                "date": price_date,
+                "market_status": market_status
+            }
+            
+            print(f"[OK] Preço atual de {ticker}: R$ {current_price:.2f} ({market_status})")
+            return result
+            
+        elif response.status_code == 401:
+            print("[ERRO 401] Token inválido ou ausente")
+            print("Verifique seu token em: https://brapi.dev/dashboard")
+            return None
+            
+        elif response.status_code == 402:
+            print("[ERRO 402] Limite de requisições excedido")
+            print("Seu plano atingiu o limite de requisições. Verifique em: https://brapi.dev/dashboard")
+            return None
+            
+        elif response.status_code == 403:
+            print("[ERRO 403] Acesso negado - Limitação do plano")
+            print("Seu plano não permite acessar dados desta ação")
+            return None
+            
+        elif response.status_code == 404:
+            print(f"[ERRO 404] Ação '{ticker}' não encontrada")
+            print("Verifique se o ticker está correto (ex: PETR4, VALE3, ITUB4)")
+            return None
+            
+        elif response.status_code == 429:
+            print("[ERRO 429] Muitas requisições")
+            print("Aguarde alguns instantes antes de tentar novamente")
+            return None
+            
+        else:
+            print(f"[ERRO {response.status_code}] Erro inesperado")
+            print(f"Detalhes: {response.text[:200]}")
+            return None
+            
+    except requests.exceptions.Timeout:
+        print("[ERRO] Timeout na requisição")
+        print("A API demorou muito para responder. Tente novamente.")
+        return None
+        
+    except requests.exceptions.ConnectionError:
+        print("[ERRO] Falha na conexão")
+        print("Verifique sua conexão com a internet")
+        return None
+        
+    except requests.exceptions.RequestException as e:
+        print(f"[ERRO] Erro na requisição: {str(e)}")
+        return None
+        
+    except Exception as e:
+        print(f"[ERRO] Erro inesperado: {str(e)}")
+        return None
 

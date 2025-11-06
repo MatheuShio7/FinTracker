@@ -12,7 +12,8 @@ from services.portfolio_service import (
     get_user_watchlist,
     get_stock_quantity,
     update_stock_quantity,
-    get_user_portfolio_full
+    get_user_portfolio_full,
+    update_portfolio_prices_on_login
 )
 
 portfolio_bp = Blueprint('portfolio', __name__)
@@ -458,6 +459,63 @@ def get_portfolio_full():
             
     except Exception as e:
         print(f"Erro ao buscar portfolio completo: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": f"Erro interno: {str(e)}"
+        }), 500
+
+
+@portfolio_bp.route('/api/portfolio/update-prices-login', methods=['POST'])
+def update_prices_on_login():
+    """
+    POST /api/portfolio/update-prices-login
+    Body: {"user_id": "..."}
+    
+    Atualiza preços de TODAS as ações da carteira (usado apenas no login)
+    
+    Response: {
+        "status": "success",
+        "data": {
+            "updated_count": 3,
+            "message": "3 preços atualizados no login"
+        }
+    }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "Dados não fornecidos"
+            }), 400
+        
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({
+                "status": "error",
+                "message": "user_id é obrigatório"
+            }), 400
+        
+        result = update_portfolio_prices_on_login(user_id)
+        
+        if result['success']:
+            return jsonify({
+                "status": "success",
+                "data": {
+                    "updated_count": result['updated_count'],
+                    "message": result['message']
+                }
+            }), 200
+        else:
+            return jsonify({
+                "status": "error",
+                "message": result['message']
+            }), 500
+            
+    except Exception as e:
+        print(f"Erro ao atualizar preços no login: {str(e)}")
         return jsonify({
             "status": "error",
             "message": f"Erro interno: {str(e)}"

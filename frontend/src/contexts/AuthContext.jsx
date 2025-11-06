@@ -81,6 +81,34 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Atualizar preços da carteira no login
+  const updatePortfolioPricesOnLogin = async (userId) => {
+    try {
+      console.log('🔄 Atualizando preços da carteira no login...')
+      
+      const response = await fetch(buildApiUrl('api/portfolio/update-prices-login'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.status === 'success') {
+        console.log(`✅ ${data.data.updated_count} preços atualizados no login`)
+      } else {
+        console.warn('⚠️ Erro ao atualizar preços no login:', data.message)
+      }
+    } catch (error) {
+      console.error('❌ Erro ao atualizar preços no login:', error)
+      // Não bloqueia o login se houver erro na atualização de preços
+    }
+  }
+
   // Função de login
   const login = async (email, password) => {
     try {
@@ -100,6 +128,10 @@ export function AuthProvider({ children }) {
       if (data.status === 'success') {
         setUser(data.user)
         localStorage.setItem('user_id', data.user.id)
+        
+        // NOVO: Atualizar preços da carteira após login bem-sucedido
+        updatePortfolioPricesOnLogin(data.user.id)
+        
         return { success: true, user: data.user }
       } else {
         return { success: false, message: data.message }

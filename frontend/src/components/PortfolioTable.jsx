@@ -1,61 +1,11 @@
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { usePortfolio } from '../contexts/PortfolioContext'
-import { buildApiUrl } from '../config/api'
 import './PortfolioTable.css'
 
-function PortfolioTable() {
+function PortfolioTable({ portfolioData, loading, error, onRetry }) {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { cache } = usePortfolio()
-  const [portfolio, setPortfolio] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
 
-  // Buscar dados da carteira
-  const fetchPortfolio = async () => {
-    if (!user) {
-      setLoading(false)
-      return
-    }
-
-    try {
-      setLoading(true)
-      setError(null)
-
-      const response = await fetch(
-        buildApiUrl(`api/portfolio/full?user_id=${user.id}`)
-      )
-      const data = await response.json()
-
-      if (data.status === 'success') {
-        setPortfolio(data.data)
-      } else {
-        setError(data.message || 'Erro ao buscar carteira')
-      }
-    } catch (err) {
-      console.error('Erro ao buscar carteira:', err)
-      setError('Erro ao conectar com o servidor')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Buscar dados ao montar componente
-  useEffect(() => {
-    fetchPortfolio()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user])
-
-  // Recarregar quando o cache do portfolio mudar (ação adicionada/removida)
-  useEffect(() => {
-    if (cache.timestamp && user) {
-      console.log('🔄 Portfolio atualizado, recarregando tabela...')
-      fetchPortfolio()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cache.timestamp])
 
   // Formatar valores monetários
   const formatCurrency = (value) => {
@@ -93,7 +43,7 @@ function PortfolioTable() {
       <div className="portfolio-table-container">
         <div className="portfolio-error">
           <p>{error}</p>
-          <button onClick={fetchPortfolio} className="retry-button">
+          <button onClick={onRetry} className="retry-button">
             Tentar novamente
           </button>
         </div>
@@ -113,7 +63,7 @@ function PortfolioTable() {
   }
 
   // Carteira vazia
-  if (portfolio.length === 0) {
+  if (portfolioData.length === 0) {
     return (
       <div className="portfolio-table-container">
         <table className="portfolio-table">
@@ -148,7 +98,7 @@ function PortfolioTable() {
           </tr>
         </thead>
         <tbody>
-          {portfolio.map((stock) => (
+          {portfolioData.map((stock) => (
             <tr
               key={stock.ticker}
               onClick={() => handleRowClick(stock.ticker)}

@@ -5,6 +5,54 @@ from config.supabase_config import get_supabase_client
 from datetime import datetime, timedelta
 
 
+def ensure_current_stock_price(stock_id, ticker):
+    """
+    Garante que a ação tenha preço atual no banco de dados (OTIMIZADO)
+    
+    Esta função é otimizada para carteira - busca APENAS o preço atual,
+    não histórico completo. Muito mais rápida que ensure_stock_price().
+    
+    Args:
+        stock_id: UUID da ação
+        ticker: Código da ação (ex: PETR4)
+        
+    Returns:
+        bool: True se garantiu preço atual, False se houve erro
+    """
+    try:
+        from services.brapi_price_service import get_current_stock_price
+        from services.save_service import save_prices
+        
+        print(f"[INFO] Garantindo preço atual para {ticker}...")
+        
+        # Busca apenas o preço atual (muito mais rápido)
+        current_price_data = get_current_stock_price(ticker)
+        
+        if not current_price_data:
+            print(f"[AVISO] Não foi possível buscar preço atual para {ticker}")
+            return False
+        
+        # Converte para formato compatível com save_prices
+        price_list = [{
+            "date": current_price_data["date"],
+            "price": current_price_data["current_price"]
+        }]
+        
+        # Salvar preço no banco
+        saved_count = save_prices(stock_id, price_list)
+        
+        if saved_count > 0:
+            print(f"[OK] Preço atual salvo para {ticker}: R$ {current_price_data['current_price']:.2f}")
+            return True
+        else:
+            print(f"[AVISO] Não foi possível salvar preço para {ticker}")
+            return False
+            
+    except Exception as e:
+        print(f"[ERRO] Erro ao garantir preço atual para {ticker}: {str(e)}")
+        return False
+
+
 def ensure_stock_price(stock_id, ticker, force_update=False):
     """
     Garante que a ação tenha preço recente no banco de dados.
@@ -125,8 +173,8 @@ def add_to_portfolio(user_id, ticker, quantity=1):
                 .eq('stock_id', stock_id)\
                 .execute()
             
-            # Garantir que tem preço atualizado (força busca da API)
-            ensure_stock_price(stock_id, ticker, force_update=True)
+            # OTIMIZADO: Garantir preço atual (muito mais rápido)
+            ensure_current_stock_price(stock_id, ticker)
             
             return {
                 "success": True,
@@ -140,8 +188,8 @@ def add_to_portfolio(user_id, ticker, quantity=1):
                 'quantity': quantity
             }).execute()
             
-            # Garantir que tem preço atualizado (força busca da API)
-            ensure_stock_price(stock_id, ticker, force_update=True)
+            # OTIMIZADO: Garantir preço atual (muito mais rápido)
+            ensure_current_stock_price(stock_id, ticker)
             
             return {
                 "success": True,
@@ -577,8 +625,8 @@ def update_stock_quantity(user_id, ticker, quantity):
                 .eq('stock_id', stock_id)\
                 .execute()
             
-            # Garantir que tem preço atualizado (força busca da API)
-            ensure_stock_price(stock_id, ticker, force_update=True)
+            # OTIMIZADO: Garantir preço atual (muito mais rápido)
+            ensure_current_stock_price(stock_id, ticker)
             
             return {
                 "success": True,
@@ -593,8 +641,8 @@ def update_stock_quantity(user_id, ticker, quantity):
                 'quantity': quantity
             }).execute()
             
-            # Garantir que tem preço atualizado (força busca da API)
-            ensure_stock_price(stock_id, ticker, force_update=True)
+            # OTIMIZADO: Garantir preço atual (muito mais rápido)
+            ensure_current_stock_price(stock_id, ticker)
             
             return {
                 "success": True,
@@ -608,6 +656,71 @@ def update_stock_quantity(user_id, ticker, quantity):
             "success": False,
             "quantity": 0,
             "message": f"Erro ao atualizar quantidade: {str(e)}"
+        }
+
+
+def update_portfolio_prices_on_login(user_id):
+    """
+    Atualiza preços de TODAS as ações da carteira (usado apenas no login)
+    
+    Esta função busca preços atuais da API para todas as ações da carteira
+    do usuário. Deve ser chamada apenas quando o usuário faz login.
+    
+    Args:
+        user_id: ID do usuário
+        
+    Returns:
+        dict: {"success": bool, "updated_count": int, "message": str}
+    """
+    try:
+        supabase = get_supabase_client()
+        
+        # 1. Buscar todas as ações da carteira do usuário
+        portfolio_response = supabase.table('user_portfolio')\
+            .select('stock_id, stocks(ticker, id)')\
+            .eq('user_id', user_id)\
+            .execute()
+        
+        if not portfolio_response.data or len(portfolio_response.data) == 0:
+            return {
+                "success": True,
+                "updated_count": 0,
+                "message": "Usuário não tem ações na carteira"
+            }
+        
+        print(f"[LOGIN] Atualizando preços para {len(portfolio_response.data)} ações da carteira...")
+        
+        updated_count = 0
+        for item in portfolio_response.data:
+            try:
+                if not item.get('stocks'):
+                    continue
+                
+                ticker = item['stocks']['ticker']
+                stock_id = item['stock_id']
+                
+                # Buscar preço atual da API e salvar
+                success = ensure_current_stock_price(stock_id, ticker)
+                if success:
+                    updated_count += 1
+                    
+            except Exception as e:
+                print(f"[ERRO] Erro ao atualizar preço de {ticker}: {str(e)}")
+                continue
+        
+        print(f"[LOGIN] ✅ {updated_count} preços atualizados com sucesso")
+        return {
+            "success": True,
+            "updated_count": updated_count,
+            "message": f"{updated_count} preços atualizados no login"
+        }
+        
+    except Exception as e:
+        print(f"[ERRO] Erro ao atualizar preços no login: {str(e)}")
+        return {
+            "success": False,
+            "updated_count": 0,
+            "message": f"Erro ao atualizar preços: {str(e)}"
         }
 
 
@@ -648,10 +761,10 @@ def get_user_portfolio_full(user_id):
             print(f"[INFO] Usuário {user_id} não tem ações na carteira")
             return []
         
-        print(f"[INFO] Buscando preços atualizados para {len(portfolio_response.data)} ações...")
-        print(f"[INFO] SEMPRE atualiza preços da API ao carregar carteira")
+        print(f"[INFO] Carregando carteira para {len(portfolio_response.data)} ações...")
+        print(f"[INFO] OTIMIZADO: Usando preços em cache (não busca API)")
         
-        # 2. Para cada ação, garantir que tem preço atualizado e depois buscar
+        # 2. Para cada ação, buscar preços do cache (sem atualizar da API)
         result = []
         for item in portfolio_response.data:
             try:
@@ -662,8 +775,7 @@ def get_user_portfolio_full(user_id):
                 stock_id = item['stock_id']
                 quantity = item['quantity']
                 
-                # FORÇA atualização de preços ao carregar carteira (sempre busca API)
-                ensure_stock_price(stock_id, ticker, force_update=True)
+                # OTIMIZADO: Não busca API - apenas usa dados do cache
                 
                 # Buscar preço mais recente dessa ação (agora atualizado)
                 price_response = supabase.table('stock_prices')\
