@@ -2,6 +2,7 @@ import { useParams, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { buildApiUrl } from './config/api'
 import { supabase } from './lib/supabase'
+import { usePortfolio } from './contexts/PortfolioContext'
 import './Acao.css'
 import Logo from './components/Logo'
 import PageTitle from './components/PageTitle'
@@ -15,6 +16,7 @@ import StockEditor from './components/StockEditor'
 function Acao() {
   const { ticker } = useParams()
   const location = useLocation()
+  const { isInPortfolio, invalidatePortfolioFullCache } = usePortfolio()
   const [companyName, setCompanyName] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [stockData, setStockData] = useState(null) // Dados do backend (preços e dividendos)
@@ -97,6 +99,12 @@ function Acao() {
             console.log(`Preços atualizados: ${result.data.prices_updated}`)
             console.log(`Dividendos atualizados: ${result.data.dividends_updated}`)
             console.log(`Dados completos:`, result.data)
+            
+            // Se os preços foram atualizados E a ação está na carteira, invalidar cache
+            if (result.data.prices_updated && isInPortfolio(ticker)) {
+              console.log(`💰 Preços atualizados para ${ticker} que está em carteira - invalidando cache`)
+              invalidatePortfolioFullCache()
+            }
           } else {
             // Erro retornado pela API
             if (response.status === 404) {
@@ -194,6 +202,12 @@ function Acao() {
         console.log('✅ Dados atualizados com sucesso!')
         console.log(`Preço atual: R$ ${data.current_price?.toFixed(2) || 'N/A'}`)
         console.log(`Dividendos: ${data.dividends?.length || 0} registros`)
+        
+        // Se a ação está na carteira, invalidar cache da carteira
+        if (isInPortfolio(ticker)) {
+          console.log(`💰 Preço atualizado via refresh para ${ticker} que está em carteira - invalidando cache`)
+          invalidatePortfolioFullCache()
+        }
       } else {
         console.error('❌ Erro ao atualizar:', data.message)
       }

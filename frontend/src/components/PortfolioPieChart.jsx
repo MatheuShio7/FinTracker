@@ -43,8 +43,25 @@ function PortfolioPieChart({ portfolio }) {
   }
 
   // Renderizar labels customizados nas fatias
-  const renderLabel = (entry) => {
-    return `${entry.ticker} (${entry.percentage}%)`
+  const renderLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, ticker, percentage }) => {
+    const RADIAN = Math.PI / 180
+    const radius = innerRadius + (outerRadius - innerRadius) * 1
+    const x = cx + radius * Math.cos(-midAngle * RADIAN)
+    const y = cy + radius * Math.sin(-midAngle * RADIAN)
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="white"
+        textAnchor={x > cx ? 'start' : 'end'}
+        dominantBaseline="central"
+        className="recharts-pie-label-text"
+      >
+        <tspan x={x} dy="0">{ticker}</tspan>
+        <tspan x={x} dy="1.2em">{percentage}%</tspan>
+      </text>
+    )
   }
 
   return (
@@ -70,7 +87,7 @@ function PortfolioPieChart({ portfolio }) {
               />
             ))}
           </Pie>
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip />} isAnimationActive={false} />
         </PieChart>
       </ResponsiveContainer>
       <div className="portfolio-total-info">

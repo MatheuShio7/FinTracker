@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { usePortfolio } from '../contexts/PortfolioContext'
 import { buildApiUrl } from '../config/api'
 import './StockEditor.css'
 
 function StockEditor({ ticker }) {
   const { user } = useAuth()
+  const { removeFromPortfolio } = usePortfolio()
   
   // Estados dos campos
   const [quantity, setQuantity] = useState(0)
@@ -184,6 +186,12 @@ function StockEditor({ ticker }) {
       
       // Atualizar o campo atual com o valor limpo
       setNotes(notesData.note_text || '')
+      
+      // Se a quantidade foi zerada, notificar o PortfolioContext para invalidar caches
+      if (quantityData.quantity === 0) {
+        console.log('🗑️ Quantidade zerada - removendo do cache do portfolio')
+        removeFromPortfolio(ticker)
+      }
       
       console.log('✅ Alterações salvas com sucesso!')
       

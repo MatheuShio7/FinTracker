@@ -5,6 +5,7 @@ import { buildApiUrl } from './config/api'
 import './Carteira.css'
 import Logo from './components/Logo'
 import PageTitle from './components/PageTitle'
+import ReloadButton from './components/ReloadButton'
 import PortfolioTable from './components/PortfolioTable'
 import PortfolioPieChart from './components/PortfolioPieChart'
 
@@ -14,6 +15,7 @@ function Carteira() {
   const [portfolioData, setPortfolioData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Buscar dados completos da carteira
   const fetchPortfolioData = async (forceRefresh = false) => {
@@ -103,9 +105,56 @@ function Carteira() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cache.timestamp])
 
+  // Função para atualizar preços de todas as ações da carteira
+  const handleRefresh = async () => {
+    if (!user) return
+    
+    setIsRefreshing(true)
+    
+    try {
+      console.log('🔄 Atualizando preços de todas as ações da carteira...')
+      
+      // Chamar endpoint que atualiza preços de todas as ações
+      const response = await fetch(
+        buildApiUrl('api/portfolio/update-prices-login'),
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: user.id
+          })
+        }
+      )
+      
+      const data = await response.json()
+      
+      if (response.ok && data.status === 'success') {
+        console.log(`✅ ${data.data.updated_count} preços atualizados com sucesso!`)
+        
+        // Invalidar cache local
+        const cacheKey = `portfolio_full_${user.id}`
+        localStorage.removeItem(cacheKey)
+        
+        // Recarregar dados atualizados
+        await fetchPortfolioData(true)
+      } else {
+        console.error('❌ Erro ao atualizar preços:', data.message)
+        setError(data.message || 'Erro ao atualizar preços')
+      }
+    } catch (err) {
+      console.error('❌ Erro ao conectar com backend:', err)
+      setError('Erro ao atualizar preços')
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
   return (
     <div>
       <Logo />
+      <ReloadButton onClick={handleRefresh} isLoading={isRefreshing} />
       <PageTitle title="Carteira" />
       <PortfolioTable 
         portfolioData={portfolioData}

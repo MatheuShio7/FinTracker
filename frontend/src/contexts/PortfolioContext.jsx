@@ -175,6 +175,15 @@ export function PortfolioProvider({ children }) {
     return result;
   }, [isInPortfolio, isInWatchlist]);
 
+  // Invalidar cache da carteira completa (usado quando preços são atualizados)
+  const invalidatePortfolioFullCache = useCallback(() => {
+    if (user) {
+      const cacheKey = `portfolio_full_${user.id}`;
+      localStorage.removeItem(cacheKey);
+      console.log('🗑️ Cache da carteira completa invalidado');
+    }
+  }, [user]);
+
   const value = {
     cache,
     isLoading: cache.isLoading,
@@ -187,7 +196,8 @@ export function PortfolioProvider({ children }) {
     removeFromPortfolio,
     addToWatchlist,
     removeFromWatchlist,
-    checkStocksStatus
+    checkStocksStatus,
+    invalidatePortfolioFullCache
   };
 
   return (
