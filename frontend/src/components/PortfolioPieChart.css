@@ -63,7 +63,7 @@
 
 /* Estilos das fatias do gráfico */
 .pie-cell {
-  fill: #202128;
+  fill: #16171b;
   stroke: #111111;
   stroke-width: 4px;
   cursor: pointer;
