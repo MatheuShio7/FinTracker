@@ -47,7 +47,11 @@ function Carteira() {
         } catch (error) {
           console.warn('Erro ao ler cache da carteira completa:', error)
         }
+      } else {
+        console.log('🆕 Nenhum cache encontrado - buscando dados do servidor...')
       }
+    } else {
+      console.log('🔄 Refresh forçado - buscando dados do servidor...')
     }
 
     try {

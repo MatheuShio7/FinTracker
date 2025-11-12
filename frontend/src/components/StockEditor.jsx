@@ -6,7 +6,7 @@ import './StockEditor.css'
 
 function StockEditor({ ticker }) {
   const { user } = useAuth()
-  const { removeFromPortfolio } = usePortfolio()
+  const { removeFromPortfolio, invalidatePortfolioFullCache } = usePortfolio()
   
   // Estados dos campos
   const [quantity, setQuantity] = useState(0)
@@ -187,10 +187,14 @@ function StockEditor({ ticker }) {
       // Atualizar o campo atual com o valor limpo
       setNotes(notesData.note_text || '')
       
-      // Se a quantidade foi zerada, notificar o PortfolioContext para invalidar caches
+      // Se a quantidade foi zerada, remover do cache do portfolio
       if (quantityData.quantity === 0) {
         console.log('🗑️ Quantidade zerada - removendo do cache do portfolio')
         removeFromPortfolio(ticker)
+      } else if (originalQuantity !== quantityData.quantity) {
+        // Se a quantidade foi alterada (mas não zerada), invalidar cache da carteira completa
+        console.log(`📊 Quantidade alterada: ${originalQuantity} → ${quantityData.quantity} - invalidando cache da carteira`)
+        invalidatePortfolioFullCache()
       }
       
       console.log('✅ Alterações salvas com sucesso!')

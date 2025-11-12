@@ -166,7 +166,7 @@ def refresh_stock(ticker: str):
         # ========================================================================
         # IMPORTAÇÕES NECESSÁRIAS (dentro da função para evitar importação circular)
         # ========================================================================
-        from services.brapi_price_service import fetch_prices_from_brapi
+        from services.brapi_price_service import get_current_stock_price
         from services.yahoo_dividend_service import fetch_dividends_from_yahoo
         from services.price_cache_service import get_stock_id_by_ticker
         from services.save_service import save_prices, save_dividends
@@ -193,30 +193,39 @@ def refresh_stock(ticker: str):
         # ========================================================================
         # PASSO 2: FORÇAR BUSCA DE PREÇO ATUAL
         # ========================================================================
-        print("[PASSO 2] Forçando busca de preço atual (1d)...")
+        print("[PASSO 2] Forçando busca de preço atual (sem range - mais confiável)...")
         print("-" * 80)
         
         current_price = None
         
         try:
-            # Busca preços de 1 dia da BraPI (retorna lista com preço atual)
-            prices_from_api = fetch_prices_from_brapi(ticker, "1d")
+            # NOVO: Usa get_current_stock_price() que é mais confiável
+            # Busca direto o regularMarketPrice sem range
+            price_data = get_current_stock_price(ticker)
             
-            if prices_from_api and len(prices_from_api) > 0:
-                # Pega o último preço (mais recente)
-                latest_price_data = prices_from_api[-1]
-                current_price = latest_price_data['price']
+            if price_data:
+                current_price = price_data['current_price']
+                price_date = price_data['date']
+                market_status = price_data['market_status']
                 
                 print(f"[INFO] Preço atual obtido: R$ {current_price:.2f}")
+                print(f"[INFO] Data: {price_date}")
+                print(f"[INFO] Status do mercado: {market_status}")
+                
+                # Formata para salvar no banco (mesmo formato que fetch_prices_from_brapi)
+                prices_to_save = [{
+                    "date": price_date,
+                    "price": current_price
+                }]
                 
                 # Salva no banco
                 print(f"[INFO] Salvando preço no banco...")
-                saved_count = save_prices(stock_id, prices_from_api)
+                saved_count = save_prices(stock_id, prices_to_save)
                 
                 if saved_count > 0:
-                    print(f"[OK] Preço salvo com sucesso")
+                    print(f"[OK] Preço salvo com sucesso no banco de dados")
                 else:
-                    print("[AVISO] Preço não foi salvo")
+                    print("[AVISO] Preço não foi salvo no banco de dados")
             else:
                 print("[AVISO] Nenhum preço retornado da BraAPI")
         

@@ -169,39 +169,37 @@ function Acao() {
       const data = await response.json()
       
       if (response.ok && data.status === 'success') {
-        // Atualizar stockData com preço atual e dividendos
-        setStockData(prevData => {
-          if (!prevData) return prevData
-          
-          // Criar cópia do array de preços
-          let updatedPrices = [...(prevData.prices || [])]
-          
-          // Se há preço atual retornado, atualizar/adicionar no array
-          if (data.current_price && updatedPrices.length > 0) {
-            // Pegar a data do último preço
-            const lastPriceEntry = updatedPrices[updatedPrices.length - 1]
-            const lastDate = lastPriceEntry.date
-            
-            // Atualizar o último preço com o valor mais recente
-            updatedPrices[updatedPrices.length - 1] = {
-              date: lastDate,
-              price: data.current_price
-            }
-            
-            console.log(`✅ Preço atualizado: R$ ${data.current_price.toFixed(2)} (data: ${lastDate})`)
-          }
-          
-          return {
-            ...prevData,
-            prices: updatedPrices,
-            dividends: data.dividends || prevData.dividends,
-            timestamp: data.timestamp
-          }
-        })
-        
         console.log('✅ Dados atualizados com sucesso!')
-        console.log(`Preço atual: R$ ${data.current_price?.toFixed(2) || 'N/A'}`)
+        console.log(`Preço atual retornado: R$ ${data.current_price?.toFixed(2) || 'N/A'}`)
         console.log(`Dividendos: ${data.dividends?.length || 0} registros`)
+        
+        // NOVO: Recarregar dados completos do servidor para garantir consistência
+        // Isso garante que estamos vendo exatamente o que foi salvo no banco
+        console.log('🔄 Recarregando dados do servidor para validar salvamento...')
+        
+        try {
+          const reloadResponse = await fetch(
+            buildApiUrl(`api/stocks/${ticker}/view?range=${selectedRange}&force_update=false`),
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          )
+          
+          const reloadData = await reloadResponse.json()
+          
+          if (reloadResponse.ok && reloadData.status === 'success') {
+            // Atualiza com dados frescos do banco
+            setStockData(reloadData.data)
+            console.log('✅ Dados recarregados do banco de dados')
+            console.log(`Último preço no banco: R$ ${reloadData.data.prices[reloadData.data.prices.length - 1]?.price?.toFixed(2) || 'N/A'}`)
+          }
+        } catch (error) {
+          console.error('❌ Erro ao recarregar dados:', error)
+          // Se falhar, mantém dados antigos
+        }
         
         // Se a ação está na carteira, invalidar cache da carteira
         if (isInPortfolio(ticker)) {

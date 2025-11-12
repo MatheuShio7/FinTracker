@@ -71,6 +71,11 @@ export function AuthProvider({ children }) {
         // Após cadastro bem-sucedido, busca dados do usuário
         await fetchUser(data.user_id)
         localStorage.setItem('user_id', data.user_id)
+        
+        // Limpar cache da carteira (garantir que novo usuário não veja dados antigos)
+        const cacheKey = `portfolio_full_${data.user_id}`
+        localStorage.removeItem(cacheKey)
+        
         return { success: true, message: data.message }
       } else {
         return { success: false, message: data.message }
@@ -129,8 +134,14 @@ export function AuthProvider({ children }) {
         setUser(data.user)
         localStorage.setItem('user_id', data.user.id)
         
-        // NOVO: Atualizar preços da carteira após login bem-sucedido
-        updatePortfolioPricesOnLogin(data.user.id)
+        // IMPORTANTE: Limpar cache da carteira ANTES de atualizar preços
+        const cacheKey = `portfolio_full_${data.user.id}`
+        localStorage.removeItem(cacheKey)
+        console.log('🗑️ Cache da carteira limpo no login')
+        
+        // Atualizar preços da carteira após login bem-sucedido
+        // AGUARDA a atualização para garantir que os preços estão salvos
+        await updatePortfolioPricesOnLogin(data.user.id)
         
         return { success: true, user: data.user }
       } else {
@@ -144,6 +155,13 @@ export function AuthProvider({ children }) {
 
   // Função de logout
   const logout = () => {
+    // Limpar cache da carteira antes de deslogar
+    if (user) {
+      const cacheKey = `portfolio_full_${user.id}`
+      localStorage.removeItem(cacheKey)
+      console.log('🗑️ Cache da carteira limpo no logout')
+    }
+    
     setUser(null)
     localStorage.removeItem('user_id')
   }

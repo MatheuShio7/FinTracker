@@ -404,6 +404,14 @@ def get_current_stock_price(ticker: str) -> Optional[Dict[str, any]]:
             # Extrai o primeiro resultado (dados da ação)
             resultado = data['results'][0]
             
+            # DEBUG: Mostrar TODOS os campos de preço disponíveis
+            print("[DEBUG] Campos de preço disponíveis na resposta da API:")
+            price_fields = ['regularMarketPrice', 'regularMarketPreviousClose', 
+                          'regularMarketOpen', 'regularMarketDayHigh', 'regularMarketDayLow']
+            for field in price_fields:
+                if field in resultado:
+                    print(f"  {field}: R$ {resultado[field]}")
+            
             # Busca o preço atual (regularMarketPrice é o mais atualizado)
             current_price = None
             market_status = "unknown"
@@ -411,13 +419,16 @@ def get_current_stock_price(ticker: str) -> Optional[Dict[str, any]]:
             if 'regularMarketPrice' in resultado and resultado['regularMarketPrice']:
                 current_price = float(resultado['regularMarketPrice'])
                 market_status = "open" if 'marketState' in resultado and resultado['marketState'] == 'REGULAR' else "closed"
+                print(f"[INFO] Usando regularMarketPrice: R$ {current_price:.2f}")
             elif 'regularMarketPreviousClose' in resultado and resultado['regularMarketPreviousClose']:
                 # Fallback: preço de fechamento anterior
                 current_price = float(resultado['regularMarketPreviousClose'])
                 market_status = "closed"
+                print(f"[INFO] Usando regularMarketPreviousClose (fallback): R$ {current_price:.2f}")
             
             if current_price is None:
                 print(f"[ERRO] Não foi possível obter preço atual para {ticker}")
+                print(f"[DEBUG] Resposta completa da API: {resultado}")
                 return None
             
             # Determina a data (hoje ou último dia de pregão)
