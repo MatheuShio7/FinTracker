@@ -184,6 +184,15 @@ export function PortfolioProvider({ children }) {
     }
   }, [user]);
 
+  // Invalidar cache da watchlist completa (usado quando ações são adicionadas/removidas)
+  const invalidateWatchlistFullCache = useCallback(() => {
+    if (user) {
+      const cacheKey = `watchlist_full_${user.id}`;
+      localStorage.removeItem(cacheKey);
+      console.log('🗑️ Cache da watchlist completa invalidado');
+    }
+  }, [user]);
+
   const value = {
     cache,
     isLoading: cache.isLoading,
@@ -197,7 +206,8 @@ export function PortfolioProvider({ children }) {
     addToWatchlist,
     removeFromWatchlist,
     checkStocksStatus,
-    invalidatePortfolioFullCache
+    invalidatePortfolioFullCache,
+    invalidateWatchlistFullCache
   };
 
   return (

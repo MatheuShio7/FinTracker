@@ -13,6 +13,7 @@ from services.portfolio_service import (
     get_stock_quantity,
     update_stock_quantity,
     get_user_portfolio_full,
+    get_user_watchlist_full,
     update_portfolio_prices_on_login
 )
 
@@ -516,6 +517,52 @@ def update_prices_on_login():
             
     except Exception as e:
         print(f"Erro ao atualizar preços no login: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": f"Erro interno: {str(e)}"
+        }), 500
+
+
+@portfolio_bp.route('/api/watchlist/full', methods=['GET'])
+def get_watchlist_full():
+    """
+    GET /api/watchlist/full?user_id=...
+    
+    Retorna watchlist completa do usuário com preços atuais e último provento
+    
+    Response: {
+        "status": "success",
+        "data": [
+            {
+                "ticker": "PETR4",
+                "current_price": 30.50,
+                "last_dividend": {
+                    "value": 1.25,
+                    "payment_date": "2024-03-30"
+                }
+            },
+            ...
+        ]
+    }
+    """
+    try:
+        user_id = request.args.get('user_id')
+        
+        if not user_id:
+            return jsonify({
+                "status": "error",
+                "message": "user_id é obrigatório"
+            }), 400
+        
+        result = get_user_watchlist_full(user_id)
+        
+        return jsonify({
+            "status": "success",
+            "data": result
+        }), 200
+            
+    except Exception as e:
+        print(f"Erro ao buscar watchlist completa: {str(e)}")
         return jsonify({
             "status": "error",
             "message": f"Erro interno: {str(e)}"

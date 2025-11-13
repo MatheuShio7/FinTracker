@@ -1,0 +1,304 @@
+/* Container da tabela */
+.watchlist-table-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 30px auto 50px;
+  padding: 0 20px;
+}
+
+/* Tabela - ESTRUTURA MODERNIZADA */
+.watchlist-table {
+  width: 100%;
+  background-color: #16171b;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-collapse: separate;
+  border-spacing: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 600px;
+}
+
+/* Header da tabela - FIXO NO TOPO */
+.watchlist-table thead {
+  background-color: #16171b;
+  border-bottom: 3px solid #2a2b30;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.watchlist-table thead tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.watchlist-table thead th {
+  padding: 20px 20px;
+  text-align: center;
+  color: #666666;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background-color: #16171b;
+}
+
+/* Body da tabela - COM SCROLL INTERNO */
+.watchlist-table tbody {
+  display: block;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 500px;
+}
+
+/* Scrollbar customizada no tbody */
+.watchlist-table tbody::-webkit-scrollbar {
+  width: 8px;
+}
+
+.watchlist-table tbody::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.watchlist-table tbody::-webkit-scrollbar-thumb {
+  background-color: #666666;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.watchlist-table tbody::-webkit-scrollbar-thumb:hover {
+  background-color: #888888;
+}
+
+/* Firefox scrollbar no tbody */
+.watchlist-table tbody {
+  scrollbar-width: thin;
+  scrollbar-color: #666666 transparent;
+}
+
+.watchlist-table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.watchlist-table tbody td {
+  padding: 22px 20px;
+  color: #ffffff;
+  font-size: 16px;
+  border-bottom: 1px solid rgba(42, 43, 48, 0.5);
+  transition: all 0.2s ease;
+}
+
+/* Última linha sem borda inferior */
+.watchlist-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Alinhamento das colunas do body */
+.ticker-cell {
+  text-align: center;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.price-cell {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.dividend-cell {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Estilo do dividendo removido - agora usa cor padrão branca */
+
+/* Hover effect nas linhas - MODERNIZADO */
+.watchlist-row {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.watchlist-row:hover {
+  background-color: #1a1b20;
+  transform: scale(1.002);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.watchlist-row:hover td {
+  border-bottom-color: transparent;
+}
+
+.watchlist-row:active {
+  transform: scale(0.998);
+}
+
+/* Estado vazio */
+.empty-row td {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666666;
+  font-style: italic;
+}
+
+/* Loading state - MODERNIZADO */
+.watchlist-loading {
+  background-color: #16171b;
+  border-radius: 16px;
+  padding: 60px 40px;
+  text-align: center;
+  color: #666666;
+  font-size: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Error state - MODERNIZADO */
+.watchlist-error {
+  background-color: #16171b;
+  border-radius: 16px;
+  padding: 60px 40px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.watchlist-error p {
+  color: #ff6b6b;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.retry-button {
+  background-color: #4a9eff;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
+}
+
+.retry-button:hover {
+  background-color: #3a8eef;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(74, 158, 255, 0.4);
+}
+
+.retry-button:active {
+  transform: translateY(0);
+}
+
+/* Estado não logado - MODERNIZADO */
+.watchlist-empty {
+  background-color: #16171b;
+  border-radius: 16px;
+  padding: 60px 40px;
+  text-align: center;
+  color: #666666;
+  font-size: 16px;
+  font-style: italic;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+  .watchlist-table-container {
+    padding: 0 10px;
+    margin-top: 20px;
+  }
+
+  .watchlist-table thead th,
+  .watchlist-table tbody td {
+    padding: 12px 10px;
+    font-size: 14px;
+  }
+
+  .watchlist-table thead th {
+    font-size: 12px;
+  }
+
+  .ticker-cell {
+    font-weight: 600;
+  }
+
+
+  .watchlist-loading,
+  .watchlist-empty,
+  .watchlist-error {
+    padding: 40px 20px;
+  }
+
+  .watchlist-table {
+    max-height: 500px;
+  }
+
+  .watchlist-table tbody {
+    max-height: 400px;
+  }
+}
+
+/* Responsividade para telas muito pequenas */
+@media (max-width: 480px) {
+  .watchlist-table thead th,
+  .watchlist-table tbody td {
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  .watchlist-table thead th {
+    font-size: 11px;
+  }
+
+
+  .watchlist-loading,
+  .watchlist-empty,
+  .watchlist-error {
+    padding: 30px 20px;
+    font-size: 14px;
+  }
+
+  .watchlist-table {
+    border-radius: 12px;
+    max-height: 450px;
+  }
+
+  .watchlist-table tbody {
+    max-height: 350px;
+  }
+}
+
+/* Animação suave de entrada */
+.watchlist-table {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

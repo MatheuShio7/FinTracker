@@ -5,6 +5,71 @@ from config.supabase_config import get_supabase_client
 from datetime import datetime, timedelta
 
 
+def ensure_stock_data_for_watchlist(stock_id, ticker):
+    """
+    Garante que a ação tenha preço atual e dividendos no banco de dados
+    (específico para watchlist - busca preço e dividendos)
+    
+    Args:
+        stock_id: UUID da ação
+        ticker: Código da ação (ex: PETR4)
+        
+    Returns:
+        bool: True se garantiu os dados, False se houve erro
+    """
+    try:
+        from services.brapi_price_service import get_current_stock_price
+        from services.yahoo_dividend_service import fetch_dividends_from_yahoo
+        from services.save_service import save_prices, save_dividends
+        
+        print(f"[INFO] Garantindo dados para watchlist: {ticker}...")
+        
+        # 1. Buscar e salvar preço atual
+        print(f"[INFO] Buscando preço atual para {ticker}...")
+        current_price_data = get_current_stock_price(ticker)
+        
+        if current_price_data:
+            # Converte para formato compatível com save_prices
+            price_list = [{
+                "date": current_price_data["date"],
+                "price": current_price_data["current_price"]
+            }]
+            
+            # Salvar preço no banco
+            saved_price_count = save_prices(stock_id, price_list)
+            
+            if saved_price_count > 0:
+                print(f"[OK] Preço atual salvo para {ticker}: R$ {current_price_data['current_price']:.2f}")
+            else:
+                print(f"[AVISO] Não foi possível salvar preço para {ticker}")
+        else:
+            print(f"[AVISO] Não foi possível buscar preço atual para {ticker}")
+        
+        # 2. Buscar e salvar dividendos
+        print(f"[INFO] Buscando dividendos para {ticker}...")
+        dividends_from_api = fetch_dividends_from_yahoo(ticker)
+        
+        if dividends_from_api is None:
+            print(f"[ERRO] Erro ao buscar dividendos para {ticker}")
+        elif len(dividends_from_api) == 0:
+            print(f"[INFO] Nenhum dividendo encontrado para {ticker} (ação pode não pagar dividendos)")
+        else:
+            # Salvar dividendos no banco
+            saved_div_count = save_dividends(stock_id, dividends_from_api)
+            
+            if saved_div_count > 0:
+                print(f"[OK] {saved_div_count} dividendos salvos para {ticker}")
+            else:
+                print(f"[AVISO] Nenhum dividendo foi salvo para {ticker}")
+        
+        print(f"[OK] Dados garantidos para {ticker}")
+        return True
+            
+    except Exception as e:
+        print(f"[ERRO] Erro ao garantir dados para {ticker}: {str(e)}")
+        return False
+
+
 def ensure_current_stock_price(stock_id, ticker):
     """
     Garante que a ação tenha preço atual no banco de dados (OTIMIZADO)
@@ -247,6 +312,9 @@ def add_to_watchlist(user_id, ticker):
             'user_id': user_id,
             'stock_id': stock_id
         }).execute()
+        
+        # 4. Garantir que a ação tenha preço e dividendos no banco
+        ensure_stock_data_for_watchlist(stock_id, ticker)
         
         return {
             "success": True,
@@ -811,4 +879,105 @@ def get_user_portfolio_full(user_id):
         
     except Exception as e:
         print(f"[ERRO] Erro ao buscar portfolio completo: {str(e)}")
+        return []
+
+
+def get_user_watchlist_full(user_id):
+    """
+    Retorna watchlist completa do usuário com preços atuais e último provento
+    
+    Args:
+        user_id: ID do usuário
+        
+    Returns:
+        list: [
+            {
+                "ticker": "PETR4",
+                "current_price": 30.50,
+                "last_dividend": {
+                    "value": 1.25,
+                    "payment_date": "2024-03-30"
+                }
+            },
+            ...
+        ]
+        Retorna lista vazia [] se usuário não tiver ações na watchlist
+    """
+    try:
+        supabase = get_supabase_client()
+        
+        # 1. Buscar watchlist com join na tabela stocks
+        watchlist_response = supabase.table('user_watchlist')\
+            .select('stock_id, stocks(ticker, id)')\
+            .eq('user_id', user_id)\
+            .execute()
+        
+        if not watchlist_response.data or len(watchlist_response.data) == 0:
+            print(f"[INFO] Usuário {user_id} não tem ações na watchlist")
+            return []
+        
+        print(f"[INFO] Carregando watchlist para {len(watchlist_response.data)} ações...")
+        
+        # 2. Para cada ação, buscar preço e último dividendo
+        result = []
+        for item in watchlist_response.data:
+            try:
+                if not item.get('stocks'):
+                    continue
+                
+                ticker = item['stocks']['ticker']
+                stock_id = item['stock_id']
+                
+                # Buscar preço mais recente dessa ação
+                price_response = supabase.table('stock_prices')\
+                    .select('price')\
+                    .eq('stock_id', stock_id)\
+                    .order('date', desc=True)\
+                    .limit(1)\
+                    .execute()
+                
+                # Se não encontrou preço, usar None
+                current_price = None
+                if price_response.data and len(price_response.data) > 0:
+                    current_price = float(price_response.data[0]['price'])
+                
+                # Buscar último dividendo
+                dividend_response = supabase.table('stock_dividends')\
+                    .select('value, payment_date')\
+                    .eq('stock_id', stock_id)\
+                    .order('payment_date', desc=True)\
+                    .limit(1)\
+                    .execute()
+                
+                last_dividend = None
+                if dividend_response.data and len(dividend_response.data) > 0:
+                    div_data = dividend_response.data[0]
+                    print(f"[DEBUG] Dividendo encontrado para {ticker}: value={div_data.get('value')}, payment_date={div_data.get('payment_date')}")
+                    
+                    # Validar que ambos os campos existem e são válidos
+                    if div_data.get('value') is not None and div_data.get('payment_date') is not None:
+                        last_dividend = {
+                            'value': float(div_data['value']),
+                            'payment_date': div_data['payment_date']
+                        }
+                    else:
+                        print(f"[AVISO] Dividendo para {ticker} tem dados inválidos (value ou payment_date é None)")
+                else:
+                    print(f"[INFO] Nenhum dividendo encontrado para {ticker}")
+                
+                result.append({
+                    'ticker': ticker,
+                    'current_price': current_price,
+                    'last_dividend': last_dividend
+                })
+                
+            except Exception as e:
+                print(f"[ERRO] Erro ao processar ação na watchlist: {str(e)}")
+                continue
+        
+        print(f"[OK] Watchlist completa retornada: {len(result)} ações")
+        return result
+        
+    except Exception as e:
+        print(f"[ERRO] Erro ao buscar watchlist completa: {str(e)}")
         return []
