@@ -792,6 +792,71 @@ def update_portfolio_prices_on_login(user_id):
         }
 
 
+def update_watchlist_prices_on_login(user_id):
+    """
+    Atualiza preços de TODAS as ações da watchlist (usado apenas no login)
+    
+    Esta função busca preços atuais e dividendos da API para todas as ações 
+    da watchlist do usuário. Deve ser chamada apenas quando o usuário faz login.
+    
+    Args:
+        user_id: ID do usuário
+        
+    Returns:
+        dict: {"success": bool, "updated_count": int, "message": str}
+    """
+    try:
+        supabase = get_supabase_client()
+        
+        # 1. Buscar todas as ações da watchlist do usuário
+        watchlist_response = supabase.table('user_watchlist')\
+            .select('stock_id, stocks(ticker, id)')\
+            .eq('user_id', user_id)\
+            .execute()
+        
+        if not watchlist_response.data or len(watchlist_response.data) == 0:
+            return {
+                "success": True,
+                "updated_count": 0,
+                "message": "Usuário não tem ações na watchlist"
+            }
+        
+        print(f"[LOGIN] Atualizando preços para {len(watchlist_response.data)} ações da watchlist...")
+        
+        updated_count = 0
+        for item in watchlist_response.data:
+            try:
+                if not item.get('stocks'):
+                    continue
+                
+                ticker = item['stocks']['ticker']
+                stock_id = item['stock_id']
+                
+                # Buscar preço atual e dividendos da API e salvar
+                success = ensure_stock_data_for_watchlist(stock_id, ticker)
+                if success:
+                    updated_count += 1
+                    
+            except Exception as e:
+                print(f"[ERRO] Erro ao atualizar dados de {ticker}: {str(e)}")
+                continue
+        
+        print(f"[LOGIN] ✅ {updated_count} ações da watchlist atualizadas com sucesso")
+        return {
+            "success": True,
+            "updated_count": updated_count,
+            "message": f"{updated_count} ações da watchlist atualizadas no login"
+        }
+        
+    except Exception as e:
+        print(f"[ERRO] Erro ao atualizar watchlist no login: {str(e)}")
+        return {
+            "success": False,
+            "updated_count": 0,
+            "message": f"Erro ao atualizar watchlist: {str(e)}"
+        }
+
+
 def get_user_portfolio_full(user_id):
     """
     Retorna carteira completa do usuário com preços atuais e valores calculados

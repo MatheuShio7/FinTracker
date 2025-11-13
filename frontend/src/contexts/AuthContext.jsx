@@ -104,13 +104,41 @@ export function AuthProvider({ children }) {
       const data = await response.json()
 
       if (data.status === 'success') {
-        console.log(`✅ ${data.data.updated_count} preços atualizados no login`)
+        console.log(`✅ ${data.data.updated_count} preços da carteira atualizados no login`)
       } else {
-        console.warn('⚠️ Erro ao atualizar preços no login:', data.message)
+        console.warn('⚠️ Erro ao atualizar preços da carteira no login:', data.message)
       }
     } catch (error) {
-      console.error('❌ Erro ao atualizar preços no login:', error)
+      console.error('❌ Erro ao atualizar preços da carteira no login:', error)
       // Não bloqueia o login se houver erro na atualização de preços
+    }
+  }
+
+  // Atualizar preços da watchlist no login
+  const updateWatchlistPricesOnLogin = async (userId) => {
+    try {
+      console.log('🔄 Atualizando preços da watchlist no login...')
+      
+      const response = await fetch(buildApiUrl('api/watchlist/update-prices-login'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.status === 'success') {
+        console.log(`✅ ${data.data.updated_count} ações da watchlist atualizadas no login`)
+      } else {
+        console.warn('⚠️ Erro ao atualizar watchlist no login:', data.message)
+      }
+    } catch (error) {
+      console.error('❌ Erro ao atualizar watchlist no login:', error)
+      // Não bloqueia o login se houver erro na atualização
     }
   }
 
@@ -134,14 +162,19 @@ export function AuthProvider({ children }) {
         setUser(data.user)
         localStorage.setItem('user_id', data.user.id)
         
-        // IMPORTANTE: Limpar cache da carteira ANTES de atualizar preços
-        const cacheKey = `portfolio_full_${data.user.id}`
-        localStorage.removeItem(cacheKey)
-        console.log('🗑️ Cache da carteira limpo no login')
+        // IMPORTANTE: Limpar caches ANTES de atualizar preços
+        const portfolioCacheKey = `portfolio_full_${data.user.id}`
+        const watchlistCacheKey = `watchlist_full_${data.user.id}`
+        localStorage.removeItem(portfolioCacheKey)
+        localStorage.removeItem(watchlistCacheKey)
+        console.log('🗑️ Caches da carteira e watchlist limpos no login')
         
-        // Atualizar preços da carteira após login bem-sucedido
-        // AGUARDA a atualização para garantir que os preços estão salvos
-        await updatePortfolioPricesOnLogin(data.user.id)
+        // Atualizar preços da carteira e watchlist após login bem-sucedido
+        // Executar em paralelo para ser mais rápido
+        await Promise.all([
+          updatePortfolioPricesOnLogin(data.user.id),
+          updateWatchlistPricesOnLogin(data.user.id)
+        ])
         
         return { success: true, user: data.user }
       } else {
