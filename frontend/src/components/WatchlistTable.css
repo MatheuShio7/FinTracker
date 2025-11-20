@@ -1,9 +1,11 @@
 /* Container da tabela */
 .watchlist-table-container {
   width: 100%;
-  max-width: 900px;
+  max-width: 800px;
   margin: 0px auto 50px;
   padding: 0 20px;
+  position: relative;
+  top: 0; /* Ajuste este valor para mover a tabela para baixo sem afetar outros elementos */
 }
 
 /* Tabela - ESTRUTURA MODERNIZADA */

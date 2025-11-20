@@ -3,6 +3,7 @@
 .explorar-page {
   width: 100%;
   position: relative;
+  padding-top: 200px; /* Espaçamento para a lista de observação */
 }
 
 /* Ajuste de posicionamento do título na página Explorar */
