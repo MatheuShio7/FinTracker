@@ -199,12 +199,48 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('user_id')
   }
 
+  // Função de atualização de perfil
+  const updateProfile = async (name, lastName, email) => {
+    if (!user) {
+      return { success: false, message: 'Você precisa estar logado' }
+    }
+
+    try {
+      const response = await fetch(buildApiUrl('api/auth/user/update'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          name,
+          last_name: lastName,
+          email,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.status === 'success') {
+        // Atualizar o estado do usuário com os novos dados
+        setUser(data.user)
+        return { success: true, message: data.message, user: data.user }
+      } else {
+        return { success: false, message: data.message }
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error)
+      return { success: false, message: 'Erro ao conectar com o servidor' }
+    }
+  }
+
   const value = {
     user,
     loading,
     signup,
     login,
     logout,
+    updateProfile,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
