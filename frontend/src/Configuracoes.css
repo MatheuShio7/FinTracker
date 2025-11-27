@@ -277,6 +277,30 @@
   cursor: not-allowed;
 }
 
+.profile-input-with-eye {
+  padding-right: 45px;
+}
+
+/* Password Eye Icon */
+.password-eye-icon {
+  position: absolute;
+  right: 15px;
+  color: #9f9f9f;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 2;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+.password-eye-icon:hover {
+  color: #ffffff;
+}
+
+.password-eye-icon:active {
+  color: #f65308;
+}
+
 /* Profile Save Button - Similar to StockEditor save button */
 .profile-save-button {
   width: 200px;
@@ -321,4 +345,81 @@
 
 .profile-save-button:disabled {
   cursor: not-allowed;
+}
+
+/* Profile Sections Container - Layout lado a lado */
+.profile-sections-container {
+  display: flex;
+  gap: 60px;
+  margin-top: 70px;
+}
+
+.profile-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Password Fields Container */
+.password-fields-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+  max-width: 450px;
+}
+
+/* Password Buttons Container */
+.password-buttons-container {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  max-width: 450px;
+  justify-content: center;
+}
+
+.password-buttons-container .profile-save-button {
+  margin-left: 0;
+  margin-top: 0;
+}
+
+/* Profile Clear Button */
+.profile-clear-button {
+  width: 150px;
+  height: 50px;
+  border: none;
+  border-radius: 25px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  /* Estado padrão (desabilitado) */
+  background-color: #16171b;
+  color: #9f9f9f;
+}
+
+.profile-clear-button-active {
+  /* Estado ativo */
+  background-color: #16171b;
+  color: white;
+  border: 1px solid #6b6b6b;
+}
+
+.profile-clear-button-active:hover {
+  transform: scale(1.02);
+  border-color: #9f9f9f;
+}
+
+.profile-clear-button:disabled {
+  cursor: not-allowed;
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+  .profile-sections-container {
+    flex-direction: column;
+    gap: 40px;
+  }
 } 

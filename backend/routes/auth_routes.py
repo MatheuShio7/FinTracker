@@ -3,7 +3,7 @@ Rotas de autenticação
 Endpoints para registro, login e informações de usuário
 """
 from flask import Blueprint, request, jsonify
-from services.auth_service import register_user, login_user, get_user_by_id, update_user
+from services.auth_service import register_user, login_user, get_user_by_id, update_user, update_password
 
 # Cria blueprint para rotas de autenticação
 bp = Blueprint('auth', __name__, url_prefix='/api/auth')
@@ -234,6 +234,63 @@ def update_user_info():
             
     except Exception as e:
         print(f"❌ Erro no endpoint de atualização de usuário: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": "Erro interno do servidor"
+        }), 500
+
+
+@bp.route('/user/update-password', methods=['POST'])
+def update_user_password():
+    """
+    POST /api/auth/user/update-password
+    Atualiza a senha de um usuário
+    
+    Body:
+        {
+            "user_id": "uuid",
+            "current_password": "senha_atual",
+            "new_password": "senha_nova"
+        }
+    
+    Response:
+        {
+            "status": "success",
+            "message": "Senha atualizada com sucesso!"
+        }
+    """
+    try:
+        data = request.get_json()
+        
+        # Valida se todos os campos foram enviados
+        required_fields = ['user_id', 'current_password', 'new_password']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({
+                    "status": "error",
+                    "message": f"Campo '{field}' é obrigatório"
+                }), 400
+        
+        # Chama serviço de atualização de senha
+        result = update_password(
+            user_id=data['user_id'],
+            current_password=data['current_password'],
+            new_password=data['new_password']
+        )
+        
+        if result['success']:
+            return jsonify({
+                "status": "success",
+                "message": "Senha atualizada com sucesso!"
+            }), 200
+        else:
+            return jsonify({
+                "status": "error",
+                "message": result['error']
+            }), 400
+            
+    except Exception as e:
+        print(f"❌ Erro no endpoint de atualização de senha: {str(e)}")
         return jsonify({
             "status": "error",
             "message": "Erro interno do servidor"

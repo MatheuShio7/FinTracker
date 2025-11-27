@@ -234,6 +234,38 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Função de atualização de senha
+  const updatePassword = async (currentPassword, newPassword) => {
+    if (!user) {
+      return { success: false, message: 'Você precisa estar logado' }
+    }
+
+    try {
+      const response = await fetch(buildApiUrl('api/auth/user/update-password'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.status === 'success') {
+        return { success: true, message: data.message }
+      } else {
+        return { success: false, message: data.message }
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar senha:', error)
+      return { success: false, message: 'Erro ao conectar com o servidor' }
+    }
+  }
+
   const value = {
     user,
     loading,
@@ -241,6 +273,7 @@ export function AuthProvider({ children }) {
     login,
     logout,
     updateProfile,
+    updatePassword,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

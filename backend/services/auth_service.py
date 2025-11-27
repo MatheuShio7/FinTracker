@@ -253,3 +253,58 @@ def update_user(user_id: str, name: str, last_name: str, email: str) -> Dict[str
     except Exception as e:
         print(f"❌ Erro ao atualizar usuário: {str(e)}")
         return {"success": False, "error": f"Erro no servidor: {str(e)}"}
+
+
+def update_password(user_id: str, current_password: str, new_password: str) -> Dict[str, Any]:
+    """
+    Atualiza a senha de um usuário
+    
+    Args:
+        user_id: ID do usuário
+        current_password: Senha atual do usuário
+        new_password: Nova senha do usuário
+        
+    Returns:
+        Dict com:
+        - success (bool): True se atualização foi bem-sucedida
+        - error (str): Mensagem de erro se falha
+    """
+    try:
+        # Validações
+        if not current_password or not new_password:
+            return {"success": False, "error": "Todos os campos são obrigatórios"}
+        
+        if len(new_password) < 8:
+            return {"success": False, "error": "A nova senha deve ter pelo menos 8 caracteres"}
+        
+        # Conecta ao Supabase
+        supabase = get_supabase_client()
+        
+        # Busca usuário
+        user_result = supabase.table('users').select('id, password').eq('id', user_id).execute()
+        if not user_result.data or len(user_result.data) == 0:
+            return {"success": False, "error": "Usuário não encontrado"}
+        
+        user = user_result.data[0]
+        stored_password = user.get('password')
+        
+        # Verifica se a senha atual está correta
+        if not verify_password(current_password, stored_password):
+            return {"success": False, "error": "Senha atual incorreta"}
+        
+        # Gera hash da nova senha
+        new_hashed_password = hash_password(new_password)
+        
+        # Atualiza a senha
+        update_result = supabase.table('users').update({
+            'password': new_hashed_password
+        }).eq('id', user_id).execute()
+        
+        if update_result.data and len(update_result.data) > 0:
+            return {"success": True}
+        else:
+            return {"success": False, "error": "Erro ao atualizar senha"}
+            
+    except Exception as e:
+        print(f"❌ Erro ao atualizar senha: {str(e)}")
+        return {"success": False, "error": f"Erro no servidor: {str(e)}"}
