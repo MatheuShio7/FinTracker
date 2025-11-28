@@ -292,6 +292,10 @@ def update_password(user_id: str, current_password: str, new_password: str) -> D
         if not verify_password(current_password, stored_password):
             return {"success": False, "error": "Senha atual incorreta"}
         
+        # Verifica se a nova senha é diferente da senha atual
+        if verify_password(new_password, stored_password):
+            return {"success": False, "error": "A nova senha deve ser diferente da senha atual"}
+        
         # Gera hash da nova senha
         new_hashed_password = hash_password(new_password)
         

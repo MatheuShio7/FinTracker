@@ -360,6 +360,10 @@
   flex-direction: column;
 }
 
+.profile-section .configuracoes-section-title {
+  margin-bottom: 0;
+}
+
 /* Password Fields Container */
 .password-fields-container {
   display: flex;
