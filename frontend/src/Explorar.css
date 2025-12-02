@@ -9,4 +9,11 @@
 /* Ajuste de posicionamento do título na página Explorar */
 .explorar-page .page-title {
   left: 72px;
+}
+
+/* Posicionamento do botão de reload na página Explorar */
+/* Posiciona ao lado esquerdo da barra de pesquisa */
+.explorar-page .reload-button.explorar-reload-button {
+  top: 59px;
+  right: 460px; /* 70px (right da SearchBar) + 375px (largura da SearchBar) + 15px (espaçamento) */
 } 

@@ -1,6 +1,6 @@
 import './ReloadButton.css'
 
-function ReloadButton({ onClick, isLoading = false }) {
+function ReloadButton({ onClick, isLoading = false, className = '' }) {
   const handleClick = () => {
     if (onClick && !isLoading) {
       onClick()
@@ -9,7 +9,7 @@ function ReloadButton({ onClick, isLoading = false }) {
 
   return (
     <button 
-      className={`reload-button ${isLoading ? 'loading' : ''}`}
+      className={`reload-button ${isLoading ? 'loading' : ''} ${className}`}
       onClick={handleClick}
       disabled={isLoading}
       title={isLoading ? 'Atualizando...' : 'Atualizar dados'}

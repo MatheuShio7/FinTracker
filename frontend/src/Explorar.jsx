@@ -7,6 +7,7 @@ import Logo from './components/Logo'
 import PageTitle from './components/PageTitle'
 import SearchBar from './components/SearchBar'
 import WatchlistTable from './components/WatchlistTable'
+import ReloadButton from './components/ReloadButton'
 
 function Explorar() {
   const { user } = useAuth()
@@ -14,6 +15,7 @@ function Explorar() {
   const [watchlistData, setWatchlistData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Buscar dados completos da watchlist
   const fetchWatchlistData = async (forceRefresh = false) => {
@@ -108,10 +110,61 @@ function Explorar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cache.timestamp])
 
+  // Função para atualizar preços e dividendos de todas as ações da watchlist
+  const handleRefresh = async () => {
+    if (!user) return
+    
+    setIsRefreshing(true)
+    
+    try {
+      console.log('🔄 Atualizando preços de todas as ações da watchlist...')
+      
+      // Chamar endpoint que atualiza preços de todas as ações da watchlist
+      const response = await fetch(
+        buildApiUrl('api/watchlist/update-prices-login'),
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: user.id
+          })
+        }
+      )
+      
+      const data = await response.json()
+      
+      if (response.ok && data.status === 'success') {
+        console.log(`✅ ${data.data.updated_count} preços atualizados com sucesso!`)
+        
+        // Invalidar cache local
+        const cacheKey = `watchlist_full_${user.id}`
+        localStorage.removeItem(cacheKey)
+        
+        // Recarregar dados atualizados
+        await fetchWatchlistData(true)
+      } else {
+        console.error('❌ Erro ao atualizar preços:', data.message)
+        setError(data.message || 'Erro ao atualizar preços')
+      }
+    } catch (err) {
+      console.error('❌ Erro ao conectar com backend:', err)
+      setError('Erro ao atualizar preços')
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
   return (
     <div className="explorar-page">
       <Logo />
       <PageTitle title="Explorar" />
+      <ReloadButton 
+        onClick={handleRefresh} 
+        isLoading={isRefreshing}
+        className="explorar-reload-button"
+      />
       <SearchBar />
       <WatchlistTable 
         watchlistData={watchlistData}
