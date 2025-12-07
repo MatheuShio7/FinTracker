@@ -7,6 +7,57 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 function Conteudo() {
   const [selectedArticle, setSelectedArticle] = useState(null)
 
+  const videos = [
+    {
+      id: 1,
+      title: 'Como analisar ações de maneira simples e rápida?',
+      description: 'Descubra uma forma simples e direta de analisar empresas antes de investir. Este conteúdo apresenta os principais indicadores que realmente importam para entender a saúde financeira e o potencial de crescimento de uma ação. Ideal para quem quer investir com mais segurança e clareza, sem depender de análises complexas.',
+      videoId: 'bkcMlHEtXsI'
+    },
+    {
+      id: 2,
+      title: 'Ações 3, 4, 5, 6, 11 ou F: Como Não Perder Dinheiro com Essas Diferenças!',
+      description: 'Entenda de uma vez por todas o significado dos diferentes finais dos tickers da B3, como 3, 4, 5, 6, 11 e F. Esta explicação mostra como cada código representa um tipo específico de ação e como isso afeta direitos, dividendos e até liquidez. Perfeito para quem quer comprar ações com mais consciência e evitar confusões na hora de investir.',
+      videoId: 'esEh3f3x_zw'
+    },
+    {
+      id: 3,
+      title: 'A Melhor Ação de Cada Setor Perene da Bolsa de Valores',
+      description: 'Conheça ações de setores considerados mais estáveis e resilientes da bolsa brasileira. A análise destaca empresas que se sobressaem em seus segmentos e mostra por que podem ser boas opções para quem busca construir uma carteira sólida e focada no longo prazo. Uma ótima escolha para quem valoriza consistência e segurança.',
+      videoId: 'oychy3VVzv0'
+    }
+  ]
+
+  const books = [
+    {
+      id: 1,
+      title: 'O Investidor Inteligente',
+      author: 'Benjamin Graham',
+      description: 'Graham ensina você a investir com segurança e inteligência, focando no verdadeiro valor das empresas em vez de seguir a manada do mercado. Você aprenderá a identificar ações subvalorizadas, proteger seu capital e tomar decisões racionais mesmo quando o mercado enlouquece. É impossível se tornar um investidor sério sem conhecer estes princípios fundamentais - este livro mudará para sempre a forma como você enxerga o mercado de ações.',
+      highlight: 'A bíblia do value investing que transformou Warren Buffett no maior investidor do mundo.',
+      image: '/o_investidor_inteligente.jpg',
+      link: 'https://amzn.to/48oJov8'
+    },
+    {
+      id: 2,
+      title: 'O Jeito Peter Lynch de Investir',
+      author: 'Peter Lynch',
+      description: 'Lynch prova que você não precisa ser um gênio de Wall Street para ganhar dinheiro com ações. Ele mostra como encontrar oportunidades incríveis no seu dia a dia - no shopping, no supermercado, observando o que você e sua família consomem. Com linguagem descomplicada e exemplos práticos, você aprenderá a identificar empresas com potencial explosivo antes que o mercado as descubra. Se Graham te ensina a pensar, Lynch te ensina a agir - transformando teoria em prática de forma simples e lucrativa.',
+      highlight: 'Descubra como um dos gestores mais bem-sucedidos da história encontrava ações vencedoras nos lugares mais inusitados.',
+      image: '/o_jeito_peter_lynch_de_investir.jpg',
+      link: 'https://amzn.to/48pHevl'
+    },
+    {
+      id: 3,
+      title: 'Ações Comuns, Lucros Extraordinários',
+      author: 'Philip Fisher',
+      description: 'Fisher revela a arte de avaliar o que realmente importa: qualidade da gestão, capacidade de inovação e vantagem competitiva sustentável. Este é o método que influenciou Warren Buffett a não apenas comprar empresas baratas, mas sim empresas extraordinárias. Você aprenderá a diferença entre uma boa empresa e uma grande empresa - e como essa diferença pode multiplicar sua riqueza exponencialmente. Fisher completa sua educação revelando a dimensão qualitativa dos investimentos, a peça que faltava para você entender não apenas quando comprar, mas o que faz uma ação valer a pena segurar por décadas.',
+      highlight: 'O livro que ensina o que os números não revelam: como identificar empresas verdadeiramente excepcionais.',
+      image: '/acoes_comuns_lucros_extraortinarios.jpg',
+      link: 'https://amzn.to/3XFNOYs'
+    }
+  ]
+
   const articles = [
     {
       id: 1,
@@ -557,6 +608,67 @@ Lembre-se: pagar impostos corretamente é parte de ser um investidor responsáve
                     alt={article.title}
                     className="article-image"
                   />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="content-section books-section">
+          <h2 className="section-title">Livros</h2>
+
+          <div className="books-grid">
+            {books.map(book => (
+              <div key={book.id} className="book-card">
+                <div className="book-image-container">
+                  <img 
+                    src={book.image} 
+                    alt={book.title}
+                    className="book-image"
+                  />
+                </div>
+                <div className="book-content">
+                  <h3 className="book-title">{book.title}</h3>
+                  <p className="book-author">{book.author}</p>
+                  <p className="book-highlight">{book.highlight}</p>
+                  <p className="book-description">{book.description}</p>
+                  <a 
+                    href={book.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="book-button"
+                  >
+                    Ver mais
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="books-intro">
+            Juntos, esses três livros formam a base completa para você se tornar um investidor de sucesso: a disciplina de Graham, a praticidade de Lynch e a visão estratégica de Fisher. Não é exagero dizer que estes são os pilares sobre os quais os maiores patrimônios do mercado de ações foram construídos.
+          </p>
+        </section>
+
+        <section className="content-section videos-section">
+          <h2 className="section-title">Vídeos</h2>
+          
+          <div className="videos-grid">
+            {videos.map(video => (
+              <div key={video.id} className="video-card">
+                <div className="video-embed-container">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${video.videoId}`}
+                    title={video.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="video-embed"
+                  ></iframe>
+                </div>
+                <div className="video-content">
+                  <h3 className="video-title">{video.title}</h3>
+                  <p className="video-description">{video.description}</p>
                 </div>
               </div>
             ))}
