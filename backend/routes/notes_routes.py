@@ -113,3 +113,4 @@ def save_note():
             "message": f"Erro interno: {str(e)}"
         }), 500
 
+

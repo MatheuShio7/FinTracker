@@ -13,7 +13,7 @@
 
 /* Section Title */
 .section-title {
-  font-size: 2.1rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 1rem;
@@ -40,6 +40,7 @@
   cursor: pointer;
   overflow: hidden;
   border: 1px solid #2a2a2a;
+  height: 250px;
 }
 
 .article-card:hover {
@@ -100,6 +101,7 @@
 
 .article-image-container {
   width: 400px;
+  height: 100%;
   flex-shrink: 0;
   display: flex;
   align-items: stretch;
@@ -167,44 +169,48 @@
 .modal-close {
   position: sticky;
   top: 1rem;
-  right: 1rem;
-  float: right;
-  background: transparent;
+  margin-left: auto;
+  margin-right: 1rem;
+  margin-bottom: -52.5px;
+  background: #0000004f;
   color: white;
   border: none;
-  font-size: 2rem;
+  font-size: 1.7rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
-  transition: opacity 0.3s ease;
+  transition: transform 0.2s ease;
   padding: 0.5rem;
+  width: 42.5px;
+  height: 42.5px;
+  border-radius: 50%;
 }
 
 .modal-close:hover {
-  opacity: 0.7;
+  transform: translateY(-2px);
 }
 
 /* Modal Header */
 .modal-header {
-  padding: 0rem 2rem 1rem 2rem;
-  clear: both;
+  padding: 0;
 }
 
 .modal-image {
   width: 100%;
-  max-height: 400px;
+  max-height: 300px;
   object-fit: cover;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
+  border-radius: 20px 20px 0 0;
+  margin-bottom: 0;
 }
 
 .modal-title {
-  font-size: 2.5rem;
+  font-size: 2.25rem;
   font-weight: 700;
   color: #ffffff;
   margin: 0;
+  padding: 1.5rem 2rem 1rem 2rem;
 }
 
 /* Modal Body */
@@ -215,17 +221,17 @@
 }
 
 .modal-body h2 {
-  font-size: 1.8rem;
+  font-size: 1.7rem;
   font-weight: 700;
   color: #ffffff;
   margin-top: 2rem;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 3px solid #f65308;
+  border-bottom: 2px solid #666666;
 }
 
 .modal-body h3 {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 600;
   color: #e0e0e0;
   margin-top: 1.5rem;
@@ -234,7 +240,7 @@
 
 .modal-body p {
   margin: 1rem 0;
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: #b0b0b0;
 }
 
@@ -257,21 +263,27 @@
 
 /* Scrollbar personalizada para o modal */
 .modal-content::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 
 .modal-content::-webkit-scrollbar-track {
-  background: #0a0a0a;
-  border-radius: 10px;
+  background: transparent;
 }
 
 .modal-content::-webkit-scrollbar-thumb {
-  background: #f65308;
-  border-radius: 10px;
+  background-color: #666666;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
 }
 
 .modal-content::-webkit-scrollbar-thumb:hover {
-  background: #d84a07;
+  background-color: #888888;
+}
+
+/* Firefox scrollbar */
+.modal-content {
+  scrollbar-width: thin;
+  scrollbar-color: #666666 transparent;
 }
 
 /* Responsive */
@@ -290,6 +302,7 @@
 
   .article-card {
     flex-direction: column-reverse;
+    height: auto;
   }
 
   .article-content {
@@ -322,15 +335,16 @@
   }
 
   .modal-header {
-    padding: 1.5rem 1.5rem 1rem 1.5rem;
-  }
-
-  .modal-body {
-    padding: 0 1.5rem 1.5rem 1.5rem;
+    padding: 0;
   }
 
   .modal-title {
     font-size: 2rem;
+    padding: 1rem 1.5rem 1rem 1.5rem;
+  }
+
+  .modal-body {
+    padding: 0 1.5rem 1.5rem 1.5rem;
   }
 
   .modal-body h2 {

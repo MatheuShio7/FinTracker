@@ -176,7 +176,7 @@ function Configuracoes() {
           </label>
         </div>
 
-        <h3 className="configuracoes-section-title" style={{ marginTop: '70px' }}>Selecionar Idioma</h3>
+        <h3 className="configuracoes-section-title" style={{ marginTop: '50px' }}>Selecionar Idioma</h3>
         
         <div className="language-selector-container">
           <div 
