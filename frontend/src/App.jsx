@@ -8,7 +8,6 @@ import Carteira from './Carteira'
 import Explorar from './Explorar'
 import Acao from './Acao'
 import Configuracoes from './Configuracoes'
-import Conteudo from './Conteudo'
 import Sidebar from './components/Sidebar'
 import './App.css'
 
@@ -33,11 +32,6 @@ function AppContent() {
           <Route path="/explorar" element={
             <ProtectedRoute>
               <Explorar />
-            </ProtectedRoute>
-          } />
-          <Route path="/conteudo" element={
-            <ProtectedRoute>
-              <Conteudo />
             </ProtectedRoute>
           } />
           <Route path="/:ticker" element={

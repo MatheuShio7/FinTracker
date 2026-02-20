@@ -15,7 +15,6 @@ const Sidebar = () => {
   const menuItems = [
     { name: 'Carteira', path: '/carteira', icon: 'bi-wallet-fill' },
     { name: 'Explorar', path: '/explorar', icon: 'bi-search' },
-    { name: 'Conteúdo', path: '/conteudo', icon: 'bi-book-half' },
     { name: 'Configurações', path: '/configuracoes', icon: 'bi-gear-wide-connected' }
   ]
 
