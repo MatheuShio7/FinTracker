@@ -7,6 +7,7 @@ import Cadastro from './Cadastro'
 import Carteira from './Carteira'
 import Explorar from './Explorar'
 import Acao from './Acao'
+import Notificacoes from './Notificacoes'
 import Configuracoes from './Configuracoes'
 import Sidebar from './components/Sidebar'
 import './App.css'
@@ -32,6 +33,11 @@ function AppContent() {
           <Route path="/explorar" element={
             <ProtectedRoute>
               <Explorar />
+            </ProtectedRoute>
+          } />
+          <Route path="/notificacoes" element={
+            <ProtectedRoute>
+              <Notificacoes />
             </ProtectedRoute>
           } />
           <Route path="/:ticker" element={
