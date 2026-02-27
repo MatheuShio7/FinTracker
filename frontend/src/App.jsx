@@ -6,6 +6,7 @@ import Login from './Login'
 import Cadastro from './Cadastro'
 import Carteira from './Carteira'
 import Explorar from './Explorar'
+import Grupos from './Grupos'
 import Acao from './Acao'
 import Notificacoes from './Notificacoes'
 import Configuracoes from './Configuracoes'
@@ -33,6 +34,11 @@ function AppContent() {
           <Route path="/explorar" element={
             <ProtectedRoute>
               <Explorar />
+            </ProtectedRoute>
+          } />
+          <Route path="/grupos" element={
+            <ProtectedRoute>
+              <Grupos />
             </ProtectedRoute>
           } />
           <Route path="/notificacoes" element={
