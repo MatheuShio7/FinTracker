@@ -12,8 +12,13 @@
 }
 
 /* Posicionamento do botão de reload na página Explorar */
-/* Posiciona ao lado esquerdo da barra de pesquisa */
+/* Posiciona ao lado direito da barra de pesquisa */
 .explorar-page .reload-button.explorar-reload-button {
-  top: 59px;
-  right: 460px; /* 70px (right da SearchBar) + 375px (largura da SearchBar) + 15px (espaçamento) */
+  top: 56px;
+  right: 80px;
+}
+
+/* Reposiciona a barra de pesquisa para a esquerda na página Explorar */
+.explorar-page .search-bar-container {
+  right: 145px; /* 70px (right do ReloadButton) + 50px (largura do ReloadButton) + 15px (espaçamento) */
 } 

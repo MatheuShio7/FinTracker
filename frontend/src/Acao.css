@@ -4,19 +4,33 @@
   width: 100%;
   min-height: 100vh;
   padding-bottom: 2rem;
+  position: relative;
 }
 
-/* Ajuste de posicionamento do título e subtítulo na página de ações */
+/* Ajuste de posicionamento dos elementos na página de ações */
+/* Com position: relative no container, os valores de left precisam compensar a ausência do offset da sidebar */
 .acao-page .back-navigation {
+  position: fixed;
   top: 20px;
+  left: 300px;
 }
 
 .acao-page .page-title {
+  position: fixed;
   top: 40px;
+  left: 300px;
 }
 
 .acao-page .page-subtitle {
+  position: fixed;
   top: 170px;
+  left: 300px;
+}
+
+.acao-page .reload-button {
+  position: fixed;
+  top: 56px;
+  right: 65px;
 }
 
 /* Loading e erro do backend */
