@@ -7,30 +7,41 @@
   position: relative;
 }
 
+.acao-header {
+  position: relative;
+  width: 100%;
+  min-height: 240px;
+}
+
 /* Ajuste de posicionamento dos elementos na página de ações */
 /* Com position: relative no container, os valores de left precisam compensar a ausência do offset da sidebar */
 .acao-page .back-navigation {
-  position: fixed;
+  position: absolute;
   top: 20px;
-  left: 300px;
+  left: 72px;
 }
 
 .acao-page .page-title {
-  position: fixed;
+  position: absolute;
   top: 40px;
-  left: 300px;
+  left: 72px;
 }
 
 .acao-page .page-subtitle {
-  position: fixed;
-  top: 170px;
-  left: 300px;
+  position: absolute;
+  top: 160px;
+  left: 72px;
 }
 
 .acao-page .reload-button {
-  position: fixed;
+  position: absolute;
   top: 56px;
   right: 65px;
+}
+
+/* Mantem o espaco do topo na Acao sem sobrepor o grafico */
+.acao-page .price-chart-container {
+  margin-top: 2rem;
 }
 
 /* Loading e erro do backend */
@@ -38,7 +49,7 @@
 .backend-error {
   width: 100%;
   max-width: 1200px;
-  margin: 16rem auto 2rem auto;
+  margin: 2rem auto;
   padding: 1.5rem;
   border-radius: 12px;
   text-align: center;

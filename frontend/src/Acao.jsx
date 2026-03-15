@@ -219,10 +219,12 @@ function Acao() {
   return (
     <div className="acao-page">
       <Logo />
-      <BackNavigation from={from} />
-      <ReloadButton onClick={handleRefresh} isLoading={isRefreshing} />
-      <PageTitle title={ticker} />
-      {companyName && <PageSubtitle subtitle={companyName} />}
+      <div className="acao-header">
+        <BackNavigation from={from} />
+        <ReloadButton onClick={handleRefresh} isLoading={isRefreshing} />
+        <PageTitle title={ticker} />
+        {companyName && <PageSubtitle subtitle={companyName} />}
+      </div>
       
       {/* Gráfico de Histórico de Preços */}
       {stockData && stockData.prices && (
