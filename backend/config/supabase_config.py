@@ -10,8 +10,9 @@ from typing import Optional
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
 
-# Variável global para armazenar a instância única do cliente (Singleton)
+# Variáveis globais para armazenar instâncias únicas dos clientes (Singleton)
 _supabase_client: Optional[Client] = None
+_supabase_admin_client: Optional[Client] = None
 
 
 def get_supabase_client() -> Client:
@@ -75,15 +76,61 @@ def get_supabase_client() -> Client:
         raise Exception(f"Falha ao inicializar o cliente Supabase: {str(e)}")
 
 
+def get_supabase_admin_client() -> Client:
+    """
+    Retorna uma instância do cliente Supabase Admin (Singleton).
+    
+    Usa a service_role_key para ter permissões de admin.
+    Necessário para operações que modificam dados de auth sem sessão ativa.
+    
+    Returns:
+        Client: Instância do cliente Supabase com permissões de admin
+        
+    Raises:
+        ValueError: Se as credenciais não estiverem configuradas
+    """
+    global _supabase_admin_client
+    
+    if _supabase_admin_client is not None:
+        return _supabase_admin_client
+    
+    try:
+        supabase_url = os.getenv('SUPABASE_URL')
+        service_role_key = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
+        
+        if not supabase_url or not service_role_key:
+            raise ValueError(
+                "Credenciais de admin do Supabase não encontradas. "
+                "Certifique-se de configurar SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY no arquivo .env"
+            )
+        
+        if not supabase_url.startswith('https://'):
+            raise ValueError(f"URL do Supabase inválida: {supabase_url}")
+        
+        _supabase_admin_client = create_client(supabase_url, service_role_key)
+        
+        print(f"✅ Cliente Supabase Admin conectado com sucesso: {supabase_url}")
+        
+        return _supabase_admin_client
+        
+    except ValueError as ve:
+        print(f"❌ Erro de configuração do Supabase Admin: {str(ve)}")
+        raise
+    except Exception as e:
+        print(f"❌ Erro ao conectar com o Supabase Admin: {str(e)}")
+        raise Exception(f"Falha ao inicializar o cliente Supabase Admin: {str(e)}")
+
+
 def reset_supabase_client():
     """
-    Reseta a instância do cliente Supabase.
+    Reseta as instâncias dos clientes Supabase.
     
     Útil para testes ou quando é necessário recriar a conexão.
     """
-    global _supabase_client
+    global _supabase_client, _supabase_admin_client
     _supabase_client = None
-    print("🔄 Cliente Supabase resetado")
+    _supabase_admin_client = None
+    print("🔄 Clientes Supabase resetados")
 
 
 # Exporta o cliente para uso direto (opcional)

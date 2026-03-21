@@ -1,11 +1,10 @@
 """
 Serviço de autenticação de usuários
-Gerencia registro, login e busca de usuários com hash de senha usando bcrypt
+Gerencia registro, login e busca de usuários usando Supabase Auth
 """
 import re
-import bcrypt
-from config.supabase_config import get_supabase_client
-from typing import Dict, Any
+from config.supabase_config import get_supabase_client, get_supabase_admin_client
+from typing import Dict, Any, Optional
 
 
 def validate_email(email: str) -> bool:
@@ -22,33 +21,88 @@ def validate_email(email: str) -> bool:
     return re.match(email_regex, email) is not None
 
 
-def hash_password(password: str) -> str:
-    """
-    Gera hash bcrypt da senha
-    
-    Args:
-        password: Senha em texto plano
-        
-    Returns:
-        str: Hash da senha
-    """
-    salt = bcrypt.gensalt(rounds=10)
-    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
-    return hashed.decode('utf-8')
+def _extract_auth_user_id(auth_response: Any) -> Optional[str]:
+    """Extrai o ID do usuário de respostas do Supabase Auth (objeto ou dict)."""
+    if not auth_response:
+        return None
+
+    user = getattr(auth_response, 'user', None)
+    if user is None and isinstance(auth_response, dict):
+        user = auth_response.get('user')
+
+    if user is None:
+        data = getattr(auth_response, 'data', None)
+        if isinstance(data, dict):
+            user = data.get('user')
+
+    if user is None:
+        return None
+
+    if isinstance(user, dict):
+        return user.get('id')
+
+    return getattr(user, 'id', None)
 
 
-def verify_password(password: str, hashed_password: str) -> bool:
-    """
-    Verifica se a senha corresponde ao hash
-    
-    Args:
-        password: Senha em texto plano
-        hashed_password: Hash da senha armazenado
-        
-    Returns:
-        bool: True se a senha está correta
-    """
-    return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+def _extract_auth_user_metadata(auth_response: Any) -> Dict[str, Any]:
+    """Extrai metadados do usuário da resposta do Auth de forma resiliente."""
+    if not auth_response:
+        return {}
+
+    user = getattr(auth_response, 'user', None)
+    if user is None and isinstance(auth_response, dict):
+        user = auth_response.get('user')
+
+    if user is None:
+        data = getattr(auth_response, 'data', None)
+        if isinstance(data, dict):
+            user = data.get('user')
+
+    if isinstance(user, dict):
+        return user.get('user_metadata') or user.get('raw_user_meta_data') or {}
+
+    return (
+        getattr(user, 'user_metadata', None)
+        or getattr(user, 'raw_user_meta_data', None)
+        or {}
+    )
+
+
+def _upsert_custom_user(
+    supabase: Any,
+    user_id: str,
+    name: str,
+    last_name: str,
+    email: str
+) -> Dict[str, Any]:
+    """Faz upsert do perfil na tabela users usando o mesmo UUID do Auth."""
+    payload = {
+        'id': user_id,
+        'name': name,
+        'last_name': last_name,
+        'email': email
+    }
+
+    try:
+        result = supabase.table('users').upsert(payload, on_conflict='id').execute()
+
+        # Em alguns cenários o Supabase pode retornar data vazia mesmo com sucesso.
+        if result.data and len(result.data) > 0:
+            return {'success': True, 'user': result.data[0]}
+
+        try:
+            read_result = supabase.table('users').select('*').eq('id', user_id).execute()
+            if read_result.data and len(read_result.data) > 0:
+                return {'success': True, 'user': read_result.data[0]}
+        except Exception:
+            pass
+
+        return {'success': True, 'user': payload}
+    except Exception as e:
+        return {
+            'success': False,
+            'error': f"Erro ao sincronizar perfil na tabela users: {str(e)}"
+        }
 
 
 def register_user(name: str, last_name: str, email: str, password: str) -> Dict[str, Any]:
@@ -81,30 +135,61 @@ def register_user(name: str, last_name: str, email: str, password: str) -> Dict[
         if len(password) < 8:
             return {"success": False, "error": "Senha deve ter pelo menos 8 caracteres"}
         
-        # Hash da senha
-        hashed_pwd = hash_password(password)
-        
         # Conecta ao Supabase
         supabase = get_supabase_client()
-        
-        # Verifica se email já existe
-        existing_user = supabase.table('users').select('id').eq('email', email).execute()
-        if existing_user.data and len(existing_user.data) > 0:
-            return {"success": False, "error": "Email já está cadastrado"}
-        
-        # Insere novo usuário
-        result = supabase.table('users').insert({
-            'name': name.strip(),
-            'last_name': last_name.strip(),
-            'email': email.lower().strip(),
-            'password': hashed_pwd
-        }).execute()
-        
-        if result.data and len(result.data) > 0:
-            user_id = result.data[0]['id']
-            return {"success": True, "user_id": user_id}
-        else:
-            return {"success": False, "error": "Erro ao criar usuário"}
+
+        normalized_name = name.strip()
+        normalized_last_name = last_name.strip()
+        normalized_email = email.lower().strip()
+        full_name = f"{normalized_name} {normalized_last_name}".strip()
+
+        auth_user_id = None
+
+        try:
+            sign_up_response = supabase.auth.sign_up({
+                'email': normalized_email,
+                'password': password,
+                'options': {
+                    'data': {
+                        'full_name': full_name
+                    }
+                }
+            })
+            auth_user_id = _extract_auth_user_id(sign_up_response)
+        except Exception as sign_up_error:
+            error_message = str(sign_up_error).lower()
+
+            # Se o usuário já existir no Auth, tenta login para recuperar o UUID.
+            if 'already registered' in error_message or 'already exists' in error_message:
+                try:
+                    sign_in_response = supabase.auth.sign_in_with_password({
+                        'email': normalized_email,
+                        'password': password
+                    })
+                    auth_user_id = _extract_auth_user_id(sign_in_response)
+                except Exception:
+                    return {"success": False, "error": "Email já está cadastrado"}
+            else:
+                return {"success": False, "error": f"Erro ao criar usuário no Auth: {str(sign_up_error)}"}
+
+        if not auth_user_id:
+            return {
+                "success": False,
+                "error": "Não foi possível obter o ID do usuário criado no Supabase Auth"
+            }
+
+        custom_result = _upsert_custom_user(
+            supabase=supabase,
+            user_id=auth_user_id,
+            name=normalized_name,
+            last_name=normalized_last_name,
+            email=normalized_email
+        )
+
+        if not custom_result['success']:
+            return {"success": False, "error": custom_result['error']}
+
+        return {"success": True, "user_id": auth_user_id}
             
     except Exception as e:
         print(f"❌ Erro no registro de usuário: {str(e)}")
@@ -133,23 +218,47 @@ def login_user(email: str, password: str) -> Dict[str, Any]:
         # Conecta ao Supabase
         supabase = get_supabase_client()
         
-        # Busca usuário por email
-        result = supabase.table('users').select('*').eq('email', email.lower().strip()).execute()
-        
-        if not result.data or len(result.data) == 0:
+        normalized_email = email.lower().strip()
+
+        auth_result = supabase.auth.sign_in_with_password({
+            'email': normalized_email,
+            'password': password
+        })
+        auth_user_id = _extract_auth_user_id(auth_result)
+
+        if not auth_user_id:
             return {"success": False, "error": "Email ou senha incorretos"}
-        
-        user_data = result.data[0]
-        stored_password = user_data.get('password')
-        
-        # Verifica a senha
-        if not verify_password(password, stored_password):
-            return {"success": False, "error": "Email ou senha incorretos"}
-        
-        # Remove o campo password antes de retornar
-        user_data.pop('password', None)
-        
-        return {"success": True, "user": user_data}
+
+        result = supabase.table('users').select('*').eq('id', auth_user_id).execute()
+        if result.data and len(result.data) > 0:
+            return {"success": True, "user": result.data[0]}
+
+        # Se autenticou no Auth mas não existe perfil custom, cria automaticamente.
+        metadata = _extract_auth_user_metadata(auth_result)
+        full_name = (metadata.get('full_name') or '').strip() if isinstance(metadata, dict) else ''
+        derived_name = ''
+        derived_last_name = ''
+
+        if full_name:
+            parts = full_name.split()
+            if len(parts) == 1:
+                derived_name = parts[0]
+            elif len(parts) > 1:
+                derived_name = parts[0]
+                derived_last_name = ' '.join(parts[1:])
+
+        user_profile_result = _upsert_custom_user(
+            supabase=supabase,
+            user_id=auth_user_id,
+            name=derived_name,
+            last_name=derived_last_name,
+            email=normalized_email
+        )
+
+        if not user_profile_result['success']:
+            return {"success": False, "error": user_profile_result['error']}
+
+        return {"success": True, "user": user_profile_result['user']}
         
     except Exception as e:
         print(f"❌ Erro no login de usuário: {str(e)}")
@@ -181,9 +290,6 @@ def get_user_by_id(user_id: str) -> Dict[str, Any]:
         
         user_data = result.data[0]
         
-        # Remove o campo password antes de retornar
-        user_data.pop('password', None)
-        
         return {"success": True, "user": user_data}
         
     except Exception as e:
@@ -193,7 +299,7 @@ def get_user_by_id(user_id: str) -> Dict[str, Any]:
 
 def update_user(user_id: str, name: str, last_name: str, email: str) -> Dict[str, Any]:
     """
-    Atualiza informações de um usuário
+    Atualiza informações de um usuário em ambas as tabelas (Auth e users custom)
     
     Args:
         user_id: ID do usuário
@@ -204,7 +310,7 @@ def update_user(user_id: str, name: str, last_name: str, email: str) -> Dict[str
     Returns:
         Dict com:
         - success (bool): True se atualização foi bem-sucedida
-        - user (dict): Dados atualizados do usuário (sem password) se sucesso
+        - user (dict): Dados atualizados do usuário se sucesso
         - error (str): Mensagem de erro se falha
     """
     try:
@@ -218,8 +324,14 @@ def update_user(user_id: str, name: str, last_name: str, email: str) -> Dict[str
         if not validate_email(email):
             return {"success": False, "error": "Email inválido"}
         
+        normalized_name = name.strip()
+        normalized_last_name = last_name.strip()
+        email_normalized = email.lower().strip()
+        full_name = f"{normalized_name} {normalized_last_name}".strip()
+        
         # Conecta ao Supabase
         supabase = get_supabase_client()
+        supabase_admin = get_supabase_admin_client()
         
         # Verifica se o usuário existe
         user_result = supabase.table('users').select('id, email').eq('id', user_id).execute()
@@ -229,26 +341,43 @@ def update_user(user_id: str, name: str, last_name: str, email: str) -> Dict[str
         current_user = user_result.data[0]
         
         # Verifica se o email já está sendo usado por outro usuário
-        email_normalized = email.lower().strip()
         if email_normalized != current_user['email']:
             existing_email = supabase.table('users').select('id').eq('email', email_normalized).execute()
             if existing_email.data and len(existing_email.data) > 0:
                 return {"success": False, "error": "Este email já está sendo usado por outro usuário"}
         
-        # Atualiza o usuário
+        # Atualiza nome e metadata no Auth; se falhar, não aplica update parcial no perfil custom.
+        try:
+            supabase_admin.auth.admin.update_user_by_id(
+                user_id,
+                {
+                    'email': email_normalized,
+                    'user_metadata': {'full_name': full_name}
+                }
+            )
+        except Exception as auth_error:
+            return {"success": False, "error": f"Erro ao atualizar usuário no Auth: {str(auth_error)}"}
+        
+        # Atualiza o perfil na tabela users custom
         update_result = supabase.table('users').update({
-            'name': name.strip(),
-            'last_name': last_name.strip(),
+            'name': normalized_name,
+            'last_name': normalized_last_name,
             'email': email_normalized
         }).eq('id', user_id).execute()
         
         if update_result.data and len(update_result.data) > 0:
             updated_user = update_result.data[0]
-            # Remove o campo password antes de retornar
-            updated_user.pop('password', None)
             return {"success": True, "user": updated_user}
-        else:
-            return {"success": False, "error": "Erro ao atualizar usuário"}
+        
+        # Se update não retornar dados, faz select para confirmar
+        try:
+            read_result = supabase.table('users').select('*').eq('id', user_id).execute()
+            if read_result.data and len(read_result.data) > 0:
+                return {"success": True, "user": read_result.data[0]}
+        except Exception:
+            pass
+        
+        return {"success": True, "user": {"id": user_id, "name": normalized_name, "last_name": normalized_last_name, "email": email_normalized}}
             
     except Exception as e:
         print(f"❌ Erro ao atualizar usuário: {str(e)}")
@@ -257,7 +386,7 @@ def update_user(user_id: str, name: str, last_name: str, email: str) -> Dict[str
 
 def update_password(user_id: str, current_password: str, new_password: str) -> Dict[str, Any]:
     """
-    Atualiza a senha de um usuário
+    Atualiza a senha de um usuário usando admin auth
     
     Args:
         user_id: ID do usuário
@@ -277,37 +406,40 @@ def update_password(user_id: str, current_password: str, new_password: str) -> D
         if len(new_password) < 8:
             return {"success": False, "error": "A nova senha deve ter pelo menos 8 caracteres"}
         
-        # Conecta ao Supabase
-        supabase = get_supabase_client()
-        
-        # Busca usuário
-        user_result = supabase.table('users').select('id, password').eq('id', user_id).execute()
-        if not user_result.data or len(user_result.data) == 0:
-            return {"success": False, "error": "Usuário não encontrado"}
-        
-        user = user_result.data[0]
-        stored_password = user.get('password')
-        
-        # Verifica se a senha atual está correta
-        if not verify_password(current_password, stored_password):
-            return {"success": False, "error": "Senha atual incorreta"}
-        
-        # Verifica se a nova senha é diferente da senha atual
-        if verify_password(new_password, stored_password):
+        if current_password == new_password:
             return {"success": False, "error": "A nova senha deve ser diferente da senha atual"}
         
-        # Gera hash da nova senha
-        new_hashed_password = hash_password(new_password)
+        # Conecta ao Supabase
+        supabase = get_supabase_client()
+        supabase_admin = get_supabase_admin_client()
         
-        # Atualiza a senha
-        update_result = supabase.table('users').update({
-            'password': new_hashed_password
-        }).eq('id', user_id).execute()
-        
-        if update_result.data and len(update_result.data) > 0:
-            return {"success": True}
-        else:
-            return {"success": False, "error": "Erro ao atualizar senha"}
+        # Busca email do usuário para validar senha atual via Auth
+        user_result = supabase.table('users').select('id, email').eq('id', user_id).execute()
+        if not user_result.data or len(user_result.data) == 0:
+            return {"success": False, "error": "Usuário não encontrado"}
+
+        user_email = user_result.data[0].get('email')
+        if not user_email:
+            return {"success": False, "error": "Usuário sem email cadastrado"}
+
+        # Reautentica com senha atual para validar.
+        try:
+            sign_in_result = supabase.auth.sign_in_with_password({
+                'email': user_email,
+                'password': current_password
+            })
+            auth_user_id = _extract_auth_user_id(sign_in_result)
+            if not auth_user_id or auth_user_id != user_id:
+                return {"success": False, "error": "Senha atual incorreta"}
+        except Exception:
+            return {"success": False, "error": "Senha atual incorreta"}
+
+        # Atualiza senha no Supabase Auth usando admin.
+        supabase_admin.auth.admin.update_user_by_id(
+            user_id,
+            {'password': new_password}
+        )
+        return {"success": True}
             
     except Exception as e:
         print(f"❌ Erro ao atualizar senha: {str(e)}")
