@@ -201,75 +201,7 @@ function AuthCard({ title, type }) {
   }
 
   return (
-    <div className="auth-card">
-      <div className="auth-card-header">
-        <img 
-          src="/logo.png" 
-          alt="FinTracker Logo" 
-          className="auth-card-logo"
-        />
-        <h1 className="auth-card-title">{title}</h1>
-      </div>
-      
-      {type === 'login' && (
-        <div className="auth-card-content">
-          {error && <div className="auth-error">{error}</div>}
-          
-          <div className="input-group">
-            <i className="bi bi-envelope-fill input-icon"></i>
-            <input 
-              type="email"
-              placeholder="Endereço de email"
-              className="auth-input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-          
-          <div className="input-group">
-            <i className="bi bi-shield-lock-fill input-icon"></i>
-            <input 
-              type="password"
-              placeholder="Senha"
-              className="auth-input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-              disabled={loading}
-            />
-          </div>
-          
-          <button 
-            className={`auth-button ${isLoginFormValid && !loading ? 'auth-button-active' : ''}`}
-            disabled={!isLoginFormValid || loading}
-            onClick={handleLogin}
-          >
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
-          
-          <div className="auth-links login-links">
-            <p className="signup-text">
-              Ainda não possui conta? <Link to="/cadastro" className="signup-link">Cadastre-se</Link>
-            </p>
-            
-            <a
-              href="#"
-              className="forgot-password-link"
-              onClick={(e) => {
-                e.preventDefault()
-                setForgotEmail(email)
-                setForgotError('')
-                setForgotSuccessMessage('')
-                setIsForgotModalOpen(true)
-              }}
-            >
-              Esqueceu a senha?
-            </a>
-          </div>
-        </div>
-      )}
-
+    <>
       {type === 'login' && isForgotModalOpen && (
         <div className="auth-modal-overlay" onClick={closeForgotModal}>
           <div className="auth-modal-card" onClick={(e) => e.stopPropagation()}>
@@ -358,6 +290,75 @@ function AuthCard({ title, type }) {
         </div>
       )}
 
+      <div className="auth-card">
+      <div className="auth-card-header">
+        <img 
+          src="/logo.png" 
+          alt="FinTracker Logo" 
+          className="auth-card-logo"
+        />
+        <h1 className="auth-card-title">{title}</h1>
+      </div>
+      
+      {type === 'login' && (
+        <div className="auth-card-content">
+          {error && <div className="auth-error">{error}</div>}
+          
+          <div className="input-group">
+            <i className="bi bi-envelope-fill input-icon"></i>
+            <input 
+              type="email"
+              placeholder="Endereço de email"
+              className="auth-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+            />
+          </div>
+          
+          <div className="input-group">
+            <i className="bi bi-shield-lock-fill input-icon"></i>
+            <input 
+              type="password"
+              placeholder="Senha"
+              className="auth-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+              disabled={loading}
+            />
+          </div>
+          
+          <button 
+            className={`auth-button ${isLoginFormValid && !loading ? 'auth-button-active' : ''}`}
+            disabled={!isLoginFormValid || loading}
+            onClick={handleLogin}
+          >
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
+          
+          <div className="auth-links login-links">
+            <p className="signup-text">
+              Ainda não possui conta? <Link to="/cadastro" className="signup-link">Cadastre-se</Link>
+            </p>
+            
+            <a
+              href="#"
+              className="forgot-password-link"
+              onClick={(e) => {
+                e.preventDefault()
+                setForgotEmail(email)
+                setForgotError('')
+                setForgotSuccessMessage('')
+                setIsForgotModalOpen(true)
+              }}
+            >
+              Esqueceu a senha?
+            </a>
+          </div>
+        </div>
+      )}
+
       {type === 'cadastro' && (
         <div className="auth-card-content">
           {error && <div className="auth-error">{error}</div>}
@@ -440,7 +441,8 @@ function AuthCard({ title, type }) {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
 

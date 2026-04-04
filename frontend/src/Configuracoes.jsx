@@ -9,6 +9,7 @@ function Configuracoes() {
   
   const [isDarkTheme, setIsDarkTheme] = useState(true) // Tema padrão é escuro
   const [selectedLanguage, setSelectedLanguage] = useState('pt-BR') // Idioma padrão português
+  const [isTwoFactorEnabled, setIsTwoFactorEnabled] = useState(false)
   
   // Estados dos campos de dados pessoais
   const [firstName, setFirstName] = useState('')
@@ -160,6 +161,7 @@ function Configuracoes() {
       <PageTitle title="Configurações" />
       
       <div className="configuracoes-content">
+        <h2 className="configuracoes-group-title">Preferências</h2>
         <h3 className="configuracoes-section-title">Definir Tema</h3>
         
         <div className="theme-toggle-container">
@@ -176,7 +178,7 @@ function Configuracoes() {
           </label>
         </div>
 
-        <h3 className="configuracoes-section-title" style={{ marginTop: '50px' }}>Selecionar Idioma</h3>
+        <h3 className="configuracoes-section-title" style={{ marginTop: '30px' }}>Selecionar Idioma</h3>
         
         <div className="language-selector-container">
           <div 
@@ -197,6 +199,27 @@ function Configuracoes() {
             <div className="language-underline"></div>
           </div>
         </div>
+
+        <h2 className="configuracoes-group-title">Segurança</h2>
+
+        <div className={`two-factor-card ${isTwoFactorEnabled ? 'two-factor-card-active' : ''}`}>
+          <h3 className="two-factor-card-title">
+            {isTwoFactorEnabled ? '✅ Verificação em 2 Etapas Ativa' : '🔒 Autenticação em Duas Etapas'}
+          </h3>
+          <p className="two-factor-card-text">
+            {isTwoFactorEnabled
+              ? 'Sua conta está protegida com autenticação em duas etapas. Você precisará de um código do seu app autenticador toda vez que fizer login.'
+              : 'Aumente a segurança exigindo um código do seu celular além da senha para fazer login.'}
+          </p>
+          <button
+            className={`two-factor-card-button ${isTwoFactorEnabled ? 'two-factor-card-button-danger' : 'two-factor-card-button-primary'}`}
+            onClick={() => setIsTwoFactorEnabled(!isTwoFactorEnabled)}
+          >
+            {isTwoFactorEnabled ? 'Desativar' : 'Ativar'}
+          </button>
+        </div>
+
+        <h2 className="configuracoes-group-title">Conta</h2>
 
         <div className="profile-sections-container">
           {/* Seção Alterar Dados Pessoais */}

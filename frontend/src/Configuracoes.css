@@ -12,9 +12,24 @@
 
 .configuracoes-section-title {
   color: white;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 15px;
+}
+
+.configuracoes-group-title {
+  color: #32343f;
+  font-size: 1.55rem;
+  font-weight: 600;
+  margin: 52px 0 20px;
+}
+
+.configuracoes-group-title:first-child {
+  margin-top: 0;
+}
+
+.configuracoes-content > :not(.configuracoes-group-title) {
+  margin-left: 24px;
 }
 
 .theme-toggle-container {
@@ -163,6 +178,61 @@
   height: 40px;
   background-color: #202128;
   margin: 0 5px;
+}
+
+.two-factor-card {
+  max-width: 620px;
+  background-color: #f65308;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 14px;
+  padding: 22px;
+  color: #ffffff;
+}
+
+.two-factor-card-active {
+  background-color: #1f8f49;
+}
+
+.two-factor-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.two-factor-card-text {
+  margin: 14px 0 0;
+  line-height: 1.45;
+  font-size: 0.98rem;
+  max-width: 560px;
+}
+
+.two-factor-card-button {
+  margin-top: 18px;
+  border: none;
+  border-radius: 22px;
+  min-width: 120px;
+  height: 42px;
+  padding: 0 18px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.two-factor-card-button:hover {
+  transform: scale(1.02);
+  opacity: 0.92;
+}
+
+.two-factor-card-button-primary {
+  background-color: #202128;
+  color: #ffffff;
+}
+
+.two-factor-card-button-danger {
+  background-color: #d92d2d;
+  color: #ffffff;
 }
 
 /* Profile Update Section */
@@ -351,7 +421,6 @@
 .profile-sections-container {
   display: flex;
   gap: 60px;
-  margin-top: 50px;
 }
 
 .profile-section {
