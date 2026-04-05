@@ -181,16 +181,17 @@
 }
 
 .two-factor-card {
-  max-width: 620px;
-  background-color: #f65308;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  max-width: 780px;
+  background-color: #431F0F;
+  border: 2px solid #f65308;
   border-radius: 14px;
   padding: 22px;
   color: #ffffff;
 }
 
 .two-factor-card-active {
-  background-color: #1f8f49;
+  background-color: #143f24;
+  border-color: #1bb355;
 }
 
 .two-factor-card-title {
@@ -201,13 +202,16 @@
 
 .two-factor-card-text {
   margin: 14px 0 0;
+  padding-left: 16px;
   line-height: 1.45;
   font-size: 0.98rem;
-  max-width: 560px;
 }
 
 .two-factor-card-button {
-  margin-top: 18px;
+  display: block;
+  margin-top: 30px;
+  margin-left: auto;
+  margin-right: auto;
   border: none;
   border-radius: 22px;
   min-width: 120px;
@@ -226,7 +230,7 @@
 }
 
 .two-factor-card-button-primary {
-  background-color: #202128;
+  background-color: #f65308;
   color: #ffffff;
 }
 
