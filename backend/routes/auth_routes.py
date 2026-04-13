@@ -2,8 +2,9 @@
 Rotas de autenticação
 Endpoints para registro, login e informações de usuário
 """
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from services.auth_service import register_user, login_user, get_user_by_id, update_user, update_password
+from utils.auth_context import require_authenticated_user
 
 # Cria blueprint para rotas de autenticação
 bp = Blueprint('auth', __name__, url_prefix='/api/auth')
@@ -131,6 +132,7 @@ def login():
 
 
 @bp.route('/user/<user_id>', methods=['GET'])
+@require_authenticated_user(allow_legacy=True)
 def get_user(user_id):
     """
     GET /api/auth/user/<user_id>
@@ -150,6 +152,12 @@ def get_user(user_id):
         }
     """
     try:
+        if getattr(g, 'auth_source', None) == 'supabase_jwt' and g.auth_user_id != user_id:
+            return jsonify({
+                "status": "error",
+                "message": "Usuario autenticado nao corresponde ao usuario solicitado"
+            }), 403
+
         # Chama serviço de busca
         result = get_user_by_id(user_id)
         
@@ -173,6 +181,7 @@ def get_user(user_id):
 
 
 @bp.route('/user/update', methods=['POST'])
+@require_authenticated_user(allow_legacy=True)
 def update_user_info():
     """
     POST /api/auth/user/update
@@ -202,9 +211,10 @@ def update_user_info():
     """
     try:
         data = request.get_json()
+        user_id = g.auth_user_id
         
         # Valida se todos os campos foram enviados
-        required_fields = ['user_id', 'name', 'last_name', 'email']
+        required_fields = ['name', 'last_name', 'email']
         for field in required_fields:
             if field not in data:
                 return jsonify({
@@ -214,7 +224,7 @@ def update_user_info():
         
         # Chama serviço de atualização
         result = update_user(
-            user_id=data['user_id'],
+            user_id=user_id,
             name=data['name'],
             last_name=data['last_name'],
             email=data['email']
@@ -241,6 +251,7 @@ def update_user_info():
 
 
 @bp.route('/user/update-password', methods=['POST'])
+@require_authenticated_user(allow_legacy=True)
 def update_user_password():
     """
     POST /api/auth/user/update-password
@@ -261,9 +272,10 @@ def update_user_password():
     """
     try:
         data = request.get_json()
+        user_id = g.auth_user_id
         
         # Valida se todos os campos foram enviados
-        required_fields = ['user_id', 'current_password', 'new_password']
+        required_fields = ['current_password', 'new_password']
         for field in required_fields:
             if field not in data:
                 return jsonify({
@@ -273,7 +285,7 @@ def update_user_password():
         
         # Chama serviço de atualização de senha
         result = update_password(
-            user_id=data['user_id'],
+            user_id=user_id,
             current_password=data['current_password'],
             new_password=data['new_password']
         )

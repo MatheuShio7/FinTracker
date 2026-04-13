@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from './contexts/AuthContext'
 import { usePortfolio } from './contexts/PortfolioContext'
-import { buildApiUrl } from './config/api'
+import { authFetch } from './lib/authFetch'
 import './Carteira.css'
 import Logo from './components/Logo'
 import PageTitle from './components/PageTitle'
@@ -60,9 +60,7 @@ function Carteira() {
       
       console.log('🔄 Buscando dados completos da carteira do servidor...')
 
-      const response = await fetch(
-        buildApiUrl(`api/portfolio/full?user_id=${user.id}`)
-      )
+      const response = await authFetch(`api/portfolio/full?user_id=${user.id}`)
       const data = await response.json()
 
       if (data.status === 'success') {
@@ -119,18 +117,15 @@ function Carteira() {
       console.log('🔄 Atualizando preços de todas as ações da carteira...')
       
       // Chamar endpoint que atualiza preços de todas as ações
-      const response = await fetch(
-        buildApiUrl('api/portfolio/update-prices-login'),
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: user.id
-          })
-        }
-      )
+      const response = await authFetch('api/portfolio/update-prices-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id
+        })
+      })
       
       const data = await response.json()
       

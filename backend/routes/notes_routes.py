@@ -1,13 +1,15 @@
 """
 Rotas para gerenciamento de observações sobre ações
 """
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from services.notes_service import get_stock_note, save_stock_note
+from utils.auth_context import require_authenticated_user
 
 notes_bp = Blueprint('notes', __name__)
 
 
 @notes_bp.route('/api/notes/<ticker>', methods=['GET'])
+@require_authenticated_user(allow_legacy=True)
 def get_note(ticker):
     """
     GET /api/notes/<ticker>?user_id=...
@@ -21,13 +23,7 @@ def get_note(ticker):
     }
     """
     try:
-        user_id = request.args.get('user_id')
-        
-        if not user_id:
-            return jsonify({
-                "status": "error",
-                "message": "user_id é obrigatório"
-            }), 400
+        user_id = g.auth_user_id
         
         result = get_stock_note(user_id, ticker)
         
@@ -54,6 +50,7 @@ def get_note(ticker):
 
 
 @notes_bp.route('/api/notes/save', methods=['POST'])
+@require_authenticated_user(allow_legacy=True)
 def save_note():
     """
     POST /api/notes/save
@@ -74,6 +71,7 @@ def save_note():
     """
     try:
         data = request.get_json()
+        user_id = g.auth_user_id
         
         if not data:
             return jsonify({
@@ -81,14 +79,13 @@ def save_note():
                 "message": "Dados não fornecidos"
             }), 400
         
-        user_id = data.get('user_id')
         ticker = data.get('ticker')
         note_text = data.get('note_text', '')
         
-        if not user_id or not ticker:
+        if not ticker:
             return jsonify({
                 "status": "error",
-                "message": "user_id e ticker são obrigatórios"
+                "message": "ticker é obrigatório"
             }), 400
         
         result = save_stock_note(user_id, ticker, note_text)

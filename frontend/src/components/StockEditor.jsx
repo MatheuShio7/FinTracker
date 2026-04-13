@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { usePortfolio } from '../contexts/PortfolioContext'
-import { buildApiUrl } from '../config/api'
+import { authFetch } from '../lib/authFetch'
 import './StockEditor.css'
 
 function StockEditor({ ticker }) {
@@ -36,15 +36,11 @@ function StockEditor({ ticker }) {
         console.log(`🔄 Buscando quantidade e observações para ${ticker}...`)
         
         // Buscar quantidade
-        const quantityResponse = await fetch(
-          buildApiUrl(`api/portfolio/quantity/${ticker}?user_id=${user.id}`)
-        )
+        const quantityResponse = await authFetch(`api/portfolio/quantity/${ticker}?user_id=${user.id}`)
         const quantityData = await quantityResponse.json()
         
         // Buscar observações
-        const notesResponse = await fetch(
-          buildApiUrl(`api/notes/${ticker}?user_id=${user.id}`)
-        )
+        const notesResponse = await authFetch(`api/notes/${ticker}?user_id=${user.id}`)
         const notesData = await notesResponse.json()
         
         if (quantityResponse.ok && quantityData.status === 'success') {
@@ -126,20 +122,17 @@ function StockEditor({ ticker }) {
       console.log(`Observação: ${originalNotes ? 'Sim' : 'Não'} → ${notes ? 'Sim' : 'Não'}`)
       
       // Salvar quantidade
-      const quantityResponse = await fetch(
-        buildApiUrl('api/portfolio/update-quantity'),
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: user.id,
-            ticker: ticker,
-            quantity: quantity === '' ? 0 : parseInt(quantity, 10)
-          })
-        }
-      )
+      const quantityResponse = await authFetch('api/portfolio/update-quantity', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          ticker: ticker,
+          quantity: quantity === '' ? 0 : parseInt(quantity, 10)
+        })
+      })
       
       const quantityData = await quantityResponse.json()
       
@@ -152,20 +145,17 @@ function StockEditor({ ticker }) {
       // Salvar observação (trim para limpar espaços)
       const notesTrimmed = notes.trim()
       
-      const notesResponse = await fetch(
-        buildApiUrl('api/notes/save'),
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: user.id,
-            ticker: ticker,
-            note_text: notesTrimmed
-          })
-        }
-      )
+      const notesResponse = await authFetch('api/notes/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          ticker: ticker,
+          note_text: notesTrimmed
+        })
+      })
       
       const notesData = await notesResponse.json()
       

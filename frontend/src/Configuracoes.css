@@ -239,6 +239,50 @@
   color: #ffffff;
 }
 
+.mfa-setup-container {
+  margin-top: 18px;
+  padding: 14px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+}
+
+.mfa-setup-title {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.mfa-qr-wrapper {
+  width: fit-content;
+  background: #fff;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.mfa-qr-wrapper svg {
+  display: block;
+  max-width: 180px;
+  height: auto;
+}
+
+.mfa-qr-image {
+  display: block;
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+}
+
+.mfa-secret-text {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.mfa-confirm-button-active {
+  border: 1px solid #ffb088;
+}
+
 /* Profile Update Section */
 .profile-error {
   max-width: 450px;

@@ -5,11 +5,25 @@ import { useState, useEffect } from 'react'
 import { useAuth } from './contexts/AuthContext'
 
 function Configuracoes() {
-  const { user, updateProfile, updatePassword } = useAuth()
+  const {
+    user,
+    updateProfile,
+    updatePassword,
+    getMfaStatus,
+    startMfaEnrollment,
+    confirmMfaEnrollment,
+    disableMfa,
+  } = useAuth()
   
   const [isDarkTheme, setIsDarkTheme] = useState(true) // Tema padrão é escuro
   const [selectedLanguage, setSelectedLanguage] = useState('pt-BR') // Idioma padrão português
   const [isTwoFactorEnabled, setIsTwoFactorEnabled] = useState(false)
+  const [mfaLoading, setMfaLoading] = useState(false)
+  const [mfaMessage, setMfaMessage] = useState('')
+  const [mfaError, setMfaError] = useState('')
+  const [mfaFactorId, setMfaFactorId] = useState(null)
+  const [mfaSetup, setMfaSetup] = useState(null)
+  const [mfaCode, setMfaCode] = useState('')
   
   // Estados dos campos de dados pessoais
   const [firstName, setFirstName] = useState('')
@@ -53,6 +67,28 @@ function Configuracoes() {
       setOriginalEmail(user.email || '')
     }
   }, [user])
+
+  useEffect(() => {
+    const loadMfa = async () => {
+      if (!user) return
+
+      setMfaLoading(true)
+      setMfaError('')
+
+      const status = await getMfaStatus()
+
+      if (status.success) {
+        setIsTwoFactorEnabled(status.enabled)
+        setMfaFactorId(status.primaryFactorId)
+      } else {
+        setMfaError(status.message || 'Erro ao consultar status do MFA.')
+      }
+
+      setMfaLoading(false)
+    }
+
+    loadMfa()
+  }, [user, getMfaStatus])
   
   // Detectar se houve mudanças
   const hasChanges = 
@@ -86,7 +122,7 @@ function Configuracoes() {
       } else {
         setError(result.message || 'Erro ao atualizar dados')
       }
-    } catch (err) {
+    } catch {
       setError('Erro ao atualizar dados')
     } finally {
       setSaving(false)
@@ -139,7 +175,7 @@ function Configuracoes() {
       } else {
         setPasswordError(result.message || 'Erro ao atualizar senha')
       }
-    } catch (err) {
+    } catch {
       setPasswordError('Erro ao atualizar senha')
     } finally {
       setSavingPassword(false)
@@ -154,6 +190,106 @@ function Configuracoes() {
     setPasswordError('')
     setPasswordSuccess('')
   }
+
+  const handleStartMfa = async () => {
+    setMfaLoading(true)
+    setMfaError('')
+    setMfaMessage('')
+
+    const result = await startMfaEnrollment()
+
+    if (!result.success) {
+      setMfaError(result.message || 'Não foi possível iniciar MFA.')
+      setMfaLoading(false)
+      return
+    }
+
+    setMfaSetup({
+      factorId: result.factorId,
+      qrCode: result.qrCode,
+      secret: result.secret,
+      uri: result.uri,
+    })
+    setMfaCode('')
+    setMfaMessage('Escaneie o QR code e confirme com o código de 6 dígitos.')
+    setMfaLoading(false)
+  }
+
+  const handleConfirmMfa = async () => {
+    if (!mfaSetup?.factorId || !mfaCode.trim()) return
+
+    setMfaLoading(true)
+    setMfaError('')
+    setMfaMessage('')
+
+    const result = await confirmMfaEnrollment(mfaSetup.factorId, mfaCode)
+
+    if (!result.success) {
+      setMfaError(result.message || 'Código inválido.')
+      setMfaLoading(false)
+      return
+    }
+
+    const status = await getMfaStatus()
+    setIsTwoFactorEnabled(Boolean(status.success && status.enabled))
+    setMfaFactorId(status.primaryFactorId || mfaSetup.factorId)
+    setMfaSetup(null)
+    setMfaCode('')
+    setMfaMessage('MFA ativado com sucesso!')
+    setMfaLoading(false)
+  }
+
+  const handleDisableMfa = async () => {
+    if (!mfaFactorId) {
+      setMfaError('Não foi possível identificar o fator MFA para desativar.')
+      return
+    }
+
+    const confirmed = window.confirm('Tem certeza que deseja desativar a autenticação em duas etapas?')
+    if (!confirmed) return
+
+    setMfaLoading(true)
+    setMfaError('')
+    setMfaMessage('')
+
+    const result = await disableMfa(mfaFactorId)
+
+    if (!result.success) {
+      setMfaError(result.message || 'Não foi possível desativar o MFA.')
+      setMfaLoading(false)
+      return
+    }
+
+    setIsTwoFactorEnabled(false)
+    setMfaFactorId(null)
+    setMfaSetup(null)
+    setMfaCode('')
+    setMfaMessage('MFA desativado com sucesso.')
+    setMfaLoading(false)
+  }
+
+  const getMfaQrDisplay = () => {
+    if (!mfaSetup) return { type: 'none', value: '' }
+
+    const rawQr = (mfaSetup.qrCode || '').trim()
+
+    if (rawQr.startsWith('<svg') || rawQr.startsWith('<?xml')) {
+      return { type: 'svg', value: rawQr }
+    }
+
+    if (rawQr.startsWith('data:image') || rawQr.startsWith('http')) {
+      return { type: 'img', value: rawQr }
+    }
+
+    if (mfaSetup.uri) {
+      const fallbackQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(mfaSetup.uri)}`
+      return { type: 'img', value: fallbackQrUrl }
+    }
+
+    return { type: 'none', value: '' }
+  }
+
+  const qrDisplay = getMfaQrDisplay()
 
   return (
     <div className="configuracoes-container">
@@ -213,10 +349,60 @@ function Configuracoes() {
           </p>
           <button
             className={`two-factor-card-button ${isTwoFactorEnabled ? 'two-factor-card-button-danger' : 'two-factor-card-button-primary'}`}
-            onClick={() => setIsTwoFactorEnabled(!isTwoFactorEnabled)}
+            onClick={isTwoFactorEnabled ? handleDisableMfa : handleStartMfa}
+            disabled={mfaLoading}
           >
-            {isTwoFactorEnabled ? 'Desativar' : 'Ativar'}
+            {mfaLoading ? 'Processando...' : isTwoFactorEnabled ? 'Desativar' : 'Ativar'}
           </button>
+
+          {mfaError && <div className="profile-error" style={{ marginTop: '14px' }}>{mfaError}</div>}
+          {mfaMessage && <div className="profile-success" style={{ marginTop: '14px' }}>{mfaMessage}</div>}
+
+          {mfaSetup && !isTwoFactorEnabled && (
+            <div className="mfa-setup-container">
+              <h4 className="mfa-setup-title">Configurar App Autenticador</h4>
+
+              {qrDisplay.type === 'svg' && (
+                <div className="mfa-qr-wrapper" dangerouslySetInnerHTML={{ __html: qrDisplay.value }} />
+              )}
+
+              {qrDisplay.type === 'img' && (
+                <div className="mfa-qr-wrapper">
+                  <img src={qrDisplay.value} alt="QR Code MFA" className="mfa-qr-image" />
+                </div>
+              )}
+
+              {qrDisplay.type === 'none' && (
+                <p className="mfa-secret-text">Se o QR não aparecer, use o código manual abaixo.</p>
+              )}
+
+              {mfaSetup.secret && (
+                <p className="mfa-secret-text">
+                  Código manual: <strong>{mfaSetup.secret}</strong>
+                </p>
+              )}
+
+              <div className="profile-input-wrapper" style={{ marginTop: '14px' }}>
+                <i className="bi bi-shield-lock-fill profile-input-icon"></i>
+                <input
+                  type="text"
+                  className="profile-input"
+                  placeholder="Digite o código de 6 dígitos"
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  disabled={mfaLoading}
+                />
+              </div>
+
+              <button
+                className={`two-factor-card-button two-factor-card-button-primary ${mfaCode.length === 6 ? 'mfa-confirm-button-active' : ''}`}
+                onClick={handleConfirmMfa}
+                disabled={mfaLoading || mfaCode.length !== 6}
+              >
+                Confirmar ativação
+              </button>
+            </div>
+          )}
         </div>
 
         <h2 className="configuracoes-group-title">Conta</h2>

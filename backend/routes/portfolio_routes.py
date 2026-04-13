@@ -1,7 +1,7 @@
 """
 Rotas para gerenciamento de portfolio e watchlist
 """
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from services.portfolio_service import (
     add_to_portfolio,
     add_to_watchlist,
@@ -17,10 +17,12 @@ from services.portfolio_service import (
     update_portfolio_prices_on_login,
     update_watchlist_prices_on_login
 )
+from utils.auth_context import require_authenticated_user
 
 portfolio_bp = Blueprint('portfolio', __name__)
 
 @portfolio_bp.route('/api/portfolio/add', methods=['POST'])
+@require_authenticated_user(allow_legacy=True)
 def add_portfolio():
     """
     POST /api/portfolio/add
@@ -28,6 +30,7 @@ def add_portfolio():
     """
     try:
         data = request.get_json()
+        user_id = g.auth_user_id
         
         if not data:
             return jsonify({
@@ -35,14 +38,13 @@ def add_portfolio():
                 "message": "Dados não fornecidos"
             }), 400
         
-        user_id = data.get('user_id')
         ticker = data.get('ticker')
         quantity = data.get('quantity', 1)
         
-        if not user_id or not ticker:
+        if not ticker:
             return jsonify({
                 "status": "error",
-                "message": "user_id e ticker são obrigatórios"
+                "message": "ticker é obrigatório"
             }), 400
         
         result = add_to_portfolio(user_id, ticker, quantity)
@@ -67,6 +69,7 @@ def add_portfolio():
 
 
 @portfolio_bp.route('/api/watchlist/add', methods=['POST'])
+@require_authenticated_user(allow_legacy=True)
 def add_watchlist():
     """
     POST /api/watchlist/add
@@ -74,6 +77,7 @@ def add_watchlist():
     """
     try:
         data = request.get_json()
+        user_id = g.auth_user_id
         
         if not data:
             return jsonify({
@@ -81,13 +85,12 @@ def add_watchlist():
                 "message": "Dados não fornecidos"
             }), 400
         
-        user_id = data.get('user_id')
         ticker = data.get('ticker')
         
-        if not user_id or not ticker:
+        if not ticker:
             return jsonify({
                 "status": "error",
-                "message": "user_id e ticker são obrigatórios"
+                "message": "ticker é obrigatório"
             }), 400
         
         result = add_to_watchlist(user_id, ticker)
@@ -112,19 +115,14 @@ def add_watchlist():
 
 
 @portfolio_bp.route('/api/portfolio/remove/<ticker>', methods=['DELETE'])
+@require_authenticated_user(allow_legacy=True)
 def remove_portfolio(ticker):
     """
     DELETE /api/portfolio/remove/<ticker>
     Query: ?user_id=...
     """
     try:
-        user_id = request.args.get('user_id')
-        
-        if not user_id:
-            return jsonify({
-                "status": "error",
-                "message": "user_id é obrigatório"
-            }), 400
+        user_id = g.auth_user_id
         
         result = remove_from_portfolio(user_id, ticker)
         
@@ -148,19 +146,14 @@ def remove_portfolio(ticker):
 
 
 @portfolio_bp.route('/api/watchlist/remove/<ticker>', methods=['DELETE'])
+@require_authenticated_user(allow_legacy=True)
 def remove_watchlist(ticker):
     """
     DELETE /api/watchlist/remove/<ticker>
     Query: ?user_id=...
     """
     try:
-        user_id = request.args.get('user_id')
-        
-        if not user_id:
-            return jsonify({
-                "status": "error",
-                "message": "user_id é obrigatório"
-            }), 400
+        user_id = g.auth_user_id
         
         result = remove_from_watchlist(user_id, ticker)
         
@@ -184,6 +177,7 @@ def remove_watchlist(ticker):
 
 
 @portfolio_bp.route('/api/stocks/check-status', methods=['POST'])
+@require_authenticated_user(allow_legacy=True)
 def check_stocks_status():
     """
     POST /api/stocks/check-status
@@ -195,6 +189,7 @@ def check_stocks_status():
     """
     try:
         data = request.get_json()
+        user_id = g.auth_user_id
         
         if not data:
             return jsonify({
@@ -202,14 +197,7 @@ def check_stocks_status():
                 "message": "Dados não fornecidos"
             }), 400
         
-        user_id = data.get('user_id')
         tickers = data.get('tickers', [])
-        
-        if not user_id:
-            return jsonify({
-                "status": "error",
-                "message": "user_id é obrigatório"
-            }), 400
         
         if not tickers or not isinstance(tickers, list):
             return jsonify({
@@ -233,6 +221,7 @@ def check_stocks_status():
 
 
 @portfolio_bp.route('/api/portfolio', methods=['GET'])
+@require_authenticated_user(allow_legacy=True)
 def get_portfolio():
     """
     GET /api/portfolio?user_id=...
@@ -245,13 +234,7 @@ def get_portfolio():
     }
     """
     try:
-        user_id = request.args.get('user_id')
-        
-        if not user_id:
-            return jsonify({
-                "status": "error",
-                "message": "user_id é obrigatório"
-            }), 400
+        user_id = g.auth_user_id
         
         result = get_user_portfolio(user_id)
         
@@ -269,6 +252,7 @@ def get_portfolio():
 
 
 @portfolio_bp.route('/api/watchlist', methods=['GET'])
+@require_authenticated_user(allow_legacy=True)
 def get_watchlist():
     """
     GET /api/watchlist?user_id=...
@@ -281,13 +265,7 @@ def get_watchlist():
     }
     """
     try:
-        user_id = request.args.get('user_id')
-        
-        if not user_id:
-            return jsonify({
-                "status": "error",
-                "message": "user_id é obrigatório"
-            }), 400
+        user_id = g.auth_user_id
         
         result = get_user_watchlist(user_id)
         
@@ -305,6 +283,7 @@ def get_watchlist():
 
 
 @portfolio_bp.route('/api/portfolio/quantity/<ticker>', methods=['GET'])
+@require_authenticated_user(allow_legacy=True)
 def get_quantity(ticker):
     """
     GET /api/portfolio/quantity/<ticker>?user_id=...
@@ -317,13 +296,7 @@ def get_quantity(ticker):
     }
     """
     try:
-        user_id = request.args.get('user_id')
-        
-        if not user_id:
-            return jsonify({
-                "status": "error",
-                "message": "user_id é obrigatório"
-            }), 400
+        user_id = g.auth_user_id
         
         result = get_stock_quantity(user_id, ticker)
         
@@ -348,6 +321,7 @@ def get_quantity(ticker):
 
 
 @portfolio_bp.route('/api/portfolio/update-quantity', methods=['POST'])
+@require_authenticated_user(allow_legacy=True)
 def update_quantity():
     """
     POST /api/portfolio/update-quantity
@@ -369,6 +343,7 @@ def update_quantity():
     """
     try:
         data = request.get_json()
+        user_id = g.auth_user_id
         
         if not data:
             return jsonify({
@@ -376,14 +351,13 @@ def update_quantity():
                 "message": "Dados não fornecidos"
             }), 400
         
-        user_id = data.get('user_id')
         ticker = data.get('ticker')
         quantity = data.get('quantity')
         
-        if not user_id or not ticker:
+        if not ticker:
             return jsonify({
                 "status": "error",
-                "message": "user_id e ticker são obrigatórios"
+                "message": "ticker é obrigatório"
             }), 400
         
         if quantity is None:
@@ -424,6 +398,7 @@ def update_quantity():
 
 
 @portfolio_bp.route('/api/portfolio/full', methods=['GET'])
+@require_authenticated_user(allow_legacy=True)
 def get_portfolio_full():
     """
     GET /api/portfolio/full?user_id=...
@@ -444,14 +419,7 @@ def get_portfolio_full():
     }
     """
     try:
-        user_id = request.args.get('user_id')
-        
-        if not user_id:
-            return jsonify({
-                "status": "error",
-                "message": "user_id é obrigatório"
-            }), 400
-        
+        user_id = g.auth_user_id
         result = get_user_portfolio_full(user_id)
         
         return jsonify({
@@ -468,6 +436,7 @@ def get_portfolio_full():
 
 
 @portfolio_bp.route('/api/portfolio/update-prices-login', methods=['POST'])
+@require_authenticated_user(allow_legacy=True)
 def update_prices_on_login():
     """
     POST /api/portfolio/update-prices-login
@@ -484,21 +453,7 @@ def update_prices_on_login():
     }
     """
     try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                "status": "error",
-                "message": "Dados não fornecidos"
-            }), 400
-        
-        user_id = data.get('user_id')
-        
-        if not user_id:
-            return jsonify({
-                "status": "error",
-                "message": "user_id é obrigatório"
-            }), 400
+        user_id = g.auth_user_id
         
         result = update_portfolio_prices_on_login(user_id)
         
@@ -525,6 +480,7 @@ def update_prices_on_login():
 
 
 @portfolio_bp.route('/api/watchlist/full', methods=['GET'])
+@require_authenticated_user(allow_legacy=True)
 def get_watchlist_full():
     """
     GET /api/watchlist/full?user_id=...
@@ -547,14 +503,7 @@ def get_watchlist_full():
     }
     """
     try:
-        user_id = request.args.get('user_id')
-        
-        if not user_id:
-            return jsonify({
-                "status": "error",
-                "message": "user_id é obrigatório"
-            }), 400
-        
+        user_id = g.auth_user_id
         result = get_user_watchlist_full(user_id)
         
         return jsonify({
@@ -571,6 +520,7 @@ def get_watchlist_full():
 
 
 @portfolio_bp.route('/api/watchlist/update-prices-login', methods=['POST'])
+@require_authenticated_user(allow_legacy=True)
 def update_watchlist_prices_on_login_route():
     """
     POST /api/watchlist/update-prices-login
@@ -587,21 +537,7 @@ def update_watchlist_prices_on_login_route():
     }
     """
     try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                "status": "error",
-                "message": "Dados não fornecidos"
-            }), 400
-        
-        user_id = data.get('user_id')
-        
-        if not user_id:
-            return jsonify({
-                "status": "error",
-                "message": "user_id é obrigatório"
-            }), 400
+        user_id = g.auth_user_id
         
         result = update_watchlist_prices_on_login(user_id)
         

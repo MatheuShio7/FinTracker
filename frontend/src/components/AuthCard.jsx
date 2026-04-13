@@ -12,6 +12,12 @@ function AuthCard({ title, type }) {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isMfaModalOpen, setIsMfaModalOpen] = useState(false)
+  const [mfaCode, setMfaCode] = useState('')
+  const [mfaFactorId, setMfaFactorId] = useState(null)
+  const [mfaError, setMfaError] = useState('')
+  const [mfaLoading, setMfaLoading] = useState(false)
+  const [mfaRetrySeconds, setMfaRetrySeconds] = useState(0)
 
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
@@ -28,7 +34,7 @@ function AuthCard({ title, type }) {
   
   const location = useLocation()
   const navigate = useNavigate()
-  const { login, signup } = useAuth()
+  const { login, signup, verifyMfaLogin, pendingMfa, cancelMfaLogin } = useAuth()
   
   const isLoginFormValid = email.trim() !== '' && password.trim() !== ''
   const isCadastroFormValid = firstName.trim() !== '' && lastName.trim() !== '' && 
@@ -55,6 +61,33 @@ function AuthCard({ title, type }) {
     }
   }, [type, location.search, location.hash])
 
+  useEffect(() => {
+    if (type !== 'login') return
+    if (!pendingMfa) return
+
+    setIsMfaModalOpen(true)
+    setMfaFactorId(pendingMfa.factorId || null)
+  }, [type, pendingMfa])
+
+  useEffect(() => {
+    if (!isMfaModalOpen) return
+
+    const lockedUntil = pendingMfa?.lockedUntil || null
+    if (!lockedUntil) {
+      setMfaRetrySeconds(0)
+      return
+    }
+
+    const updateCounter = () => {
+      const diffSeconds = Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000))
+      setMfaRetrySeconds(diffSeconds)
+    }
+
+    updateCounter()
+    const timer = window.setInterval(updateCounter, 500)
+    return () => window.clearInterval(timer)
+  }, [isMfaModalOpen, pendingMfa])
+
   const handleLogin = async () => {
     if (!isLoginFormValid) return
     
@@ -66,7 +99,15 @@ function AuthCard({ title, type }) {
       
       if (result.success) {
         // Login bem-sucedido, redireciona para carteira
+        setIsMfaModalOpen(false)
+        setMfaCode('')
+        setMfaFactorId(null)
+        setMfaError('')
         navigate('/carteira')
+      } else if (result.mfaRequired) {
+        setIsMfaModalOpen(true)
+        setMfaFactorId(result.factorId || pendingMfa?.factorId || null)
+        setMfaError('')
       } else {
         setError(result.message || 'Erro ao fazer login')
       }
@@ -75,6 +116,46 @@ function AuthCard({ title, type }) {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleVerifyMfa = async () => {
+    if (!mfaCode.trim()) return
+    if (mfaRetrySeconds > 0) return
+
+    setMfaLoading(true)
+    setMfaError('')
+
+    try {
+      const result = await verifyMfaLogin(mfaCode, mfaFactorId || pendingMfa?.factorId)
+
+      if (result.success) {
+        setIsMfaModalOpen(false)
+        setMfaCode('')
+        setMfaFactorId(null)
+        setMfaError('')
+        navigate('/carteira')
+        return
+      }
+
+      if (result.mfaLocked) {
+        setMfaRetrySeconds(result.retryAfterSeconds || 0)
+      }
+
+      setMfaError(result.message || 'Não foi possível validar o código MFA.')
+    } catch {
+      setMfaError('Erro ao validar código MFA. Tente novamente.')
+    } finally {
+      setMfaLoading(false)
+    }
+  }
+
+  const closeMfaModal = async () => {
+    await cancelMfaLogin()
+    setIsMfaModalOpen(false)
+    setMfaCode('')
+    setMfaFactorId(null)
+    setMfaError('')
+    setMfaRetrySeconds(0)
   }
 
   const handleCadastro = async () => {
@@ -284,6 +365,51 @@ function AuthCard({ title, type }) {
                 disabled={!isResetFormValid || resetLoading}
               >
                 {resetLoading ? 'Salvando...' : 'Salvar nova senha'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {type === 'login' && isMfaModalOpen && (
+        <div className="auth-modal-overlay" onClick={closeMfaModal}>
+          <div className="auth-modal-card" onClick={(e) => e.stopPropagation()}>
+            <h2 className="auth-modal-title">Verificação em 2 etapas</h2>
+            <p className="auth-modal-subtitle">
+              Informe o código de 6 dígitos do seu app autenticador para concluir o login.
+            </p>
+
+            {mfaError && <div className="auth-error auth-modal-feedback">{mfaError}</div>}
+
+            <div className="input-group auth-modal-input-group">
+              <i className="bi bi-shield-lock-fill input-icon"></i>
+              <input
+                type="text"
+                placeholder="Código MFA"
+                className="auth-input"
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                disabled={mfaLoading}
+                onKeyDown={(e) => e.key === 'Enter' && handleVerifyMfa()}
+              />
+            </div>
+
+            {mfaRetrySeconds > 0 && (
+              <p className="auth-mfa-cooldown">
+                Aguarde {mfaRetrySeconds}s para tentar novamente.
+              </p>
+            )}
+
+            <div className="auth-modal-actions">
+              <button className="auth-secondary-button" onClick={closeMfaModal} disabled={mfaLoading}>
+                Cancelar
+              </button>
+              <button
+                className={`auth-button auth-modal-button ${mfaCode.length === 6 && !mfaLoading && mfaRetrySeconds === 0 ? 'auth-button-active' : ''}`}
+                onClick={handleVerifyMfa}
+                disabled={mfaCode.length !== 6 || mfaLoading || mfaRetrySeconds > 0}
+              >
+                {mfaLoading ? 'Validando...' : 'Confirmar código'}
               </button>
             </div>
           </div>

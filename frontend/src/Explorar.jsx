@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from './contexts/AuthContext'
 import { usePortfolio } from './contexts/PortfolioContext'
-import { buildApiUrl } from './config/api'
+import { authFetch } from './lib/authFetch'
 import './Explorar.css'
 import Logo from './components/Logo'
 import PageTitle from './components/PageTitle'
@@ -60,9 +60,7 @@ function Explorar() {
       
       console.log('🔄 Buscando dados completos da watchlist do servidor...')
 
-      const response = await fetch(
-        buildApiUrl(`api/watchlist/full?user_id=${user.id}`)
-      )
+      const response = await authFetch(`api/watchlist/full?user_id=${user.id}`)
       const data = await response.json()
 
       if (data.status === 'success') {
@@ -120,18 +118,15 @@ function Explorar() {
       console.log('🔄 Atualizando preços de todas as ações da watchlist...')
       
       // Chamar endpoint que atualiza preços de todas as ações da watchlist
-      const response = await fetch(
-        buildApiUrl('api/watchlist/update-prices-login'),
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: user.id
-          })
-        }
-      )
+      const response = await authFetch('api/watchlist/update-prices-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id
+        })
+      })
       
       const data = await response.json()
       
