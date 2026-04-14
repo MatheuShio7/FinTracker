@@ -60,7 +60,7 @@ function Explorar() {
       
       console.log('🔄 Buscando dados completos da watchlist do servidor...')
 
-      const response = await authFetch(`api/watchlist/full?user_id=${user.id}`)
+      const response = await authFetch('api/watchlist/full')
       const data = await response.json()
 
       if (data.status === 'success') {
@@ -119,13 +119,7 @@ function Explorar() {
       
       // Chamar endpoint que atualiza preços de todas as ações da watchlist
       const response = await authFetch('api/watchlist/update-prices-login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: user.id
-        })
+        method: 'POST'
       })
       
       const data = await response.json()

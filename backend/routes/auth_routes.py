@@ -132,7 +132,7 @@ def login():
 
 
 @bp.route('/user/<user_id>', methods=['GET'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def get_user(user_id):
     """
     GET /api/auth/user/<user_id>
@@ -181,7 +181,7 @@ def get_user(user_id):
 
 
 @bp.route('/user/update', methods=['POST'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def update_user_info():
     """
     POST /api/auth/user/update
@@ -251,7 +251,7 @@ def update_user_info():
 
 
 @bp.route('/user/update-password', methods=['POST'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def update_user_password():
     """
     POST /api/auth/user/update-password

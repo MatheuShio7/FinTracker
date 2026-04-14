@@ -60,7 +60,7 @@ function Carteira() {
       
       console.log('🔄 Buscando dados completos da carteira do servidor...')
 
-      const response = await authFetch(`api/portfolio/full?user_id=${user.id}`)
+      const response = await authFetch('api/portfolio/full')
       const data = await response.json()
 
       if (data.status === 'success') {
@@ -118,13 +118,7 @@ function Carteira() {
       
       // Chamar endpoint que atualiza preços de todas as ações
       const response = await authFetch('api/portfolio/update-prices-login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: user.id
-        })
+        method: 'POST'
       })
       
       const data = await response.json()

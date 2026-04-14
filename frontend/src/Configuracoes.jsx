@@ -54,6 +54,26 @@ function Configuracoes() {
   const [savingPassword, setSavingPassword] = useState(false)
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
+
+  const normalizeMfaUiMessage = (message = '', fallback = 'Não foi possível concluir a operação de MFA.') => {
+    const lower = (message || '').toLowerCase()
+
+    if (!lower) return fallback
+    if (lower.includes('invalid') || lower.includes('otp') || lower.includes('code')) {
+      return 'Código inválido. Confira o app autenticador e tente novamente.'
+    }
+    if (lower.includes('expired')) {
+      return 'Código expirado. Gere um novo código no app autenticador.'
+    }
+    if (lower.includes('rate') || lower.includes('too many')) {
+      return 'Muitas tentativas em sequência. Aguarde alguns segundos e tente novamente.'
+    }
+    if (lower.includes('factor') && lower.includes('not found')) {
+      return 'Fator MFA não encontrado. Recarregue a página e tente novamente.'
+    }
+
+    return message || fallback
+  }
   
   // Carregar dados do usuário ao montar o componente
   useEffect(() => {
@@ -81,7 +101,7 @@ function Configuracoes() {
         setIsTwoFactorEnabled(status.enabled)
         setMfaFactorId(status.primaryFactorId)
       } else {
-        setMfaError(status.message || 'Erro ao consultar status do MFA.')
+        setMfaError(normalizeMfaUiMessage(status.message, 'Erro ao consultar status do MFA.'))
       }
 
       setMfaLoading(false)
@@ -199,7 +219,7 @@ function Configuracoes() {
     const result = await startMfaEnrollment()
 
     if (!result.success) {
-      setMfaError(result.message || 'Não foi possível iniciar MFA.')
+      setMfaError(normalizeMfaUiMessage(result.message, 'Não foi possível iniciar MFA.'))
       setMfaLoading(false)
       return
     }
@@ -225,7 +245,7 @@ function Configuracoes() {
     const result = await confirmMfaEnrollment(mfaSetup.factorId, mfaCode)
 
     if (!result.success) {
-      setMfaError(result.message || 'Código inválido.')
+      setMfaError(normalizeMfaUiMessage(result.message, 'Código inválido.'))
       setMfaLoading(false)
       return
     }
@@ -255,7 +275,7 @@ function Configuracoes() {
     const result = await disableMfa(mfaFactorId)
 
     if (!result.success) {
-      setMfaError(result.message || 'Não foi possível desativar o MFA.')
+      setMfaError(normalizeMfaUiMessage(result.message, 'Não foi possível desativar o MFA.'))
       setMfaLoading(false)
       return
     }

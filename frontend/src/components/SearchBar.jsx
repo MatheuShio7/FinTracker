@@ -113,7 +113,7 @@ function SearchBar() {
     try {
       if (isInPortfolio) {
         // Remover da carteira
-        const response = await authFetch(`api/portfolio/remove/${ticker}?user_id=${user.id}`, {
+        const response = await authFetch(`api/portfolio/remove/${ticker}`, {
           method: 'DELETE'
         });
 
@@ -138,7 +138,6 @@ function SearchBar() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_id: user.id,
             ticker: ticker
           })
         });
@@ -181,7 +180,7 @@ function SearchBar() {
     try {
       if (isInWatchlist) {
         // Remover da watchlist
-        const response = await authFetch(`api/watchlist/remove/${ticker}?user_id=${user.id}`, {
+        const response = await authFetch(`api/watchlist/remove/${ticker}`, {
           method: 'DELETE'
         });
 
@@ -206,7 +205,6 @@ function SearchBar() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_id: user.id,
             ticker: ticker
           })
         });

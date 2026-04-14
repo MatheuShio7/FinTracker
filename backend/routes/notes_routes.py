@@ -9,7 +9,7 @@ notes_bp = Blueprint('notes', __name__)
 
 
 @notes_bp.route('/api/notes/<ticker>', methods=['GET'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def get_note(ticker):
     """
     GET /api/notes/<ticker>?user_id=...
@@ -50,7 +50,7 @@ def get_note(ticker):
 
 
 @notes_bp.route('/api/notes/save', methods=['POST'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def save_note():
     """
     POST /api/notes/save

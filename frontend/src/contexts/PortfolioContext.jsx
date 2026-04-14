@@ -91,11 +91,11 @@ export function PortfolioProvider({ children }) {
       console.log('🔄 Carregando dados do servidor...');
       
       // Buscar portfolio
-      const portfolioResponse = await authFetch(`api/portfolio?user_id=${user.id}`);
+      const portfolioResponse = await authFetch('api/portfolio');
       const portfolioData = await portfolioResponse.json();
       
       // Buscar watchlist
-      const watchlistResponse = await authFetch(`api/watchlist?user_id=${user.id}`);
+      const watchlistResponse = await authFetch('api/watchlist');
       const watchlistData = await watchlistResponse.json();
 
       const newCache = {

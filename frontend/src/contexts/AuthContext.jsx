@@ -132,8 +132,8 @@ export function AuthProvider({ children }) {
       console.log('🗑️ Caches da carteira e watchlist limpos no login')
 
       await Promise.all([
-        updatePortfolioPricesOnLogin(userId),
-        updateWatchlistPricesOnLogin(userId)
+        updatePortfolioPricesOnLogin(),
+        updateWatchlistPricesOnLogin()
       ])
     } catch (error) {
       console.error('Erro ao executar atualizações pós-login:', error)
@@ -169,7 +169,6 @@ export function AuthProvider({ children }) {
     setUser(resolvedUser)
     setPendingMfa(null)
     clearMfaPendingFlag()
-    localStorage.setItem('user_id', resolvedUser.id)
   }
 
   const clearPendingMfa = () => {
@@ -201,7 +200,6 @@ export function AuthProvider({ children }) {
           setUser(null)
           setPendingMfa(null)
           clearMfaPendingFlag()
-          localStorage.removeItem('user_id')
           return
         }
 
@@ -210,7 +208,6 @@ export function AuthProvider({ children }) {
           if (!isMounted) return
 
           setUser(null)
-          localStorage.removeItem('user_id')
           setPendingMfa({
             email: session.user.email || '',
             factorId: factors[0]?.id || null,
@@ -233,7 +230,6 @@ export function AuthProvider({ children }) {
         if (isMounted) {
           setUser(null)
           setPendingMfa(null)
-          localStorage.removeItem('user_id')
         }
       } finally {
         if (isMounted) {
@@ -252,7 +248,6 @@ export function AuthProvider({ children }) {
       if (event === 'SIGNED_OUT') {
         setUser(null)
         setPendingMfa(null)
-        localStorage.removeItem('user_id')
         return
       }
 
@@ -271,7 +266,6 @@ export function AuthProvider({ children }) {
           if (!isMounted) return
 
           setUser(null)
-          localStorage.removeItem('user_id')
           setPendingMfa({
             email: session.user.email || '',
             factorId: factors[0]?.id || null,
@@ -330,7 +324,7 @@ export function AuthProvider({ children }) {
         return { success: false, message: signInError.message || 'Cadastro feito, mas sem sessão.' }
       }
 
-      const authUserId = signInData?.user?.id || data.user_id
+      const authUserId = signInData?.user?.id
       const resolvedUser = await resolveUserProfile({
         userId: authUserId,
         email: normalizedEmail,
@@ -347,14 +341,10 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const updatePortfolioPricesOnLogin = async (userId) => {
+  const updatePortfolioPricesOnLogin = async () => {
     try {
       const response = await authFetch('api/portfolio/update-prices-login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id: userId }),
+        method: 'POST'
       })
 
       const data = await response.json()
@@ -366,14 +356,10 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const updateWatchlistPricesOnLogin = async (userId) => {
+  const updateWatchlistPricesOnLogin = async () => {
     try {
       const response = await authFetch('api/watchlist/update-prices-login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id: userId }),
+        method: 'POST'
       })
 
       const data = await response.json()
@@ -641,7 +627,6 @@ export function AuthProvider({ children }) {
     setUser(null)
     setPendingMfa(null)
     clearMfaPendingFlag()
-    localStorage.removeItem('user_id')
   }
 
   const updateProfile = async (name, lastName, email) => {
@@ -656,7 +641,6 @@ export function AuthProvider({ children }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: user.id,
           name,
           last_name: lastName,
           email,
@@ -689,7 +673,6 @@ export function AuthProvider({ children }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: user.id,
           current_password: currentPassword,
           new_password: newPassword,
         }),

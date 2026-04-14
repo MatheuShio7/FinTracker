@@ -36,11 +36,11 @@ function StockEditor({ ticker }) {
         console.log(`🔄 Buscando quantidade e observações para ${ticker}...`)
         
         // Buscar quantidade
-        const quantityResponse = await authFetch(`api/portfolio/quantity/${ticker}?user_id=${user.id}`)
+        const quantityResponse = await authFetch(`api/portfolio/quantity/${ticker}`)
         const quantityData = await quantityResponse.json()
         
         // Buscar observações
-        const notesResponse = await authFetch(`api/notes/${ticker}?user_id=${user.id}`)
+        const notesResponse = await authFetch(`api/notes/${ticker}`)
         const notesData = await notesResponse.json()
         
         if (quantityResponse.ok && quantityData.status === 'success') {
@@ -128,7 +128,6 @@ function StockEditor({ ticker }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: user.id,
           ticker: ticker,
           quantity: quantity === '' ? 0 : parseInt(quantity, 10)
         })
@@ -151,7 +150,6 @@ function StockEditor({ ticker }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: user.id,
           ticker: ticker,
           note_text: notesTrimmed
         })

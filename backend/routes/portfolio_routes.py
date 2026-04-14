@@ -22,7 +22,7 @@ from utils.auth_context import require_authenticated_user
 portfolio_bp = Blueprint('portfolio', __name__)
 
 @portfolio_bp.route('/api/portfolio/add', methods=['POST'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def add_portfolio():
     """
     POST /api/portfolio/add
@@ -69,7 +69,7 @@ def add_portfolio():
 
 
 @portfolio_bp.route('/api/watchlist/add', methods=['POST'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def add_watchlist():
     """
     POST /api/watchlist/add
@@ -115,7 +115,7 @@ def add_watchlist():
 
 
 @portfolio_bp.route('/api/portfolio/remove/<ticker>', methods=['DELETE'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def remove_portfolio(ticker):
     """
     DELETE /api/portfolio/remove/<ticker>
@@ -146,7 +146,7 @@ def remove_portfolio(ticker):
 
 
 @portfolio_bp.route('/api/watchlist/remove/<ticker>', methods=['DELETE'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def remove_watchlist(ticker):
     """
     DELETE /api/watchlist/remove/<ticker>
@@ -177,7 +177,7 @@ def remove_watchlist(ticker):
 
 
 @portfolio_bp.route('/api/stocks/check-status', methods=['POST'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def check_stocks_status():
     """
     POST /api/stocks/check-status
@@ -221,7 +221,7 @@ def check_stocks_status():
 
 
 @portfolio_bp.route('/api/portfolio', methods=['GET'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def get_portfolio():
     """
     GET /api/portfolio?user_id=...
@@ -252,7 +252,7 @@ def get_portfolio():
 
 
 @portfolio_bp.route('/api/watchlist', methods=['GET'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def get_watchlist():
     """
     GET /api/watchlist?user_id=...
@@ -283,7 +283,7 @@ def get_watchlist():
 
 
 @portfolio_bp.route('/api/portfolio/quantity/<ticker>', methods=['GET'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def get_quantity(ticker):
     """
     GET /api/portfolio/quantity/<ticker>?user_id=...
@@ -321,7 +321,7 @@ def get_quantity(ticker):
 
 
 @portfolio_bp.route('/api/portfolio/update-quantity', methods=['POST'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def update_quantity():
     """
     POST /api/portfolio/update-quantity
@@ -398,7 +398,7 @@ def update_quantity():
 
 
 @portfolio_bp.route('/api/portfolio/full', methods=['GET'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def get_portfolio_full():
     """
     GET /api/portfolio/full?user_id=...
@@ -436,7 +436,7 @@ def get_portfolio_full():
 
 
 @portfolio_bp.route('/api/portfolio/update-prices-login', methods=['POST'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def update_prices_on_login():
     """
     POST /api/portfolio/update-prices-login
@@ -480,7 +480,7 @@ def update_prices_on_login():
 
 
 @portfolio_bp.route('/api/watchlist/full', methods=['GET'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def get_watchlist_full():
     """
     GET /api/watchlist/full?user_id=...
@@ -520,7 +520,7 @@ def get_watchlist_full():
 
 
 @portfolio_bp.route('/api/watchlist/update-prices-login', methods=['POST'])
-@require_authenticated_user(allow_legacy=True)
+@require_authenticated_user(allow_legacy=False)
 def update_watchlist_prices_on_login_route():
     """
     POST /api/watchlist/update-prices-login
