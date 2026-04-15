@@ -1,7 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import './DividendsChart.css'
 
-function DividendsChart({ dividends, ticker }) {
+function DividendsChart({ dividends }) {
   if (!dividends || dividends.length === 0) {
     return (
       <div className="dividends-chart-container">

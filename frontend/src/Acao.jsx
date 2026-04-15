@@ -138,7 +138,7 @@ function Acao() {
     }
 
     fetchStockData()
-  }, [ticker, selectedRange])
+  }, [ticker, selectedRange, isInPortfolio, invalidatePortfolioFullCache])
 
   // Função para mudar o range e recarregar os dados
   const handleRangeChange = async (newRange) => {

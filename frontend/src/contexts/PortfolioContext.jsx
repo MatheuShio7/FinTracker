@@ -16,6 +16,19 @@ export function PortfolioProvider({ children }) {
     isLoading: false
   });
 
+  // Limpar cache
+  const clearCache = useCallback(() => {
+    setCache({
+      portfolio: [],
+      watchlist: [],
+      timestamp: null,
+      isLoading: false
+    });
+    if (user) {
+      localStorage.removeItem(`${STORAGE_KEY}_${user.id}`);
+    }
+  }, [user]);
+
   // Carregar cache do localStorage ao iniciar
   useEffect(() => {
     if (!user) {
@@ -42,7 +55,7 @@ export function PortfolioProvider({ children }) {
         clearCache();
       }
     }
-  }, [user]);
+  }, [user, clearCache]);
 
   // Salvar cache no localStorage sempre que mudar
   useEffect(() => {
@@ -54,19 +67,6 @@ export function PortfolioProvider({ children }) {
       }));
     }
   }, [cache, user]);
-
-  // Limpar cache
-  const clearCache = useCallback(() => {
-    setCache({
-      portfolio: [],
-      watchlist: [],
-      timestamp: null,
-      isLoading: false
-    });
-    if (user) {
-      localStorage.removeItem(`${STORAGE_KEY}_${user.id}`);
-    }
-  }, [user]);
 
   // Verificar se cache é válido
   const isCacheValid = useCallback(() => {
@@ -217,6 +217,7 @@ export function PortfolioProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function usePortfolio() {
   const context = useContext(PortfolioContext);
   if (!context) {

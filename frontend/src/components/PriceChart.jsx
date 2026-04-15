@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import './PriceChart.css'
 
-function PriceChart({ prices, ticker, onRangeChange, loading }) {
+function PriceChart({ prices, onRangeChange, loading }) {
   const [selectedRange, setSelectedRange] = useState('3m')
 
   const handleRangeChange = (newRange) => {
