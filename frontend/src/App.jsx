@@ -8,7 +8,6 @@ import Carteira from './Carteira'
 import Explorar from './Explorar'
 import Grupos from './Grupos'
 import Acao from './Acao'
-import Notificacoes from './Notificacoes'
 import Configuracoes from './Configuracoes'
 import Sidebar from './components/Sidebar'
 import './App.css'
@@ -39,11 +38,6 @@ function AppContent() {
           <Route path="/grupos" element={
             <ProtectedRoute>
               <Grupos />
-            </ProtectedRoute>
-          } />
-          <Route path="/notificacoes" element={
-            <ProtectedRoute>
-              <Notificacoes />
             </ProtectedRoute>
           } />
           <Route path="/:ticker" element={

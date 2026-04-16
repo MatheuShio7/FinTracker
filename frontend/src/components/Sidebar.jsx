@@ -16,7 +16,6 @@ const Sidebar = () => {
     { name: 'Carteira', path: '/carteira', icon: 'bi-wallet-fill' },
     { name: 'Explorar', path: '/explorar', icon: 'bi-search' },
     { name: 'Grupos', path: '/grupos', icon: 'bi-people-fill' },
-    { name: 'Notificações', path: '/notificacoes', icon: 'bi-bell-fill' },
     { name: 'Configurações', path: '/configuracoes', icon: 'bi-gear-wide-connected' }
   ]
 

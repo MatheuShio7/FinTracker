@@ -9,6 +9,7 @@ import PageTitle from './components/PageTitle'
 import PageSubtitle from './components/PageSubtitle'
 import BackNavigation from './components/BackNavigation'
 import ReloadButton from './components/ReloadButton'
+import NotificationsButton from './components/NotificationsButton'
 import PriceChart from './components/PriceChart'
 import DividendsChart from './components/DividendsChart'
 import StockEditor from './components/StockEditor'
@@ -221,6 +222,7 @@ function Acao() {
       <Logo />
       <div className="acao-header">
         <BackNavigation from={from} />
+        <NotificationsButton className="acao-notifications-button" />
         <ReloadButton onClick={handleRefresh} isLoading={isRefreshing} />
         <PageTitle title={ticker} />
         {companyName && <PageSubtitle subtitle={companyName} />}

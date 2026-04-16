@@ -18,7 +18,12 @@
   right: 80px;
 }
 
+.explorar-page .notifications-button.explorar-notifications-button {
+  top: 56px;
+  right: 145px;
+}
+
 /* Reposiciona a barra de pesquisa para a esquerda na página Explorar */
 .explorar-page .search-bar-container {
-  right: 145px; /* 70px (right do ReloadButton) + 50px (largura do ReloadButton) + 15px (espaçamento) */
+  right: 210px;
 } 

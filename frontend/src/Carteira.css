@@ -1,1 +1,9 @@
 /* Carteira styles */ 
+
+.transaction-button.carteira-transaction-button {
+	right: 210px;
+}
+
+.notifications-button.carteira-notifications-button {
+	right: 145px;
+}

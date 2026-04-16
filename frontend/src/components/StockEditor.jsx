@@ -213,48 +213,11 @@ function StockEditor({ ticker }) {
         </div>
       )}
       
-      {/* Container dos campos lado a lado */}
+      {/* Campo de Observações */}
       <div className="stock-editor-fields-container">
-        {/* Campo de Quantidade */}
-        <div className="stock-editor-field quantity-field">
-          <label className="stock-editor-label">Quantidade</label>
-          
-          <div className="quantity-input-container">
-            <input
-              type="number"
-              className="quantity-input"
-              value={quantity}
-              onChange={handleQuantityChange}
-              onBlur={handleQuantityBlur}
-              min="0"
-              disabled={saving}
-            />
-            
-            <div className="quantity-buttons">
-              <button
-                className="quantity-btn quantity-btn-increase"
-                onClick={handleIncrease}
-                disabled={saving}
-                aria-label="Aumentar quantidade"
-              >
-                <i className="bi bi-plus"></i>
-              </button>
-              <button
-                className="quantity-btn quantity-btn-decrease"
-                onClick={handleDecrease}
-                disabled={saving}
-                aria-label="Diminuir quantidade"
-              >
-                <i className="bi bi-dash"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        {/* Campo de Observações */}
         <div className="stock-editor-field notes-field">
           <label className="stock-editor-label">Observações</label>
-          
+
           <textarea
             className="notes-textarea"
             placeholder={`Observações sobre ${ticker}`}
@@ -272,7 +235,7 @@ function StockEditor({ ticker }) {
         onClick={handleSave}
         disabled={!hasChanges || saving}
       >
-        {saving ? 'Salvando...' : 'Salvar Alterações'}
+        {saving ? 'Salvando...' : 'Salvar Observação'}
       </button>
     </div>
   )

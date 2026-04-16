@@ -1,0 +1,105 @@
+.notifications-button {
+  z-index: 1001;
+}
+
+.notifications-button:hover i {
+  transform: none;
+}
+
+.notifications-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 1200;
+}
+
+.notifications-modal-card {
+  position: absolute;
+  top: 120px;
+  right: 80px;
+  width: min(380px, calc(100vw - 32px));
+  background: #16171b;
+  border: 1px solid #2a2b30;
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  animation: notifications-modal-in 0.2s ease;
+}
+
+.notifications-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid #2a2b30;
+}
+
+.notifications-modal-header h3 {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.notifications-close-button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #2a2b30;
+  border-radius: 10px;
+  background: transparent;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.notifications-close-button:hover {
+  border-color: #f65308;
+  color: #f65308;
+}
+
+.notifications-modal-body {
+  padding: 22px 18px 24px;
+}
+
+.notifications-empty-state {
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.notifications-empty-state i {
+  font-size: 24px;
+  color: #9f9f9f;
+}
+
+.notifications-empty-state p {
+  margin: 0;
+  color: #c8c8c8;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+}
+
+@keyframes notifications-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .notifications-modal-card {
+    top: 115px;
+    right: 16px;
+  }
+}

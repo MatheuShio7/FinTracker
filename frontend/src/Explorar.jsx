@@ -8,6 +8,7 @@ import PageTitle from './components/PageTitle'
 import SearchBar from './components/SearchBar'
 import WatchlistTable from './components/WatchlistTable'
 import ReloadButton from './components/ReloadButton'
+import NotificationsButton from './components/NotificationsButton'
 
 function Explorar() {
   const { user } = useAuth()
@@ -149,6 +150,7 @@ function Explorar() {
     <div className="explorar-page">
       <Logo />
       <PageTitle title="Explorar" />
+      <NotificationsButton className="explorar-notifications-button" />
       <ReloadButton 
         onClick={handleRefresh} 
         isLoading={isRefreshing}

@@ -6,6 +6,8 @@ import './Carteira.css'
 import Logo from './components/Logo'
 import PageTitle from './components/PageTitle'
 import ReloadButton from './components/ReloadButton'
+import NotificationsButton from './components/NotificationsButton'
+import TransactionButton from './components/TransactionButton'
 import PortfolioTable from './components/PortfolioTable'
 import PortfolioPieChart from './components/PortfolioPieChart'
 
@@ -147,6 +149,8 @@ function Carteira() {
   return (
     <div>
       <Logo />
+      <TransactionButton className="carteira-transaction-button" />
+      <NotificationsButton className="carteira-notifications-button" />
       <ReloadButton onClick={handleRefresh} isLoading={isRefreshing} />
       <PageTitle title="Carteira" />
       <PortfolioTable 

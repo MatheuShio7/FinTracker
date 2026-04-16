@@ -39,6 +39,12 @@
   right: 65px;
 }
 
+.acao-page .notifications-button.acao-notifications-button {
+  position: absolute;
+  top: 56px;
+  right: 130px;
+}
+
 /* Mantem o espaco do topo na Acao sem sobrepor o grafico */
 .acao-page .price-chart-container {
   margin-top: 2rem;

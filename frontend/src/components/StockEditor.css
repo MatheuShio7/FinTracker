@@ -46,6 +46,7 @@
   display: flex;
   gap: 30px;
   align-items: flex-start;
+  justify-content: center;
 }
 
 /* Campo genérico */
@@ -55,12 +56,10 @@
   gap: 10px;
 }
 
-.stock-editor-field.quantity-field {
-  flex: 0 0 auto;
-}
-
 .stock-editor-field.notes-field {
   flex: 1;
+  width: 100%;
+  max-width: 680px;
 }
 
 .stock-editor-label {
@@ -69,90 +68,6 @@
   font-size: 16px;
   font-weight: 500;
   margin-bottom: 5px;
-}
-
-/* Campo de Quantidade */
-.quantity-input-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: 180px;
-}
-
-.quantity-input {
-  width: 80px;
-  height: 45px;
-  background-color: #16171b;
-  border: 1px solid #2a2b30;
-  border-radius: 8px;
-  padding: 0 15px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 16px;
-  color: #ffffff;
-  outline: none;
-  transition: border-color 0.2s ease;
-  text-align: center;
-}
-
-.quantity-input:focus {
-  border-color: #f65308;
-}
-
-.quantity-input:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Remover spinners do input number */
-.quantity-input::-webkit-inner-spin-button,
-.quantity-input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  appearance: none;
-  margin: 0;
-}
-
-.quantity-input[type=number] {
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-/* Botões de quantidade */
-.quantity-buttons {
-  display: flex;
-  flex-direction: row;
-}
-
-.quantity-btn {
-  width: 40px;
-  height: 45px;
-  background: none;
-  border: none;
-  color: #ffffff;
-  font-size: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  padding: 0;
-}
-
-.quantity-btn:hover:not(:disabled) {
-  color: #f65308;
-  transform: scale(1.35);
-}
-
-.quantity-btn:active:not(:disabled) {
-  transform: scale(0.95);
-}
-
-.quantity-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.quantity-btn i {
-  font-size: 30px;
 }
 
 /* Campo de Observações */
@@ -242,7 +157,7 @@
     gap: 20px;
   }
   
-  .quantity-input-container {
+  .stock-editor-field.notes-field {
     max-width: 100%;
   }
   
