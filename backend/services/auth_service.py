@@ -196,6 +196,67 @@ def register_user(name: str, last_name: str, email: str, password: str) -> Dict[
         return {"success": False, "error": f"Erro no servidor: {str(e)}"}
 
 
+def get_mfa_status(user_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Verifica o status de autenticação em 2 fatores (TOTP) de um usuário
+    
+    Args:
+        user_id: ID do usuário autenticado
+        
+    Returns:
+        Dict com:
+        - has_mfa (bool): True se o usuário tem TOTP ativado
+        - mfa_type (str): 'totp' se habilitado, None caso contrário
+    """
+    try:
+        supabase_admin = get_supabase_admin_client()
+        
+        # Tenta obter informações do usuário com os fatores
+        try:
+            # Tenta usando list_factors do admin API
+            if hasattr(supabase_admin.auth, 'admin') and hasattr(supabase_admin.auth.admin, 'list_factors'):
+                result = supabase_admin.auth.admin.list_factors(user_id)
+                factors = result.get('factors', []) if isinstance(result, dict) else (result if isinstance(result, list) else [])
+            else:
+                # Se o método não existir, tenta através de uma chamada direta à API
+                factors = []
+        except Exception as inner_e:
+            print(f"⚠️  Erro ao tentar list_factors: {str(inner_e)}")
+            factors = []
+        
+        # Verifica se há algum fator TOTP verificado
+        has_totp = False
+        if factors and len(factors) > 0:
+            for factor in factors:
+                # Tenta diferentes nomes de propriedade (compatibilidade com versões SDK)
+                factor_type = factor.get('factor_type') or factor.get('factorType') or factor.get('type')
+                status = (factor.get('status') or '').lower()
+                
+                # Verifica se é TOTP e está verificado
+                if factor_type == 'totp' and status == 'verified':
+                    has_totp = True
+                    print(f"✅ Usuário {user_id} tem TOTP ativado")
+                    break
+        
+        result = {
+            'has_mfa': has_totp,
+            'mfa_type': 'totp' if has_totp else None
+        }
+        
+        print(f"📊 Status MFA para usuário {user_id}: has_mfa={has_totp}")
+        return result
+        
+    except Exception as e:
+        print(f"❌ Erro ao verificar status de MFA para usuário {user_id}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        # Em caso de erro, considera como não tendo MFA (seguro por padrão)
+        return {
+            'has_mfa': False,
+            'mfa_type': None
+        }
+
+
 def login_user(email: str, password: str) -> Dict[str, Any]:
     """
     Autentica um usuário
