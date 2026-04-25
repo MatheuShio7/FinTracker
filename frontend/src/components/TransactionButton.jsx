@@ -17,7 +17,7 @@ function TransactionButton({ className = '' }) {
   const searchRef = useRef(null)
 
   const priceLabel = useMemo(() => {
-    return transactionType === 'venda' ? 'Preço de Venda' : 'Preço de Compra'
+    return transactionType === 'venda' ? 'Preço de Venda (1 un)' : 'Preço de Compra (1 un)'
   }, [transactionType])
 
   useEffect(() => {
