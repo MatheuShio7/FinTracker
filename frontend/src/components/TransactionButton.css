@@ -333,6 +333,27 @@
   border-color: #ff8c42;
 }
 
+.transaction-submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.transaction-feedback {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  text-align: center;
+}
+
+.transaction-feedback-error {
+  color: #ff8c8c;
+}
+
+.transaction-feedback-success {
+  color: #78d98e;
+}
+
 .transaction-helper-text {
   margin: 0;
   color: #9f9f9f;

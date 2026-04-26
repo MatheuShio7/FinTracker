@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { authFetch } from '../lib/authFetch'
 import './TransactionButton.css'
 
-function TransactionButton({ className = '' }) {
+function TransactionButton({ className = '', onTransactionSaved }) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [results, setResults] = useState([])
@@ -14,6 +15,9 @@ function TransactionButton({ className = '' }) {
   const [price, setPrice] = useState('')
   const [quantity, setQuantity] = useState('')
   const [transactionDate, setTransactionDate] = useState(() => new Date().toISOString().split('T')[0])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
+  const [submitSuccess, setSubmitSuccess] = useState(null)
   const searchRef = useRef(null)
 
   const priceLabel = useMemo(() => {
@@ -90,12 +94,16 @@ function TransactionButton({ className = '' }) {
   }, [isOpen, searchTerm])
 
   const handleOpen = () => {
+    setSubmitError(null)
+    setSubmitSuccess(null)
     setIsOpen(true)
   }
 
   const handleClose = () => {
     setIsOpen(false)
     setShowDropdown(false)
+    setSubmitError(null)
+    setSubmitSuccess(null)
   }
 
   const handleSelectStock = (stock) => {
@@ -122,15 +130,85 @@ function TransactionButton({ className = '' }) {
     setIsTransactionTypeOpen(true)
   }
 
-  const handleSubmit = (event) => {
+  const resetForm = () => {
+    setSearchTerm('')
+    setResults([])
+    setShowDropdown(false)
+    setSelectedStock(null)
+    setTransactionType('compra')
+    setPrice('')
+    setQuantity('')
+    setTransactionDate(new Date().toISOString().split('T')[0])
+  }
+
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    console.log('Frontend only: transacao ainda sem integracao com backend', {
-      selectedStock,
-      transactionType,
-      price,
-      quantity,
-      transactionDate,
-    })
+
+    setSubmitError(null)
+    setSubmitSuccess(null)
+
+    if (!selectedStock?.id) {
+      setSubmitError('Selecione uma ação para continuar.')
+      return
+    }
+
+    const parsedPrice = Number(price)
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      setSubmitError('Informe um preço válido maior que zero.')
+      return
+    }
+
+    const parsedQuantity = Number(quantity)
+    if (!Number.isInteger(parsedQuantity) || parsedQuantity <= 0) {
+      setSubmitError('Informe uma quantidade inteira maior que zero.')
+      return
+    }
+
+    if (!transactionDate) {
+      setSubmitError('Informe a data da transação.')
+      return
+    }
+
+    const payload = {
+      stock_id: selectedStock.id,
+      type: transactionType === 'venda' ? 'sell' : 'buy',
+      price: parsedPrice,
+      quantity: parsedQuantity,
+      date: transactionDate
+    }
+
+    try {
+      setIsSubmitting(true)
+
+      const response = await authFetch('api/transactions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+
+      const data = await response.json()
+      if (!response.ok || data.status !== 'success') {
+        throw new Error(data.message || 'Não foi possível salvar a transação.')
+      }
+
+      setSubmitSuccess('Transação salva com sucesso!')
+
+      if (typeof onTransactionSaved === 'function') {
+        onTransactionSaved(data.data)
+      }
+
+      resetForm()
+
+      window.setTimeout(() => {
+        handleClose()
+      }, 600)
+    } catch (error) {
+      setSubmitError(error.message || 'Erro ao salvar transação.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -290,9 +368,21 @@ function TransactionButton({ className = '' }) {
                 </div>
               </div>
 
-              <button type="submit" className="transaction-submit-button">
-                Salvar Transação
+              <button type="submit" className="transaction-submit-button" disabled={isSubmitting}>
+                {isSubmitting ? 'Salvando...' : 'Salvar Transação'}
               </button>
+
+              {submitError && (
+                <p className="transaction-feedback transaction-feedback-error" role="alert">
+                  {submitError}
+                </p>
+              )}
+
+              {submitSuccess && (
+                <p className="transaction-feedback transaction-feedback-success">
+                  {submitSuccess}
+                </p>
+              )}
             </form>
           </div>
         </div>

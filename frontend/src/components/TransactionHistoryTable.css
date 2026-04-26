@@ -1,0 +1,324 @@
+.transaction-history-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 20px auto 70px;
+  padding: 0 20px;
+}
+
+.transaction-history-title {
+  margin: 0 0 14px;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.transaction-history-table {
+  width: 100%;
+  background-color: #16171b;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-collapse: separate;
+  border-spacing: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 520px;
+}
+
+.transaction-history-table thead {
+  background-color: #16171b;
+  border-bottom: 3px solid #2a2b30;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.transaction-history-table thead tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.transaction-history-table thead th {
+  padding: 20px 18px;
+  text-align: center;
+  color: #666666;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background-color: #16171b;
+}
+
+.transaction-history-table tbody {
+  display: block;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 430px;
+  scrollbar-width: thin;
+  scrollbar-color: #666666 transparent;
+}
+
+.transaction-history-table tbody::-webkit-scrollbar {
+  width: 8px;
+}
+
+.transaction-history-table tbody::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.transaction-history-table tbody::-webkit-scrollbar-thumb {
+  background-color: #666666;
+  border-radius: 8px;
+}
+
+.transaction-history-table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.transaction-history-table tbody td {
+  padding: 20px 18px;
+  color: #ffffff;
+  font-size: 15px;
+  border-bottom: 1px solid rgba(42, 43, 48, 0.5);
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.transaction-history-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.transaction-history-row:hover {
+  background-color: #1a1b20;
+}
+
+.transaction-history-action-cell {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.transaction-history-number-cell,
+.transaction-history-date-cell {
+  font-variant-numeric: tabular-nums;
+}
+
+.transaction-history-actions-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.transaction-history-icon-button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #2a2b30;
+  border-radius: 8px;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.transaction-history-icon-button i {
+  font-size: 14px;
+}
+
+.transaction-history-icon-button:hover {
+  transform: translateY(-1px);
+}
+
+.transaction-history-edit-button {
+  color: #ffffff;
+}
+
+.transaction-history-edit-button:hover {
+  border-color: #ffffff;
+}
+
+.transaction-history-delete-button {
+  color: #ff4d4f;
+}
+
+.transaction-history-delete-button:hover {
+  border-color: #ff4d4f;
+}
+
+.transaction-history-type-cell {
+  font-weight: 600;
+}
+
+.transaction-history-type-cell.is-buy {
+  color: #78d98e;
+}
+
+.transaction-history-type-cell.is-sell {
+  color: #ff8c8c;
+}
+
+.transaction-history-empty-row td {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666666;
+  font-style: italic;
+}
+
+.transaction-history-loading,
+.transaction-history-error {
+  background-color: #16171b;
+  border-radius: 16px;
+  padding: 50px 32px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.transaction-history-loading {
+  color: #666666;
+  font-size: 16px;
+}
+
+.transaction-history-error p {
+  color: #ff6b6b;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.transaction-history-readonly-stock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid #2a2b30;
+  border-radius: 10px;
+  background: #111216;
+}
+
+.transaction-history-readonly-stock strong {
+  color: #ffffff;
+}
+
+.transaction-history-readonly-stock span {
+  color: #c8c8c8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transaction-history-confirm-modal {
+  max-width: 460px;
+}
+
+.transaction-history-confirm-content {
+  padding: 24px 22px;
+}
+
+.transaction-history-confirm-content p {
+  margin: 0;
+  color: #ffffff;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.transaction-history-confirm-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.transaction-history-cancel-button,
+.transaction-history-confirm-delete-button {
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid #2a2b30;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.transaction-history-cancel-button {
+  background: transparent;
+  color: #ffffff;
+}
+
+.transaction-history-cancel-button:hover {
+  border-color: #ffffff;
+}
+
+.transaction-history-confirm-delete-button {
+  background: #ff4d4f;
+  color: #ffffff;
+  border-color: #ff4d4f;
+}
+
+.transaction-history-confirm-delete-button:hover {
+  background: #ff6567;
+  border-color: #ff6567;
+}
+
+.transaction-history-cancel-button:disabled,
+.transaction-history-confirm-delete-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.transaction-history-modal-open-spacer {
+  display: none;
+}
+
+.transaction-history-retry-button {
+  background-color: #4a9eff;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.transaction-history-retry-button:hover {
+  background-color: #3a8eef;
+}
+
+@media (max-width: 768px) {
+  .transaction-history-container {
+    padding: 0 10px;
+    margin: 20px auto 50px;
+  }
+
+  .transaction-history-title {
+    font-size: 18px;
+  }
+
+  .transaction-history-table thead th,
+  .transaction-history-table tbody td {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+
+  .transaction-history-table thead th {
+    font-size: 11px;
+    letter-spacing: 0.6px;
+  }
+
+  .transaction-history-actions-cell {
+    gap: 6px;
+  }
+
+  .transaction-history-icon-button {
+    width: 30px;
+    height: 30px;
+  }
+}

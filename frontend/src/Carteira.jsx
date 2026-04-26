@@ -10,6 +10,7 @@ import NotificationsButton from './components/NotificationsButton'
 import TransactionButton from './components/TransactionButton'
 import PortfolioTable from './components/PortfolioTable'
 import PortfolioPieChart from './components/PortfolioPieChart'
+import TransactionHistoryTable from './components/TransactionHistoryTable'
 
 function Carteira() {
   const { user } = useAuth()
@@ -18,6 +19,47 @@ function Carteira() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [transactions, setTransactions] = useState([])
+  const [transactionsLoading, setTransactionsLoading] = useState(true)
+  const [transactionsError, setTransactionsError] = useState(null)
+
+  const fetchTransactions = async () => {
+    if (!user) {
+      setTransactions([])
+      setTransactionsLoading(false)
+      return
+    }
+
+    try {
+      setTransactionsLoading(true)
+      setTransactionsError(null)
+
+      const response = await authFetch('api/transactions')
+      const data = await response.json()
+
+      if (response.ok && data.status === 'success') {
+        setTransactions(data.data || [])
+      } else {
+        setTransactionsError(data.message || 'Erro ao buscar histórico de transações')
+      }
+    } catch (err) {
+      console.error('Erro ao buscar histórico de transações:', err)
+      setTransactionsError('Erro ao conectar com o servidor')
+    } finally {
+      setTransactionsLoading(false)
+    }
+  }
+
+  const handleTransactionSaved = async () => {
+    if (!user) return
+
+    const cacheKey = `portfolio_full_${user.id}`
+    localStorage.removeItem(cacheKey)
+    await Promise.all([
+      fetchPortfolioData(true),
+      fetchTransactions()
+    ])
+  }
 
   // Buscar dados completos da carteira
   const fetchPortfolioData = async (forceRefresh = false) => {
@@ -91,6 +133,7 @@ function Carteira() {
   // Buscar dados ao montar componente
   useEffect(() => {
     fetchPortfolioData()
+    fetchTransactions()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
@@ -149,7 +192,7 @@ function Carteira() {
   return (
     <div>
       <Logo />
-      <TransactionButton className="carteira-transaction-button" />
+      <TransactionButton className="carteira-transaction-button" onTransactionSaved={handleTransactionSaved} />
       <NotificationsButton className="carteira-notifications-button" />
       <ReloadButton onClick={handleRefresh} isLoading={isRefreshing} />
       <PageTitle title="Carteira" />
@@ -160,6 +203,13 @@ function Carteira() {
         onRetry={() => fetchPortfolioData(true)}
       />
       <PortfolioPieChart portfolio={portfolioData} />
+      <TransactionHistoryTable
+        transactions={transactions}
+        loading={transactionsLoading}
+        error={transactionsError}
+        onRetry={fetchTransactions}
+        onTransactionChanged={handleTransactionSaved}
+      />
     </div>
   )
 }
