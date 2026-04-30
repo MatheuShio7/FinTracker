@@ -142,6 +142,43 @@ def create_transaction(user_id, payload):
             }
 
         created = response.data[0]
+        # After creating transaction, ensure we have a recent price in cache
+        try:
+            from services.portfolio_service import ensure_current_stock_price
+
+            # If the user already has this stock in their portfolio, guarantee current price
+            portfolio_check = supabase.table('user_portfolio')\
+                .select('id')\
+                .eq('user_id', user_id)\
+                .eq('stock_id', stock['id'])\
+                .limit(1)\
+                .execute()
+
+            if portfolio_check.data and len(portfolio_check.data) > 0:
+                ensure_current_stock_price(stock['id'], stock.get('ticker'))
+        except Exception as e:
+            print(f"[WARN] Não foi possível garantir preço após criação de transação: {str(e)}")
+
+        # Try to include the most recent cached price in the response
+        try:
+            price_resp = supabase.table('stock_prices')\
+                .select('price')\
+                .eq('stock_id', stock['id'])\
+                .order('date', desc=True)\
+                .limit(1)\
+                .execute()
+
+            current_price = float(price_resp.data[0]['price']) if price_resp.data and len(price_resp.data) > 0 else None
+        except Exception:
+            current_price = None
+
+        current_total = None
+        try:
+            qty = created.get('quantity') or quantity
+            if current_price is not None and qty is not None:
+                current_total = current_price * float(qty)
+        except Exception:
+            current_total = None
 
         return {
             "success": True,
@@ -157,7 +194,9 @@ def create_transaction(user_id, payload):
                 'total': created.get('total'),
                 'date': created.get('date'),
                 'created_at': created.get('created_at'),
-                'updated_at': created.get('updated_at')
+                'updated_at': created.get('updated_at'),
+                'current_price': current_price,
+                'current_total': current_total
             }
         }
     except ValueError as error:
