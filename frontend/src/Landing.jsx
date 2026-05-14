@@ -8,7 +8,6 @@ function Landing() {
 
   return (
     <div className="landing-page">
-      <Logo />
 
       <header className="landing-hero">
         <div className="hero-left">
