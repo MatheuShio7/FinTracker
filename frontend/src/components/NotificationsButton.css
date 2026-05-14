@@ -175,7 +175,6 @@
   gap: 4px;
   flex: 1;
 }
-
 .notification-content h4 {
   margin: 0;
   color: #ffffff;
@@ -190,8 +189,9 @@
   font-family: 'Poppins', sans-serif;
   font-size: 12px;
   line-height: 1.4;
-@@
-}@keyframes notifications-modal-in {
+}
+
+@keyframes notifications-modal-in {
   from {
     opacity: 0;
     transform: translateY(-8px);
