@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
+import { buildApiUrl } from '../config/api'
 
 function AuthCard({ title, type }) {
   const [email, setEmail] = useState('')
@@ -26,6 +27,7 @@ function AuthCard({ title, type }) {
   const [forgotSuccessMessage, setForgotSuccessMessage] = useState('')
 
   const [isResetModalOpen, setIsResetModalOpen] = useState(false)
+  const [recoveryAccessToken, setRecoveryAccessToken] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmNewPassword, setConfirmNewPassword] = useState('')
   const [resetLoading, setResetLoading] = useState(false)
@@ -55,6 +57,7 @@ function AuthCard({ title, type }) {
       Boolean(hashParams.get('access_token'))
 
     if (isRecoveryFlow) {
+      setRecoveryAccessToken(hashParams.get('access_token') || '')
       setIsResetModalOpen(true)
       setResetError('')
       setResetSuccessMessage('')
@@ -239,18 +242,33 @@ function AuthCard({ title, type }) {
     setResetLoading(true)
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword,
+      if (!recoveryAccessToken) {
+        setResetError('Link de redefinição inválido ou expirado')
+        return
+      }
+
+      const response = await fetch(buildApiUrl('api/auth/reset-password/recovery'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          access_token: recoveryAccessToken,
+          new_password: newPassword,
+        }),
       })
 
-      if (updateError) {
-        setResetError(updateError.message || 'Não foi possível redefinir a senha')
+      const data = await response.json()
+
+      if (!response.ok || data.status !== 'success') {
+        setResetError(data.message || 'Não foi possível redefinir a senha')
         return
       }
 
       setResetSuccessMessage('Senha alterada com sucesso. Faça login com sua nova senha.')
       setNewPassword('')
       setConfirmNewPassword('')
+      setRecoveryAccessToken('')
 
       await supabase.auth.signOut()
 
@@ -274,6 +292,7 @@ function AuthCard({ title, type }) {
 
   const closeResetModal = () => {
     setIsResetModalOpen(false)
+    setRecoveryAccessToken('')
     setNewPassword('')
     setConfirmNewPassword('')
     setResetError('')

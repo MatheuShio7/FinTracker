@@ -505,3 +505,55 @@ def update_password(user_id: str, current_password: str, new_password: str) -> D
     except Exception as e:
         print(f"❌ Erro ao atualizar senha: {str(e)}")
         return {"success": False, "error": f"Erro no servidor: {str(e)}"}
+
+
+def reset_password_with_recovery_token(access_token: str, new_password: str) -> Dict[str, Any]:
+    """
+    Redefine senha a partir de um token de recovery do Supabase.
+
+    Esse fluxo evita bloqueio por AAL2 quando o usuário possui MFA ativo,
+    porque a atualização de senha é feita com permissões de admin após validar
+    o token de recovery enviado pelo link de redefinição.
+
+    Args:
+        access_token: Token retornado no hash da URL de recovery
+        new_password: Nova senha
+
+    Returns:
+        Dict com:
+        - success (bool): True se redefinição foi bem-sucedida
+        - error (str): Mensagem de erro se falha
+    """
+    try:
+        token = (access_token or '').strip()
+
+        if not token:
+            return {"success": False, "error": "Token de redefinição inválido"}
+
+        if not new_password:
+            return {"success": False, "error": "Nova senha é obrigatória"}
+
+        if len(new_password) < 8:
+            return {"success": False, "error": "A nova senha deve ter pelo menos 8 caracteres"}
+
+        supabase_admin = get_supabase_admin_client()
+
+        try:
+            auth_response = supabase_admin.auth.get_user(token)
+            auth_user_id = _extract_auth_user_id(auth_response)
+        except Exception:
+            return {"success": False, "error": "Link de redefinição inválido ou expirado"}
+
+        if not auth_user_id:
+            return {"success": False, "error": "Link de redefinição inválido ou expirado"}
+
+        supabase_admin.auth.admin.update_user_by_id(
+            auth_user_id,
+            {'password': new_password}
+        )
+
+        return {"success": True}
+
+    except Exception as e:
+        print(f"❌ Erro ao redefinir senha por recovery token: {str(e)}")
+        return {"success": False, "error": f"Erro no servidor: {str(e)}"}

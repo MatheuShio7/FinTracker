@@ -3,7 +3,14 @@ Rotas de autenticação
 Endpoints para registro, login e informações de usuário
 """
 from flask import Blueprint, request, jsonify, g
-from services.auth_service import register_user, login_user, get_user_by_id, update_user, update_password
+from services.auth_service import (
+    register_user,
+    login_user,
+    get_user_by_id,
+    update_user,
+    update_password,
+    reset_password_with_recovery_token,
+)
 from utils.auth_context import require_authenticated_user
 
 # Cria blueprint para rotas de autenticação
@@ -303,6 +310,53 @@ def update_user_password():
             
     except Exception as e:
         print(f"❌ Erro no endpoint de atualização de senha: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": "Erro interno do servidor"
+        }), 500
+
+
+@bp.route('/reset-password/recovery', methods=['POST'])
+def reset_password_recovery():
+    """
+    POST /api/auth/reset-password/recovery
+    Redefine a senha usando token de recovery do Supabase.
+
+    Body:
+        {
+            "access_token": "token-do-hash-da-url",
+            "new_password": "nova_senha"
+        }
+    """
+    try:
+        data = request.get_json() or {}
+
+        required_fields = ['access_token', 'new_password']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({
+                    "status": "error",
+                    "message": f"Campo '{field}' é obrigatório"
+                }), 400
+
+        result = reset_password_with_recovery_token(
+            access_token=data['access_token'],
+            new_password=data['new_password']
+        )
+
+        if result['success']:
+            return jsonify({
+                "status": "success",
+                "message": "Senha redefinida com sucesso!"
+            }), 200
+
+        return jsonify({
+            "status": "error",
+            "message": result['error']
+        }), 400
+
+    except Exception as e:
+        print(f"❌ Erro no endpoint de recovery password: {str(e)}")
         return jsonify({
             "status": "error",
             "message": "Erro interno do servidor"
