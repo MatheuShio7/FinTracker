@@ -210,51 +210,62 @@ def get_mfa_status(user_id: str) -> Optional[Dict[str, Any]]:
     """
     try:
         supabase_admin = get_supabase_admin_client()
-        
-        # Tenta obter informações do usuário com os fatores
+
+        factors = []
+
+        # Caminho principal: Admin MFA API (supabase-py v2.x).
         try:
-            # Tenta usando list_factors do admin API
-            if hasattr(supabase_admin.auth, 'admin') and hasattr(supabase_admin.auth.admin, 'list_factors'):
-                result = supabase_admin.auth.admin.list_factors(user_id)
-                factors = result.get('factors', []) if isinstance(result, dict) else (result if isinstance(result, list) else [])
-            else:
-                # Se o método não existir, tenta através de uma chamada direta à API
-                factors = []
+            if (
+                hasattr(supabase_admin.auth, 'admin')
+                and hasattr(supabase_admin.auth.admin, 'mfa')
+                and hasattr(supabase_admin.auth.admin.mfa, 'list_factors')
+            ):
+                factors_response = supabase_admin.auth.admin.mfa.list_factors({'user_id': user_id})
+                factors = getattr(factors_response, 'factors', None) or []
         except Exception as inner_e:
-            print(f"⚠️  Erro ao tentar list_factors: {str(inner_e)}")
-            factors = []
-        
-        # Verifica se há algum fator TOTP verificado
+            print(f"⚠️  Erro ao listar fatores MFA via admin.mfa.list_factors: {str(inner_e)}")
+
+        # Fallback: dados do usuário no Admin API (algumas versões expõem user.factors).
+        if not factors:
+            try:
+                if hasattr(supabase_admin.auth, 'admin') and hasattr(supabase_admin.auth.admin, 'get_user_by_id'):
+                    user_response = supabase_admin.auth.admin.get_user_by_id(user_id)
+                    user_obj = getattr(user_response, 'user', None)
+                    factors = getattr(user_obj, 'factors', None) or []
+            except Exception as fallback_error:
+                print(f"⚠️  Erro no fallback get_user_by_id para fatores MFA: {str(fallback_error)}")
+
+        if not factors:
+            print(f"📊 Status MFA para usuário {user_id}: sem fatores retornados")
+            return {
+                'has_mfa': False,
+                'mfa_type': None
+            }
+
         has_totp = False
-        if factors and len(factors) > 0:
-            for factor in factors:
-                # Tenta diferentes nomes de propriedade (compatibilidade com versões SDK)
-                factor_type = factor.get('factor_type') or factor.get('factorType') or factor.get('type')
-                status = (factor.get('status') or '').lower()
-                
-                # Verifica se é TOTP e está verificado
-                if factor_type == 'totp' and status == 'verified':
-                    has_totp = True
-                    print(f"✅ Usuário {user_id} tem TOTP ativado")
-                    break
-        
+        for factor in factors:
+            factor_type = getattr(factor, 'factor_type', None)
+            status = (getattr(factor, 'status', '') or '').lower()
+
+            if factor_type == 'totp' and status == 'verified':
+                has_totp = True
+                print(f"✅ Usuário {user_id} tem TOTP ativado")
+                break
+
         result = {
             'has_mfa': has_totp,
             'mfa_type': 'totp' if has_totp else None
         }
-        
+
         print(f"📊 Status MFA para usuário {user_id}: has_mfa={has_totp}")
         return result
-        
+
     except Exception as e:
         print(f"❌ Erro ao verificar status de MFA para usuário {user_id}: {str(e)}")
         import traceback
         traceback.print_exc()
-        # Em caso de erro, considera como não tendo MFA (seguro por padrão)
-        return {
-            'has_mfa': False,
-            'mfa_type': None
-        }
+        # Em caso de erro inesperado, retorna None para evitar falso positivo no frontend.
+        return None
 
 
 def login_user(email: str, password: str) -> Dict[str, Any]:
