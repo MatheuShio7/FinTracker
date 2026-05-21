@@ -6,6 +6,7 @@ import { useAuth } from './contexts/AuthContext'
 import { useNotifications } from './contexts/NotificationsContext'
 import { authFetch } from './lib/authFetch'
 import ProtectedRoute from './components/ProtectedRoute'
+import Landing from './Landing'
 import Login from './Login'
 import { NotificationsProvider } from './contexts/NotificationsContext'
 import Cadastro from './Cadastro'
@@ -91,7 +92,7 @@ function AppContent() {
       <Sidebar />
       <div className={`app-content ${shouldHideSidebar ? 'no-sidebar' : ''}`}>
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/carteira" element={
