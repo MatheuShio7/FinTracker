@@ -12,9 +12,13 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 18px 36px rgba(246, 83, 8, 0.28);
+  box-shadow: 0 10px 36px rgba(246, 83, 8, 0.28);
   z-index: 1200;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.2s ease;
+  transition:
+    transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.34s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.28s ease,
+    filter 0.28s ease;
 }
 
 .chat-widget-trigger i {
@@ -22,26 +26,27 @@
 }
 
 .chat-widget-trigger:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 22px 42px rgba(246, 83, 8, 0.34);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(246, 83, 8, 0.36);
 }
 
 .chat-widget-trigger:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.97);
 }
 
 .chat-widget-trigger.is-hidden {
   opacity: 0;
   pointer-events: none;
-  transform: translateY(10px) scale(0.9);
+  transform: translateY(16px) scale(0.82);
+  filter: blur(4px);
 }
 
 .chat-widget-card {
   position: fixed;
   right: 1.5rem;
-  bottom: 6rem;
+  bottom: 2rem;
   width: min(24rem, calc(100vw - 2rem));
-  height: 32rem;
+  height: 35rem;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -51,9 +56,17 @@
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
     #1b1b1b;
-  box-shadow: 0 28px 56px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 28px 26px rgba(0, 0, 0, 0.45);
   transform-origin: right bottom;
-  will-change: transform, opacity;
+  opacity: 0;
+  transform: translate3d(0, 18px, 0) scale(0.96);
+  filter: blur(8px);
+  pointer-events: none;
+  will-change: transform, opacity, filter;
+  transition:
+    transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.32s ease,
+    filter 0.32s ease;
 }
 
 .chat-widget-card::before {
@@ -65,11 +78,17 @@
 }
 
 .chat-widget-card.is-open {
-  animation: chatWidgetIn 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+  pointer-events: auto;
 }
 
 .chat-widget-card.is-closing {
-  animation: chatWidgetOut 0.24s cubic-bezier(0.4, 0, 0.2, 1) both;
+  opacity: 0;
+  transform: translate3d(0, 14px, 0) scale(0.97);
+  filter: blur(5px);
+  pointer-events: none;
 }
 
 .chat-widget-header {
@@ -93,7 +112,7 @@
 .chat-widget-close {
   width: 36px;
   height: 36px;
-  border: 1px solid #2a2b30;
+  border: 1px solid white;
   border-radius: 10px;
   background: transparent;
   color: #ffffff;
@@ -101,12 +120,17 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .chat-widget-close:hover {
   border-color: #f65308;
   color: #f65308;
+  transform: translateY(-1px);
+}
+
+.chat-widget-close:active {
+  transform: translateY(0) scale(0.96);
 }
 
 .chat-widget-body {
@@ -175,30 +199,6 @@
   font-size: 1.1rem;
 }
 
-@keyframes chatWidgetIn {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 18px, 0) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
-@keyframes chatWidgetOut {
-  from {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-
-  to {
-    opacity: 0;
-    transform: translate3d(0, 14px, 0) scale(0.98);
-  }
-}
-
 @media (max-width: 768px) {
   .chat-widget-trigger {
     right: 1rem;
@@ -216,8 +216,7 @@
 @media (prefers-reduced-motion: reduce) {
   .chat-widget-trigger,
   .chat-widget-close,
-  .chat-widget-card.is-open,
-  .chat-widget-card.is-closing {
+  .chat-widget-card {
     animation: none;
     transition: none;
   }

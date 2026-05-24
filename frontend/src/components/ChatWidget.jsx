@@ -20,7 +20,7 @@ function ChatWidget({ enabled = false }) {
     } else if (isMounted) {
       closeTimer = window.setTimeout(() => {
         setIsMounted(false)
-      }, 240)
+      }, 320)
     }
 
     return () => {
