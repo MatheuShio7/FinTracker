@@ -15,6 +15,7 @@ import Grupos from './Grupos'
 import Acao from './Acao'
 import Configuracoes from './Configuracoes'
 import Sidebar from './components/Sidebar'
+import ChatWidget from './components/ChatWidget'
 import './App.css'
 
 function AppContent() {
@@ -85,6 +86,8 @@ function AppContent() {
 
   const hiddenRoutes = ['/login', '/cadastro', '/']
   const shouldHideSidebar = hiddenRoutes.includes(location.pathname)
+  const chatEnabledRoutes = ['/carteira', '/explorar', '/grupos']
+  const shouldShowChatWidget = chatEnabledRoutes.includes(location.pathname)
 
   return (
     <div className="app">
@@ -120,6 +123,8 @@ function AppContent() {
             </ProtectedRoute>
           } />
         </Routes>
+
+        <ChatWidget enabled={shouldShowChatWidget} />
       </div>
     </div>
   )
