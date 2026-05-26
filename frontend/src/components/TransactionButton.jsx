@@ -1,15 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { authFetch } from '../lib/authFetch'
 import './TransactionButton.css'
 
-function TransactionButton({ className = '', onTransactionSaved }) {
+const TransactionButton = forwardRef(function TransactionButton(
+  { className = '', onTransactionSaved, showTriggerButton = true },
+  ref
+) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [results, setResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const [selectedStock, setSelectedStock] = useState(null)
+  const [isStockLocked, setIsStockLocked] = useState(false)
   const [transactionType, setTransactionType] = useState('compra')
   const [isTransactionTypeOpen, setIsTransactionTypeOpen] = useState(false)
   const [price, setPrice] = useState('')
@@ -23,6 +27,33 @@ function TransactionButton({ className = '', onTransactionSaved }) {
   const priceLabel = useMemo(() => {
     return transactionType === 'venda' ? 'Preço de Venda (1 un)' : 'Preço de Compra (1 un)'
   }, [transactionType])
+
+  const resetForm = () => {
+    setSearchTerm('')
+    setResults([])
+    setShowDropdown(false)
+    setSelectedStock(null)
+    setIsStockLocked(false)
+    setTransactionType('compra')
+    setPrice('')
+    setQuantity('')
+    setTransactionDate(new Date().toISOString().split('T')[0])
+    setIsTransactionTypeOpen(false)
+  }
+
+  const openModal = (stock = null) => {
+    resetForm()
+
+    if (stock) {
+      setSelectedStock(stock)
+      setSearchTerm(stock.ticker || '')
+      setIsStockLocked(true)
+    }
+
+    setSubmitError(null)
+    setSubmitSuccess(null)
+    setIsOpen(true)
+  }
 
   useEffect(() => {
     if (!isOpen) {
@@ -94,9 +125,7 @@ function TransactionButton({ className = '', onTransactionSaved }) {
   }, [isOpen, searchTerm])
 
   const handleOpen = () => {
-    setSubmitError(null)
-    setSubmitSuccess(null)
-    setIsOpen(true)
+    openModal()
   }
 
   const handleClose = () => {
@@ -105,6 +134,12 @@ function TransactionButton({ className = '', onTransactionSaved }) {
     setSubmitError(null)
     setSubmitSuccess(null)
   }
+
+  useImperativeHandle(ref, () => ({
+    open: () => openModal(),
+    openWithStock: (stock) => openModal(stock),
+    close: handleClose
+  }))
 
   const handleSelectStock = (stock) => {
     setSelectedStock(stock)
@@ -128,17 +163,6 @@ function TransactionButton({ className = '', onTransactionSaved }) {
     }
 
     setIsTransactionTypeOpen(true)
-  }
-
-  const resetForm = () => {
-    setSearchTerm('')
-    setResults([])
-    setShowDropdown(false)
-    setSelectedStock(null)
-    setTransactionType('compra')
-    setPrice('')
-    setQuantity('')
-    setTransactionDate(new Date().toISOString().split('T')[0])
   }
 
   const handleSubmit = async (event) => {
@@ -213,16 +237,18 @@ function TransactionButton({ className = '', onTransactionSaved }) {
 
   return (
     <>
-      <button
-        type="button"
-        className={`reload-button transaction-button ${className}`}
-        onClick={handleOpen}
-        title="Nova transacao"
-        aria-label="Nova transacao"
-      >
-        <i className="bi bi-plus-lg"></i>
-        <span>Transação</span>
-      </button>
+      {showTriggerButton && (
+        <button
+          type="button"
+          className={`reload-button transaction-button ${className}`}
+          onClick={handleOpen}
+          title="Nova transação"
+          aria-label="Nova transação"
+        >
+          <i className="bi bi-plus-lg"></i>
+          <span>Transação</span>
+        </button>
+      )}
 
       {isOpen && (
         <div className="transaction-modal-overlay" onClick={handleClose} role="presentation">
@@ -261,7 +287,11 @@ function TransactionButton({ className = '', onTransactionSaved }) {
                       onFocus={() => searchTerm && setShowDropdown(true)}
                     />
                   </div>
-
+                ) : isStockLocked ? (
+                  <div className="transaction-history-readonly-stock">
+                    <strong>{selectedStock.ticker}</strong>
+                    <span>{selectedStock.company_name}</span>
+                  </div>
                 ) : (
                   <div className="transaction-selected-stock">
                     <div className="transaction-selected-stock-info">
@@ -389,6 +419,6 @@ function TransactionButton({ className = '', onTransactionSaved }) {
       )}
     </>
   )
-}
+})
 
 export default TransactionButton

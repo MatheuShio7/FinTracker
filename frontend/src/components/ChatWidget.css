@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 10px 36px rgba(246, 83, 8, 0.28);
+  box-shadow: 0 10px 20px rgba(246, 83, 8, 0.28);
   z-index: 1200;
   transition:
     transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -27,7 +27,7 @@
 
 .chat-widget-trigger:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(246, 83, 8, 0.36);
+  box-shadow: 0 10px 36px rgba(246, 83, 8, 0.36);
 }
 
 .chat-widget-trigger:active {

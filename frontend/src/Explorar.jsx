@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from './contexts/AuthContext'
 import { usePortfolio } from './contexts/PortfolioContext'
 import { authFetch } from './lib/authFetch'
@@ -9,14 +9,16 @@ import SearchBar from './components/SearchBar'
 import WatchlistTable from './components/WatchlistTable'
 import ReloadButton from './components/ReloadButton'
 import NotificationsButton from './components/NotificationsButton'
+import TransactionButton from './components/TransactionButton'
 
 function Explorar() {
   const { user } = useAuth()
-  const { cache } = usePortfolio()
+  const { cache, addToPortfolio } = usePortfolio()
   const [watchlistData, setWatchlistData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const transactionButtonRef = useRef(null)
 
   // Buscar dados completos da watchlist
   const fetchWatchlistData = async (forceRefresh = false) => {
@@ -146,6 +148,38 @@ function Explorar() {
     }
   }
 
+  const handleRequestAddToPortfolio = (stock) => {
+    transactionButtonRef.current?.openWithStock(stock)
+  }
+
+  const handleTransactionSaved = async (transaction) => {
+    if (!transaction || transaction.type !== 'buy' || !transaction.ticker || !transaction.quantity) {
+      return
+    }
+
+    try {
+      const response = await authFetch('api/portfolio/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ticker: transaction.ticker,
+          quantity: transaction.quantity
+        })
+      })
+
+      const data = await response.json()
+      if (response.ok && data.status === 'success') {
+        addToPortfolio(transaction.ticker)
+      } else {
+        console.error('❌ Erro ao sincronizar carteira:', data.message)
+      }
+    } catch (error) {
+      console.error('Erro ao sincronizar carteira após transação:', error)
+    }
+  }
+
   return (
     <div className="explorar-page">
       <Logo />
@@ -156,7 +190,12 @@ function Explorar() {
         isLoading={isRefreshing}
         className="explorar-reload-button"
       />
-      <SearchBar />
+      <SearchBar onRequestAddToPortfolio={handleRequestAddToPortfolio} />
+      <TransactionButton
+        ref={transactionButtonRef}
+        showTriggerButton={false}
+        onTransactionSaved={handleTransactionSaved}
+      />
       <WatchlistTable 
         watchlistData={watchlistData}
         loading={loading}

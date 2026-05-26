@@ -6,10 +6,10 @@ import { supabase } from '../lib/supabase';
 import { authFetch } from '../lib/authFetch';
 import './SearchBar.css';
 
-function SearchBar() {
+function SearchBar({ onRequestAddToPortfolio }) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { loadPortfolioData, checkStocksStatus, addToPortfolio, removeFromPortfolio, addToWatchlist, removeFromWatchlist } = usePortfolio();
+  const { loadPortfolioData, checkStocksStatus, addToPortfolio, addToWatchlist, removeFromWatchlist } = usePortfolio();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -99,7 +99,7 @@ function SearchBar() {
     navigate(`/${stock.ticker}`, { state: { from: 'Explorar' } });
   };
 
-  const handleTogglePortfolio = async (ticker, e) => {
+  const handleTogglePortfolio = async (stock, e) => {
     e.stopPropagation();
 
     if (!user) {
@@ -107,56 +107,38 @@ function SearchBar() {
       return;
     }
 
-    const isInPortfolio = stocksStatus[ticker]?.in_portfolio || false;
+    const ticker = stock.ticker;
     setAddingToPortfolio(ticker);
 
     try {
-      if (isInPortfolio) {
-        // Remover da carteira
-        const response = await authFetch(`api/portfolio/remove/${ticker}`, {
-          method: 'DELETE'
-        });
+      if (typeof onRequestAddToPortfolio === 'function') {
+        onRequestAddToPortfolio(stock);
+        return;
+      }
 
-        const data = await response.json();
+      // Fallback: adicionar à carteira diretamente quando o modal não estiver disponível
+      const response = await authFetch('api/portfolio/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticker: ticker
+        })
+      });
 
-        if (data.status === 'success') {
-          console.log('🗑️ Carteira:', data.message);
-          // Atualizar cache local
-          removeFromPortfolio(ticker);
-          // Atualizar estado local da UI
-          setStocksStatus(prev => ({
-            ...prev,
-            [ticker]: { ...prev[ticker], in_portfolio: false }
-          }));
-        } else {
-          console.error('❌ Carteira:', data.message);
-          alert(data.message);
-        }
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        console.log('✅ Carteira:', data.message);
+        // Atualizar cache local
+        addToPortfolio(ticker);
+        // Atualizar estado local da UI
+        setStocksStatus(prev => ({
+          ...prev,
+          [ticker]: { ...prev[ticker], in_portfolio: true }
+        }));
       } else {
-        // Adicionar à carteira
-        const response = await authFetch('api/portfolio/add', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ticker: ticker
-          })
-        });
-
-        const data = await response.json();
-
-        if (data.status === 'success') {
-          console.log('✅ Carteira:', data.message);
-          // Atualizar cache local
-          addToPortfolio(ticker);
-          // Atualizar estado local da UI
-          setStocksStatus(prev => ({
-            ...prev,
-            [ticker]: { ...prev[ticker], in_portfolio: true }
-          }));
-        } else {
-          console.error('❌ Carteira:', data.message);
-          alert(data.message);
-        }
+        console.error('❌ Carteira:', data.message);
+        alert(data.message);
       }
     } catch (error) {
       console.error('Erro ao gerenciar carteira:', error);
@@ -266,14 +248,16 @@ function SearchBar() {
                 </div>
                 <div className="result-actions">
                   <button
-                    className={`action-button ${stocksStatus[stock.ticker]?.in_portfolio ? 'active' : ''}`}
-                    onClick={(e) => handleTogglePortfolio(stock.ticker, e)}
+                    className="action-button"
+                    title="Adicionar transação"
+                    aria-label="Adicionar transação"
+                    onClick={(e) => handleTogglePortfolio(stock, e)}
                     disabled={addingToPortfolio === stock.ticker}
                   >
                     {addingToPortfolio === stock.ticker ? (
                       <i className="bi bi-hourglass-split"></i>
                     ) : (
-                      <i className="bi bi-wallet-fill"></i>
+                      <i className="bi bi-plus-lg"></i>
                     )}
                   </button>
                   <button
