@@ -36,13 +36,20 @@
 .acao-page .reload-button {
   position: absolute;
   top: 56px;
-  right: 65px;
+  right: 80px;
+}
+
+.acao-page .transaction-button.acao-transaction-button {
+  position: absolute;
+  top: 56px;
+  right: 210px;
+  z-index: 1001;
 }
 
 .acao-page .notifications-button.acao-notifications-button {
   position: absolute;
   top: 56px;
-  right: 130px;
+  right: 145px;
 }
 
 /* Mantem o espaco do topo na Acao sem sobrepor o grafico */

@@ -10,8 +10,6 @@ from services.portfolio_service import (
     check_user_stocks_status,
     get_user_portfolio,
     get_user_watchlist,
-    get_stock_quantity,
-    update_stock_quantity,
     get_user_portfolio_full,
     get_user_watchlist_full,
     update_portfolio_prices_on_login,
@@ -276,121 +274,6 @@ def get_watchlist():
             
     except Exception as e:
         print(f"Erro ao buscar watchlist: {str(e)}")
-        return jsonify({
-            "status": "error",
-            "message": f"Erro interno: {str(e)}"
-        }), 500
-
-
-@portfolio_bp.route('/api/portfolio/quantity/<ticker>', methods=['GET'])
-@require_authenticated_user(allow_legacy=False)
-def get_quantity(ticker):
-    """
-    GET /api/portfolio/quantity/<ticker>?user_id=...
-    
-    Busca a quantidade de uma ação na carteira do usuário
-    
-    Response: {
-        "status": "success",
-        "quantity": 10
-    }
-    """
-    try:
-        user_id = g.auth_user_id
-        
-        result = get_stock_quantity(user_id, ticker)
-        
-        if result['success']:
-            return jsonify({
-                "status": "success",
-                "quantity": result['quantity']
-            }), 200
-        else:
-            return jsonify({
-                "status": "error",
-                "message": result.get('message', 'Erro ao buscar quantidade'),
-                "quantity": 0
-            }), 400
-            
-    except Exception as e:
-        print(f"Erro ao buscar quantidade: {str(e)}")
-        return jsonify({
-            "status": "error",
-            "message": f"Erro interno: {str(e)}"
-        }), 500
-
-
-@portfolio_bp.route('/api/portfolio/update-quantity', methods=['POST'])
-@require_authenticated_user(allow_legacy=False)
-def update_quantity():
-    """
-    POST /api/portfolio/update-quantity
-    Body: {
-        "user_id": "...",
-        "ticker": "PETR4",
-        "quantity": 10
-    }
-    
-    Atualiza a quantidade de uma ação na carteira
-    - Se quantity = 0: remove da carteira
-    - Se quantity > 0: atualiza ou adiciona
-    
-    Response: {
-        "status": "success",
-        "message": "...",
-        "quantity": 10
-    }
-    """
-    try:
-        data = request.get_json()
-        user_id = g.auth_user_id
-        
-        if not data:
-            return jsonify({
-                "status": "error",
-                "message": "Dados não fornecidos"
-            }), 400
-        
-        ticker = data.get('ticker')
-        quantity = data.get('quantity')
-        
-        if not ticker:
-            return jsonify({
-                "status": "error",
-                "message": "ticker é obrigatório"
-            }), 400
-        
-        if quantity is None:
-            return jsonify({
-                "status": "error",
-                "message": "quantity é obrigatória"
-            }), 400
-        
-        # Converter para int
-        try:
-            quantity = int(quantity)
-        except (ValueError, TypeError):
-            return jsonify({
-                "status": "error",
-                "message": "quantity deve ser um número inteiro"
-            }), 400
-        
-        result = update_stock_quantity(user_id, ticker, quantity)
-        
-        if result['success']:
-            return jsonify({
-                "status": "success",
-                "message": result['message'],
-                "quantity": result['quantity']
-            }), 200
-        else:
-            return jsonify({
-                "status": "error",
-                "message": result['message']
-            }), 400
-            
-    except Exception as e:
-        print(f"Erro ao atualizar quantidade: {str(e)}")
         return jsonify({
             "status": "error",
             "message": f"Erro interno: {str(e)}"

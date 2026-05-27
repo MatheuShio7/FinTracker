@@ -257,7 +257,7 @@ function SearchBar({ onRequestAddToPortfolio }) {
                     {addingToPortfolio === stock.ticker ? (
                       <i className="bi bi-hourglass-split"></i>
                     ) : (
-                      <i className="bi bi-plus-lg"></i>
+                      <i className="bi bi-plus-slash-minus"></i>
                     )}
                   </button>
                   <button

@@ -171,7 +171,10 @@ const TransactionButton = forwardRef(function TransactionButton(
     setSubmitError(null)
     setSubmitSuccess(null)
 
-    if (!selectedStock?.id) {
+    const stockId = selectedStock?.id
+    const stockTicker = selectedStock?.ticker
+
+    if (!stockId && !stockTicker) {
       setSubmitError('Selecione uma ação para continuar.')
       return
     }
@@ -194,7 +197,7 @@ const TransactionButton = forwardRef(function TransactionButton(
     }
 
     const payload = {
-      stock_id: selectedStock.id,
+      ...(stockId ? { stock_id: stockId } : { ticker: stockTicker }),
       type: transactionType === 'venda' ? 'sell' : 'buy',
       price: parsedPrice,
       quantity: parsedQuantity,
@@ -245,7 +248,7 @@ const TransactionButton = forwardRef(function TransactionButton(
           title="Nova transação"
           aria-label="Nova transação"
         >
-          <i className="bi bi-plus-lg"></i>
+          <i className="bi bi-plus-slash-minus"></i>
           <span>Transação</span>
         </button>
       )}

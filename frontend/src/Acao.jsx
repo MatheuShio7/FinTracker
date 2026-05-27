@@ -10,9 +10,9 @@ import PageSubtitle from './components/PageSubtitle'
 import BackNavigation from './components/BackNavigation'
 import ReloadButton from './components/ReloadButton'
 import NotificationsButton from './components/NotificationsButton'
+import TransactionButton from './components/TransactionButton'
 import PriceChart from './components/PriceChart'
 import DividendsChart from './components/DividendsChart'
-import StockEditor from './components/StockEditor'
 
 function Acao() {
   const { ticker } = useParams()
@@ -25,6 +25,7 @@ function Acao() {
   const [selectedRange, setSelectedRange] = useState('3m') // Range de preços selecionado
   const [chartLoading, setChartLoading] = useState(false) // Loading específico do chart
   const [isRefreshing, setIsRefreshing] = useState(false) // Loading do botão de reload
+  const transactionButtonRef = useRef(null)
   
   // Ref para rastrear o ticker anterior (inicializa com null para detectar primeiro carregamento)
   const previousTickerRef = useRef(null)
@@ -217,6 +218,13 @@ function Acao() {
     }
   }
 
+  const handleOpenTransaction = () => {
+    transactionButtonRef.current?.openWithStock({
+      ticker,
+      company_name: companyName || ticker
+    })
+  }
+
   return (
     <div className="acao-page">
       <Logo />
@@ -224,6 +232,10 @@ function Acao() {
         <BackNavigation from={from} />
         <NotificationsButton className="acao-notifications-button" />
         <ReloadButton onClick={handleRefresh} isLoading={isRefreshing} />
+        <button type="button" className="reload-button transaction-button acao-transaction-button" onClick={handleOpenTransaction} title="Nova transação" aria-label="Nova transação">
+          <i className="bi bi-plus-slash-minus"></i>
+          <span>Transação</span>
+        </button>
         <PageTitle title={ticker} />
         {companyName && <PageSubtitle subtitle={companyName} />}
       </div>
@@ -243,10 +255,10 @@ function Acao() {
         <DividendsChart dividends={stockData.dividends} ticker={ticker} />
       )}
       
-      {/* Editor de Quantidade e Observações */}
-      {stockData && (
-        <StockEditor ticker={ticker} />
-      )}
+      <TransactionButton
+        ref={transactionButtonRef}
+        showTriggerButton={false}
+      />
       
       {/* Loading do backend */}
       {isLoading && (
