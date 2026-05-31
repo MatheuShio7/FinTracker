@@ -1,9 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 import './ChatWidget.css'
 
+const INITIAL_ASSISTANT_MESSAGE = {
+  role: 'assistant',
+  text: 'Olá! Eu posso ajudar com sua carteira, transações, watchlist, configurações e navegação do FinTracker.',
+}
+
 function ChatWidget({ enabled = false }) {
+  const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
+  const [messages, setMessages] = useState([INITIAL_ASSISTANT_MESSAGE])
+  const [inputValue, setInputValue] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const messagesEndRef = useRef(null)
 
   useEffect(() => {
     if (!enabled) {
@@ -29,6 +42,76 @@ function ChatWidget({ enabled = false }) {
       }
     }
   }, [isOpen, isMounted])
+
+  useEffect(() => {
+    setMessages([INITIAL_ASSISTANT_MESSAGE])
+    setInputValue('')
+    setLoading(false)
+    setError('')
+  }, [user?.id])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }, [messages, loading, isMounted])
+
+  const handleSendMessage = async (event) => {
+    event.preventDefault()
+
+    const trimmedMessage = inputValue.trim()
+
+    if (!trimmedMessage || loading) {
+      return
+    }
+
+    if (!user?.id) {
+      setError('Você precisa estar logado para usar o assistente.')
+      return
+    }
+
+    const nextHistory = [...messages, { role: 'user', text: trimmedMessage }]
+
+    setMessages(nextHistory)
+    setInputValue('')
+    setError('')
+    setLoading(true)
+
+    try {
+      const { data, error: invokeError } = await supabase.functions.invoke('chat', {
+        body: {
+          message: trimmedMessage,
+          userId: user.id,
+          history: nextHistory,
+        },
+      })
+
+      if (invokeError) {
+        throw invokeError
+      }
+
+      const answer = (data?.answer || '').trim()
+
+      if (!answer) {
+        throw new Error('Resposta vazia do assistente.')
+      }
+
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        { role: 'assistant', text: answer },
+      ])
+    } catch (chatError) {
+      console.error('Erro ao enviar mensagem ao chat:', chatError)
+
+      const friendlyMessage = 'Não consegui responder agora. Tente novamente em alguns instantes.'
+
+      setError(friendlyMessage)
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        { role: 'assistant', text: friendlyMessage },
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   if (!enabled) {
     return null
@@ -58,20 +141,59 @@ function ChatWidget({ enabled = false }) {
           </header>
 
           <div className="chat-widget-body">
-            <p className="chat-widget-placeholder">
-              Layout inicial pronto. A integracao com IA sera conectada na proxima etapa.
-            </p>
+            <div className="chat-widget-messages" aria-live="polite" aria-relevant="additions text">
+              {messages.map((message, index) => (
+                <div
+                  key={`${message.role}-${index}-${message.text.slice(0, 16)}`}
+                  className={`chat-widget-message ${message.role === 'user' ? 'is-user' : 'is-assistant'}`}
+                >
+                  {message.text}
+                </div>
+              ))}
+
+              {loading && (
+                <div className="chat-widget-message is-assistant is-typing" aria-label="Assistente digitando">
+                  <span className="chat-widget-typing-text">digitando</span>
+                  <span className="chat-widget-typing-dots" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </span>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
           </div>
 
+          {error && (
+            <div className="chat-widget-error" role="alert">
+              {error}
+            </div>
+          )}
+
           <footer className="chat-widget-footer">
-            <input
-              type="text"
-              placeholder="Digite sua mensagem..."
-              aria-label="Campo de mensagem"
-            />
-            <button type="button" disabled aria-label="Enviar mensagem">
-              <i className="bi bi-send-fill"></i>
-            </button>
+            <form className="chat-widget-form" onSubmit={handleSendMessage}>
+              <input
+                type="text"
+                placeholder={user ? 'Digite sua mensagem...' : 'Faça login para conversar'}
+                aria-label="Campo de mensagem"
+                value={inputValue}
+                onChange={(event) => setInputValue(event.target.value)}
+                disabled={loading || !user}
+              />
+              <button
+                type="submit"
+                disabled={loading || !inputValue.trim() || !user}
+                aria-label="Enviar mensagem"
+              >
+                {loading ? (
+                  <i className="bi bi-hourglass-split"></i>
+                ) : (
+                  <i className="bi bi-send-fill"></i>
+                )}
+              </button>
+            </form>
           </footer>
         </section>
       )}
