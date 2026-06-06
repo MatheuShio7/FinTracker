@@ -5,7 +5,7 @@ import './ChatWidget.css'
 
 const INITIAL_ASSISTANT_MESSAGE = {
   role: 'assistant',
-  text: 'Olá! Eu posso ajudar com sua carteira, transações, watchlist, configurações e navegação do FinTracker.',
+  text: 'Olá! Como posso te ajudar hoje?',
 }
 
 function ChatWidget({ enabled = false }) {

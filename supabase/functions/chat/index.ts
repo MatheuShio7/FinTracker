@@ -24,6 +24,20 @@ type MarketQuote = {
   error?: string
 }
 
+type DividendRecord = {
+  payment_date: string
+  value: number
+}
+
+type DividendSnapshot = {
+  ticker: string
+  company_name: string | null
+  source: string
+  dividends: DividendRecord[]
+  requested_count: number
+  error?: string
+}
+
 const SYSTEM_PROMPT =
   'Você é o assistente virtual do FinTracker, um sistema de controle de carteira de ações. Responda sempre em português brasileiro. Seja objetivo e use linguagem simples e acessível. Quando a pergunta for sobre o FinTracker, use o knowledge base e os dados fornecidos no contexto. Quando a pergunta for sobre o usuário logado, use os dados do Supabase fornecidos no contexto. Quando a pergunta for sobre preço atual de ações, use a cotação consultada na BRAPI fornecida no contexto. Para conceitos e indicadores financeiros como P/VP, P/L, Dividend Yield, estratégias de investimento, educação financeira em geral e outros conhecimentos de mercado, você pode usar seu próprio conhecimento. Priorize primeiro os dados fornecidos no contexto quando eles forem relevantes, depois seu próprio conhecimento para conceitos gerais, e por fim admita honestamente quando não souber. Não recomende compra ou venda de ações específicas. Quando analisar dados numéricos do usuário ou cotações, seja preciso com os números.'
 
@@ -346,6 +360,38 @@ function isPriceQuestion(message: string) {
   )
 }
 
+function isDividendQuestion(message: string) {
+  const normalizedMessage = message.toLowerCase()
+
+  return (
+    normalizedMessage.includes('dividendo') ||
+    normalizedMessage.includes('dividendos') ||
+    normalizedMessage.includes('provento') ||
+    normalizedMessage.includes('proventos') ||
+    normalizedMessage.includes('yield') ||
+    normalizedMessage.includes('dy')
+  )
+}
+
+function extractRequestedDividendCount(message: string) {
+  const patterns = [
+    /\b(?:ultimos?|últimos?|ultimas?|últimas?)\s+(\d+)\b/i,
+    /\btop\s+(\d+)\b/i,
+  ]
+
+  for (const pattern of patterns) {
+    const match = message.match(pattern)
+    if (match?.[1]) {
+      const count = Number(match[1])
+      if (Number.isFinite(count) && count > 0) {
+        return Math.min(count, 12)
+      }
+    }
+  }
+
+  return 3
+}
+
 async function fetchCurrentQuote(ticker: string): Promise<MarketQuote> {
   if (!brapiToken) {
     return {
@@ -438,6 +484,93 @@ async function fetchCurrentQuote(ticker: string): Promise<MarketQuote> {
   }
 }
 
+async function fetchDividendHistory(ticker: string, requestedCount: number): Promise<DividendSnapshot> {
+  const normalizedTicker = ticker.toUpperCase().trim()
+  const yahooTicker = normalizedTicker.endsWith('.SA') ? normalizedTicker : `${normalizedTicker}.SA`
+
+  try {
+    const url = new URL(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooTicker)}`)
+    url.searchParams.set('interval', '1d')
+    url.searchParams.set('range', '5y')
+    url.searchParams.set('events', 'div')
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'User-Agent': 'FinTracker/1.0',
+        Accept: 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Erro Yahoo Finance dividendos:', response.status, errorText)
+      return {
+        ticker: normalizedTicker,
+        company_name: null,
+        source: 'yahoo_finance',
+        dividends: [],
+        requested_count: requestedCount,
+        error: `Yahoo Finance retornou status ${response.status}`,
+      }
+    }
+
+    const data = await response.json()
+    const result = data?.chart?.result?.[0]
+
+    if (!result) {
+      return {
+        ticker: normalizedTicker,
+        company_name: null,
+        source: 'yahoo_finance',
+        dividends: [],
+        requested_count: requestedCount,
+        error: 'Yahoo Finance não retornou resultados para o ticker informado.',
+      }
+    }
+
+    const dividendEntries = result?.events?.dividends ?? {}
+    const dividends = Object.values(dividendEntries)
+      .map((entry: unknown) => {
+        const record = entry as { date?: number; amount?: number }
+
+        if (!record || typeof record.date !== 'number' || typeof record.amount !== 'number') {
+          return null
+        }
+
+        return {
+          payment_date: new Date(record.date * 1000).toISOString().slice(0, 10),
+          value: record.amount,
+        }
+      })
+      .filter((item): item is DividendRecord => Boolean(item))
+      .sort((left, right) => left.payment_date.localeCompare(right.payment_date))
+
+    const companyName = typeof result?.meta?.longName === 'string'
+      ? result.meta.longName
+      : typeof result?.meta?.shortName === 'string'
+        ? result.meta.shortName
+        : null
+
+    return {
+      ticker: normalizedTicker,
+      company_name: companyName,
+      source: 'yahoo_finance',
+      dividends: dividends.slice(-requestedCount),
+      requested_count: requestedCount,
+    }
+  } catch (error) {
+    console.error('Erro ao buscar dividendos no Yahoo Finance:', error)
+    return {
+      ticker: normalizedTicker,
+      company_name: null,
+      source: 'yahoo_finance',
+      dividends: [],
+      requested_count: requestedCount,
+      error: 'Falha ao consultar o Yahoo Finance.',
+    }
+  }
+}
+
 async function readRequestBody(req: Request): Promise<ChatRequestBody> {
   try {
     return (await req.json()) as ChatRequestBody
@@ -476,6 +609,8 @@ Deno.serve(async (req) => {
     const history = normalizeHistory(body.history)
     const detectedTicker = detectTicker(message)
     const wantsCurrentPrice = isPriceQuestion(message)
+    const wantsDividends = isDividendQuestion(message)
+    const requestedDividendCount = extractRequestedDividendCount(message)
 
     if (!message) {
       return jsonResponse({ error: 'Envie uma mensagem para continuar.' }, 400)
@@ -584,9 +719,14 @@ Deno.serve(async (req) => {
     }
 
     let marketQuote: MarketQuote | null = null
+    let dividendSnapshot: DividendSnapshot | null = null
 
     if (wantsCurrentPrice && detectedTicker) {
       marketQuote = await fetchCurrentQuote(detectedTicker)
+    }
+
+    if (wantsDividends && detectedTicker) {
+      dividendSnapshot = await fetchDividendHistory(detectedTicker, requestedDividendCount)
     }
 
     const conversationHistory = history
@@ -604,8 +744,10 @@ Deno.serve(async (req) => {
       message,
       'COTAÇÃO ATUAL CONSULTADA',
       marketQuote ? JSON.stringify(marketQuote, null, 2) : 'Nenhuma cotação consultada.',
+      'DIVIDENDOS CONSULTADOS',
+      dividendSnapshot ? JSON.stringify(dividendSnapshot, null, 2) : 'Nenhum dividendo consultado.',
       'REGRAS ADICIONAIS',
-      'Use apenas o contexto fornecido. Se houver cotações consultadas, reporte os números com exatidão. Não invente cotações de ações em tempo real. Se a pergunta pedir preço atual e o ticker não puder ser detectado ou a consulta falhar, diga isso claramente.',
+      'Use apenas o contexto fornecido. Se houver cotações ou dividendos consultados, reporte os números com exatidão. Não invente cotações, dividendos ou outros dados de mercado em tempo real. Se a pergunta pedir preço atual ou dividendos e o ticker não puder ser detectado ou a consulta falhar, diga isso claramente.',
     ].join('\n\n')
 
     if (wantsCurrentPrice && detectedTicker && marketQuote?.error) {
@@ -629,6 +771,33 @@ Deno.serve(async (req) => {
           details: {
             ticker: detectedTicker,
             source: 'brapi',
+          },
+        },
+        502
+      )
+    }
+
+    if (wantsDividends && detectedTicker && dividendSnapshot?.error) {
+      return jsonResponse(
+        {
+          error: `Não consegui consultar os dividendos de ${detectedTicker} no momento. Tente novamente em alguns instantes.`,
+          details: {
+            ticker: detectedTicker,
+            source: 'yahoo_finance',
+            provider_error: dividendSnapshot.error,
+          },
+        },
+        502
+      )
+    }
+
+    if (wantsDividends && detectedTicker && dividendSnapshot && dividendSnapshot.dividends.length === 0) {
+      return jsonResponse(
+        {
+          error: `Não encontrei dividendos recentes para ${detectedTicker}.`,
+          details: {
+            ticker: detectedTicker,
+            source: 'yahoo_finance',
           },
         },
         502
@@ -698,6 +867,11 @@ Deno.serve(async (req) => {
         currency: marketQuote?.currency ?? 'BRL',
         source: marketQuote?.source ?? null,
         updated_at: marketQuote?.updated_at ?? null,
+        dividend_ticker: dividendSnapshot?.ticker ?? null,
+        dividend_company_name: dividendSnapshot?.company_name ?? null,
+        dividend_source: dividendSnapshot?.source ?? null,
+        dividend_requested_count: dividendSnapshot?.requested_count ?? null,
+        dividends: dividendSnapshot?.dividends ?? null,
       },
     })
   } catch (error) {
