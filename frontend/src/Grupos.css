@@ -159,7 +159,7 @@
 .grupos-create-modal-card {
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #f65308 #111216;
+  scrollbar-color: #2a2b30 #111216;
 }
 
 .grupos-create-modal-card::-webkit-scrollbar {
