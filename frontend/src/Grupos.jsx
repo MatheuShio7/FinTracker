@@ -5,25 +5,36 @@ import PageTitle from './components/PageTitle'
 import ReloadButton from './components/ReloadButton'
 import NotificationsButton from './components/NotificationsButton'
 
+const getMemberRoles = (member) => {
+  if (member.roles?.length) {
+    return member.roles
+  }
+
+  if (member.role === 'Líder') {
+    return ['Líder']
+  }
+
+  return []
+}
+
+const isMemberLeader = (member) => getMemberRoles(member).includes('Líder')
+
 const initialOwnedGroups = [
   {
     id: 'grupo-001',
-    name: 'Investidores da Semana',
-    description: 'Grupo para acompanhar oportunidades e organizar aportes semanais.',
-    visibility: 'privado',
-    membersCount: 6,
-    maxMembers: 12,
+    name: 'Grupo #000',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
+    visibility: 'publico',
+    membersCount: 14,
+    maxMembers: null,
     permissions: {
-      view: 'lideres',
+      view: 'todos',
       manage: 'lideres'
     },
     members: [
-      { id: 'm1', name: 'Você', role: 'Líder' },
-      { id: 'm2', name: 'Carla Mendes', role: 'Líder' },
-      { id: 'm3', name: 'Rafael Souza', role: 'Membro' },
-      { id: 'm4', name: 'Bianca Lima', role: 'Membro' },
-      { id: 'm5', name: 'Marcos Vieira', role: 'Membro' },
-      { id: 'm6', name: 'Julia Reis', role: 'Membro' }
+      { id: 'm1', name: 'Você', roles: ['Fundador', 'Líder'] },
+      { id: 'm2', name: 'Matheus Silva', roles: ['Líder'] },
+      { id: 'm3', name: 'Matheus Pizani', roles: [] }
     ]
   },
   {
@@ -83,12 +94,6 @@ const initialPublicGroups = [
   }
 ]
 
-const permissionLabels = {
-  todos: 'Todos',
-  lideres: 'Apenas líderes',
-  ninguem: 'Ninguém'
-}
-
 const visibilityLabels = {
   publico: 'Público',
   privado: 'Privado'
@@ -106,6 +111,7 @@ function Grupos() {
   const [maxMembers, setMaxMembers] = useState('')
   const [ownedGroups, setOwnedGroups] = useState(initialOwnedGroups)
   const [selectedGroup, setSelectedGroup] = useState(null)
+  const [editingGroupId, setEditingGroupId] = useState(null)
 
   const publicGroups = useMemo(() => initialPublicGroups, [])
 
@@ -137,31 +143,96 @@ function Grupos() {
 
   const handleOpenGroupModal = () => {
     resetGroupForm()
+    setEditingGroupId(null)
     setIsGroupModalOpen(true)
   }
 
   const handleCloseGroupModal = () => {
     setIsGroupModalOpen(false)
+    setEditingGroupId(null)
+    resetGroupForm()
   }
 
-  const handleCreateGroup = (event) => {
-    event.preventDefault()
+  const populateGroupForm = (group) => {
+    setGroupName(group.name)
+    setGroupDescription(group.description)
+    setVisibility(group.visibility)
+    setViewPermission(group.permissions.view)
+    setManagePermission(group.permissions.manage)
 
+    if (group.maxMembers) {
+      setHasMaxMembers(true)
+      setMaxMembers(String(group.maxMembers))
+    } else {
+      setHasMaxMembers(false)
+      setMaxMembers('')
+    }
+  }
+
+  const buildGroupFormData = () => {
     const parsedMaxMembers = hasMaxMembers ? Number(maxMembers) : null
 
-    const newGroup = {
-      id: `group-${Date.now()}`,
+    return {
       name: groupName.trim() || 'Novo Grupo',
       description: groupDescription.trim() || 'Grupo criado para testes de layout.',
       visibility,
-      membersCount: 1,
       maxMembers: Number.isFinite(parsedMaxMembers) && parsedMaxMembers > 0 ? parsedMaxMembers : null,
       permissions: {
         view: viewPermission,
         manage: managePermission
-      },
+      }
+    }
+  }
+
+  const handleOpenEditGroup = () => {
+    if (!selectedGroup) {
+      return
+    }
+
+    populateGroupForm(selectedGroup)
+    setEditingGroupId(selectedGroup.id)
+    setIsDetailsModalOpen(false)
+    setIsGroupModalOpen(true)
+  }
+
+  const handleSubmitGroup = (event) => {
+    event.preventDefault()
+
+    const formData = buildGroupFormData()
+
+    if (editingGroupId) {
+      let updatedGroup = null
+
+      setOwnedGroups((currentGroups) => currentGroups.map((group) => {
+        if (group.id !== editingGroupId) {
+          return group
+        }
+
+        updatedGroup = {
+          ...group,
+          ...formData
+        }
+
+        return updatedGroup
+      }))
+
+      if (updatedGroup) {
+        setSelectedGroup(updatedGroup)
+        setIsGroupModalOpen(false)
+        setEditingGroupId(null)
+        resetGroupForm()
+        setIsDetailsModalOpen(true)
+      }
+
+      return
+    }
+
+    const newGroup = {
+      id: `group-${Date.now()}`,
+      ...formData,
+      membersCount: 1,
       members: [
-        { id: 'me', name: 'Você', role: 'Líder' }
+        { id: 'me', name: 'Você', roles: ['Fundador', 'Líder'] }
       ]
     }
 
@@ -205,6 +276,41 @@ function Grupos() {
   }
 
   const detailsGroup = selectedGroup
+  const isEditingGroup = Boolean(editingGroupId)
+  const currentUserMember = detailsGroup?.members.find((member) => member.name === 'Você')
+  const canManageMembers = currentUserMember
+    ? getMemberRoles(currentUserMember).some((role) => role === 'Líder' || role === 'Fundador')
+    : false
+
+  const renderMemberActions = (member) => {
+    if (!canManageMembers || member.name === 'Você') {
+      return null
+    }
+
+    if (isMemberLeader(member)) {
+      return (
+        <div className="grupos-member-actions">
+          <button type="button" className="grupos-member-action grupos-member-action-danger">
+            Rebaixar
+          </button>
+          <button type="button" className="grupos-member-action grupos-member-action-danger">
+            Expulsar
+          </button>
+        </div>
+      )
+    }
+
+    return (
+      <div className="grupos-member-actions">
+        <button type="button" className="grupos-member-action grupos-member-action-success">
+          Promover
+        </button>
+        <button type="button" className="grupos-member-action grupos-member-action-danger">
+          Expulsar
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="grupos-page">
@@ -246,10 +352,10 @@ function Grupos() {
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label="Novo grupo"
+            aria-label={isEditingGroup ? 'Editar grupo' : 'Novo grupo'}
           >
             <div className="grupos-modal-header">
-              <h3>Novo Grupo</h3>
+              <h3>{isEditingGroup ? 'Editar Grupo' : 'Novo Grupo'}</h3>
               <button
                 type="button"
                 className="grupos-close-button"
@@ -260,7 +366,7 @@ function Grupos() {
               </button>
             </div>
 
-            <form className="grupos-form" onSubmit={handleCreateGroup}>
+            <form className="grupos-form" onSubmit={handleSubmitGroup}>
               <div className="grupos-field">
                 <label htmlFor="group-name">Nome</label>
                 <input
@@ -285,15 +391,16 @@ function Grupos() {
 
               <div className="grupos-main-grid">
                 <div className="grupos-field">
-                  <label htmlFor="group-visibility">Visibilidade</label>
+                  <label htmlFor="group-visibility">Visibilidade e Acesso</label>
                   <div className="grupos-select-wrapper">
                     <select
                       id="group-visibility"
                       value={visibility}
                       onChange={(event) => setVisibility(event.target.value)}
                     >
-                      <option value="publico">Público</option>
-                      <option value="privado">Privado</option>
+                      <option value="restrito">Público | Aprovação necessária</option>
+                      <option value="publico">Público | Acesso imediato</option>
+                      <option value="privado">Privado | Acesso mediante convite</option>
                     </select>
                     <i className="bi bi-chevron-down grupos-select-arrow"></i>
                   </div>
@@ -372,7 +479,7 @@ function Grupos() {
               </div>
 
               <button type="submit" className="grupos-submit-button">
-                Criar Grupo
+                {isEditingGroup ? 'Salvar alterações' : 'Criar Grupo'}
               </button>
             </form>
           </div>
@@ -388,8 +495,21 @@ function Grupos() {
             aria-modal="true"
             aria-label={`Detalhes do grupo ${detailsGroup.name}`}
           >
-            <div className="grupos-modal-header">
-              <h3>{detailsGroup.name}</h3>
+            <div className="grupos-details-header">
+              <div className="grupos-details-title-row">
+                <h3>{detailsGroup.name}</h3>
+                {canManageMembers && (
+                  <button
+                    type="button"
+                    className="grupos-edit-button"
+                    onClick={handleOpenEditGroup}
+                    aria-label="Editar grupo"
+                    title="Editar grupo"
+                  >
+                    <i className="bi bi-pencil-square"></i>
+                  </button>
+                )}
+              </div>
               <button
                 type="button"
                 className="grupos-close-button"
@@ -402,37 +522,31 @@ function Grupos() {
 
             <div className="grupos-details-body">
               <div className="grupos-details-summary">
+                <p className="grupos-details-description">{detailsGroup.description}</p>
                 <div className="grupos-details-chip-row">
                   <span className="grupos-details-chip">{visibilityLabels[detailsGroup.visibility]}</span>
-                  <span className="grupos-details-chip">{detailsGroup.maxMembers ? `${detailsGroup.membersCount}/${detailsGroup.maxMembers} membros` : `${detailsGroup.membersCount} membros`}</span>
+                  <span className="grupos-details-chip">
+                    {detailsGroup.maxMembers
+                      ? `${detailsGroup.membersCount}/${detailsGroup.maxMembers} Membros`
+                      : `${detailsGroup.membersCount} Membros`}
+                  </span>
                 </div>
-                <p>{detailsGroup.description}</p>
               </div>
 
-              <div className="grupos-details-grid">
-                <div className="grupos-details-panel">
-                  <h4>Configurações</h4>
-                  <ul>
-                    <li><strong>Visibilidade:</strong> {visibilityLabels[detailsGroup.visibility]}</li>
-                    <li><strong>Visualizar carteira e transações:</strong> {permissionLabels[detailsGroup.permissions.view]}</li>
-                    <li><strong>Gerenciar carteira e transações:</strong> {permissionLabels[detailsGroup.permissions.manage]}</li>
-                    <li><strong>Número máximo de membros:</strong> {detailsGroup.maxMembers || 'Sem limite'}</li>
-                  </ul>
-                </div>
-
-                <div className="grupos-details-panel">
-                  <h4>Membros</h4>
-                  <div className="grupos-members-list">
-                    {detailsGroup.members.map((member) => (
-                      <div key={member.id} className="grupos-member-item">
-                        <div>
-                          <strong>{member.name}</strong>
-                          <span>{member.role}</span>
-                        </div>
+              <div className="grupos-members-list">
+                {detailsGroup.members.map((member) => (
+                  <div key={member.id} className="grupos-member-item">
+                    <div className="grupos-member-info">
+                      <strong>{member.name}</strong>
+                      <div className="grupos-member-badges">
+                        {getMemberRoles(member).map((role) => (
+                          <span key={role} className="grupos-member-badge">{role}</span>
+                        ))}
                       </div>
-                    ))}
+                    </div>
+                    {renderMemberActions(member)}
                   </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
