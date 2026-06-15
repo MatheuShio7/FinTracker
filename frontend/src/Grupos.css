@@ -374,7 +374,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 22px 18px;
+  padding: 22px 25px 18px;
   border-bottom: 1px solid #2a2b30;
 }
 
@@ -393,7 +393,7 @@
   font-weight: 600;
 }
 
-.grupos-edit-button {
+.grupos-details-icon-button {
   width: 32px;
   height: 32px;
   flex-shrink: 0;
@@ -408,17 +408,26 @@
   transition: color 0.2s ease, background 0.2s ease;
 }
 
-.grupos-edit-button i {
-  font-size: 18px;
+.grupos-details-icon-button i {
+  font-size: 21px;
 }
 
-.grupos-edit-button:hover {
+.grupos-details-icon-button:hover {
   color: #f65308;
   background: rgba(246, 83, 8, 0.08);
 }
 
+.grupos-details-icon-button-danger {
+  color: #ef4444;
+}
+
+.grupos-details-icon-button-danger:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+}
+
 .grupos-details-body {
-  padding: 22px;
+  padding: 22px 28px 28px;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -427,7 +436,7 @@
 .grupos-details-summary {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 26px;
   padding-bottom: 18px;
   border-bottom: 1px solid #2a2b30;
 }
@@ -436,8 +445,15 @@
   margin: 0;
   color: #ffffff;
   font-family: 'Poppins', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.65;
+}
+
+.grupos-details-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .grupos-details-chip-row {
@@ -461,14 +477,15 @@
 .grupos-members-list {
   display: flex;
   flex-direction: column;
+  padding: 0 9px;
 }
 
 .grupos-member-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 16px 0;
+  gap: 20px;
+  padding: 18px 8px;
   border-bottom: 1px solid #2a2b30;
 }
 
@@ -478,10 +495,16 @@
 
 .grupos-member-info {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.grupos-member-name-row {
+  display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  min-width: 0;
 }
 
 .grupos-member-info strong {
@@ -489,6 +512,13 @@
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
   font-weight: 600;
+}
+
+.grupos-member-email {
+  color: #6b6d75;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .grupos-member-badges {
@@ -543,6 +573,263 @@
 
 .grupos-member-action-danger:hover {
   background: rgba(239, 68, 68, 0.1);
+}
+
+.grupos-invite-overlay {
+  z-index: 1400;
+}
+
+.grupos-edit-overlay {
+  z-index: 1400;
+}
+
+.grupos-invite-modal-card {
+  width: min(460px, 100%);
+  max-height: min(520px, calc(100vh - 32px));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.grupos-invite-header {
+  align-items: center;
+  padding: 18px 24px;
+}
+
+.grupos-invite-header h3 {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.grupos-invite-link-section {
+  padding: 15px 24px 4px;
+}
+
+.grupos-invite-link-button {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border: 1px solid #2a2b30;
+  border-radius: 10px;
+  background: #111216;
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.grupos-invite-link-button i {
+  font-size: 18px;
+  color: #f65308;
+}
+
+.grupos-invite-link-button:hover {
+  border-color: #f65308;
+  background: rgba(246, 83, 8, 0.08);
+}
+
+.grupos-invite-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 13px 24px 24px;
+  min-height: 0;
+}
+
+.grupos-invite-search {
+  position: relative;
+}
+
+.grupos-invite-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: #9f9f9f;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.grupos-invite-search-input {
+  width: 100%;
+  height: 46px;
+  border: 1px solid #2a2b30;
+  border-radius: 10px;
+  background: #111216;
+  color: #ffffff;
+  padding: 0 14px 0 42px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  outline: none;
+}
+
+.grupos-invite-search-input:focus {
+  border-color: #f65308;
+}
+
+.grupos-invite-results {
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #2a2b30 #111216;
+}
+
+.grupos-invite-results::-webkit-scrollbar {
+  width: 8px;
+}
+
+.grupos-invite-results::-webkit-scrollbar-track {
+  background: #111216;
+  border-radius: 999px;
+}
+
+.grupos-invite-results::-webkit-scrollbar-thumb {
+  background: #2a2b30;
+  border-radius: 999px;
+}
+
+.grupos-invite-feedback {
+  margin: 0;
+  padding: 24px 8px;
+  color: #9f9f9f;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  text-align: center;
+}
+
+.grupos-invite-feedback-error {
+  color: #ef4444;
+}
+
+.grupos-invite-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 8px;
+  border-bottom: 1px solid #2a2b30;
+}
+
+.grupos-invite-result-item:last-child {
+  border-bottom: none;
+}
+
+.grupos-invite-result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.grupos-invite-result-info strong {
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.grupos-invite-result-info span {
+  color: #6b6d75;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.grupos-delete-overlay {
+  z-index: 1450;
+}
+
+.grupos-delete-modal-card {
+  width: min(420px, 100%);
+}
+
+.grupos-delete-header {
+  align-items: center;
+  padding: 18px 24px;
+}
+
+.grupos-delete-header h3 {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.grupos-delete-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 13px 24px 24px;
+}
+
+.grupos-delete-message {
+  margin: 0;
+  color: #c8c8c8;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.grupos-delete-message strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.grupos-delete-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.grupos-delete-cancel-button {
+  padding: 10px 18px;
+  border: 1px solid #2a2b30;
+  border-radius: 10px;
+  background: transparent;
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.grupos-delete-cancel-button:hover {
+  border-color: #4a4b52;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.grupos-delete-confirm-button {
+  padding: 10px 18px;
+  border: 1px solid #ef4444;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.grupos-delete-confirm-button:hover {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: #f87171;
+  color: #f87171;
 }
 
 .grupos-submit-button {
