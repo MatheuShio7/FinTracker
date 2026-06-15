@@ -5,14 +5,17 @@ from flask import Blueprint, jsonify, g, request
 
 from services.group_service import (
     accept_invite,
+    accept_reconsent,
     approve_join_request,
     create_direct_invite,
     create_group,
+    decline_reconsent,
     delete_group,
     demote_member,
     get_group,
     get_invite_link,
     get_invite_preview,
+    get_member_wallet,
     join_group,
     leave_group,
     list_my_groups,
@@ -524,6 +527,85 @@ def accept_invite_route(token):
         }), status_code
     except Exception as error:
         print(f'Erro na rota POST accept invite: {error}')
+        return jsonify({
+            'status': 'error',
+            'message': f'Erro interno: {str(error)}',
+        }), 500
+
+
+@bp.route('/api/groups/<group_id>/members/<member_user_id>/wallet', methods=['GET'])
+@require_authenticated_user(allow_legacy=False)
+def get_member_wallet_route(group_id, member_user_id):
+    """Retorna carteira e transações de um membro (somente leitura)."""
+    try:
+        result = get_member_wallet(group_id, g.auth_user_id, member_user_id)
+        status_code = result.get('status_code', 200 if result['success'] else 400)
+
+        if result['success']:
+            return jsonify({
+                'status': 'success',
+                'data': result.get('data'),
+            }), 200
+
+        return jsonify({
+            'status': 'error',
+            'message': result.get('message', 'Erro ao carregar carteira do membro'),
+        }), status_code
+    except Exception as error:
+        print(f'Erro na rota GET member wallet: {error}')
+        return jsonify({
+            'status': 'error',
+            'message': f'Erro interno: {str(error)}',
+        }), 500
+
+
+@bp.route('/api/groups/<group_id>/reconsent/accept', methods=['POST'])
+@require_authenticated_user(allow_legacy=False)
+def accept_reconsent_route(group_id):
+    """Aceita o re-consentimento após mudança de permissões do grupo."""
+    try:
+        result = accept_reconsent(group_id, g.auth_user_id)
+        status_code = result.get('status_code', 200 if result['success'] else 400)
+
+        if result['success']:
+            return jsonify({
+                'status': 'success',
+                'message': result.get('message'),
+                'data': result.get('data'),
+            }), 200
+
+        return jsonify({
+            'status': 'error',
+            'message': result.get('message', 'Erro ao confirmar re-consentimento'),
+        }), status_code
+    except Exception as error:
+        print(f'Erro na rota POST reconsent accept: {error}')
+        return jsonify({
+            'status': 'error',
+            'message': f'Erro interno: {str(error)}',
+        }), 500
+
+
+@bp.route('/api/groups/<group_id>/reconsent/decline', methods=['POST'])
+@require_authenticated_user(allow_legacy=False)
+def decline_reconsent_route(group_id):
+    """Recusa o re-consentimento e sai do grupo imediatamente."""
+    try:
+        result = decline_reconsent(group_id, g.auth_user_id)
+        status_code = result.get('status_code', 200 if result['success'] else 400)
+
+        if result['success']:
+            return jsonify({
+                'status': 'success',
+                'message': result.get('message'),
+            }), 200
+
+        return jsonify({
+            'status': 'error',
+            'message': result.get('message', 'Erro ao recusar re-consentimento'),
+        }), status_code
+    except Exception as error:
+        print(f'Erro na rota POST reconsent decline: {error}')
         return jsonify({
             'status': 'error',
             'message': f'Erro interno: {str(error)}',

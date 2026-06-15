@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import './PortfolioTable.css'
 
-function PortfolioTable({ portfolioData, loading, error, onRetry }) {
+function PortfolioTable({ portfolioData, loading, error, onRetry, readOnly = false }) {
   const navigate = useNavigate()
   const { user } = useAuth()
 
@@ -25,6 +25,10 @@ function PortfolioTable({ portfolioData, loading, error, onRetry }) {
 
   // Navegar para página da ação
   const handleRowClick = (ticker) => {
+    if (readOnly) {
+      return
+    }
+
     navigate(`/${ticker}`, { state: { from: 'Carteira' } })
   }
 
@@ -52,7 +56,7 @@ function PortfolioTable({ portfolioData, loading, error, onRetry }) {
   }
 
   // Usuário não logado
-  if (!user) {
+  if (!readOnly && !user) {
     return (
       <div className="portfolio-table-container">
         <div className="portfolio-empty">
@@ -102,7 +106,7 @@ function PortfolioTable({ portfolioData, loading, error, onRetry }) {
             <tr
               key={stock.ticker}
               onClick={() => handleRowClick(stock.ticker)}
-              className="portfolio-row"
+              className={`portfolio-row${readOnly ? ' portfolio-row-readonly' : ''}`}
             >
               <td className="ticker-cell">{stock.ticker}</td>
               <td className="price-cell">

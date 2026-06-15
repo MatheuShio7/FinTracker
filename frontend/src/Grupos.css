@@ -542,8 +542,17 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
   gap: 10px;
   flex-shrink: 0;
+}
+
+.grupos-member-wallet-button {
+  color: #f6b08a;
+}
+
+.grupos-member-wallet-button:hover {
+  color: #f65308;
 }
 
 .grupos-member-action {
@@ -956,6 +965,29 @@
   border-color: #6b7280;
   color: #9ca3af;
   cursor: not-allowed;
+}
+
+.grupos-member-action-reconsent {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.grupos-member-action-reconsent:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.grupos-member-reconsent-icon {
+  color: #ef4444;
+  font-size: 1rem;
+}
+
+.grupos-consent-list-previous {
+  margin-bottom: 0.75rem;
+  opacity: 0.85;
 }
 
 .grupos-pending-requests {

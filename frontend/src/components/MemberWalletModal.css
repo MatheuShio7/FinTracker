@@ -1,0 +1,64 @@
+.grupos-wallet-overlay {
+  z-index: 1200;
+}
+
+.grupos-wallet-modal-card {
+  width: min(1100px, 96vw);
+  max-height: 92vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.grupos-wallet-header {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.grupos-wallet-title-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.grupos-wallet-title-row h3 {
+  margin: 0;
+}
+
+.grupos-wallet-readonly-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #4b5563;
+  color: #9ca3af;
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.grupos-wallet-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grupos-wallet-reload-button {
+  position: static;
+}
+
+.grupos-wallet-body {
+  overflow-y: auto;
+  padding: 0 24px 24px;
+}
+
+.grupos-wallet-body .portfolio-pie-chart-container {
+  margin-top: 8px;
+}
+
+.grupos-wallet-body .transaction-history-container {
+  margin-top: 8px;
+}

@@ -41,6 +41,19 @@ function NotificationsButton({ className = '' }) {
       } else {
         navigate('/grupos')
       }
+      return
+    }
+
+    if (notification.rawType === 'group_reconsent_required') {
+      const groupId = notification.metadata?.group_id
+      markNotificationAsSeen(notification.id)
+      setIsOpen(false)
+
+      if (groupId) {
+        navigate(`/grupos?grupo=${encodeURIComponent(groupId)}`)
+      } else {
+        navigate('/grupos')
+      }
     }
   }
 

@@ -7,6 +7,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from config.supabase_config import get_supabase_admin_client
 from services.notification_service import create_notification
+from services.portfolio_service import get_user_portfolio_full
+from services.transaction_service import list_transactions
 
 VALID_VISIBILITY = {'publico', 'restrito', 'privado'}
 VALID_PERMISSIONS = {'todos', 'lideres', 'ninguem'}
@@ -42,6 +44,8 @@ def _serialize_member(member: Dict[str, Any]) -> Dict[str, Any]:
     if isinstance(user, list):
         user = user[0] if user else {}
 
+    status = member.get('status')
+
     return {
         'id': member.get('id'),
         'user_id': member.get('user_id'),
@@ -49,7 +53,8 @@ def _serialize_member(member: Dict[str, Any]) -> Dict[str, Any]:
         'email': user.get('email'),
         'is_founder': bool(member.get('is_founder')),
         'is_leader': bool(member.get('is_leader')),
-        'status': member.get('status'),
+        'status': status,
+        'needsReconsent': status == 'pending_reconsent',
         'roles': _member_roles(member),
     }
 
@@ -62,6 +67,8 @@ def _serialize_membership(member: Optional[Dict[str, Any]]) -> Optional[Dict[str
         'is_founder': bool(member.get('is_founder')),
         'is_leader': bool(member.get('is_leader')),
         'status': member.get('status'),
+        'consentedView': member.get('consented_view') or 'ninguem',
+        'consentedManage': member.get('consented_manage') or 'ninguem',
     }
 
 
@@ -152,7 +159,7 @@ def _count_active_members(supabase, group_id: str) -> int:
 
 def _get_user_membership(supabase, group_id: str, user_id: str) -> Optional[Dict[str, Any]]:
     response = supabase.table('group_members')\
-        .select('id, user_id, is_founder, is_leader, status')\
+        .select('id, user_id, is_founder, is_leader, status, consented_view, consented_manage')\
         .eq('group_id', group_id)\
         .eq('user_id', user_id)\
         .limit(1)\
@@ -439,6 +446,13 @@ def update_group(group_id: str, user_id: str, payload: Dict[str, Any]) -> Dict[s
 
         updated_group = updated_response.data[0]
 
+        permissions_changed = (
+            'view_permission' in update_data or 'manage_permission' in update_data
+        )
+
+        if permissions_changed:
+            _apply_reconsent_for_permission_changes(supabase, updated_group, user_id)
+
         return {
             'success': True,
             'message': 'Grupo atualizado com sucesso',
@@ -491,6 +505,65 @@ def _get_user_join_request(
         return response.data[0]
 
     return None
+
+
+def _get_any_join_request(
+    supabase,
+    group_id: str,
+    user_id: str,
+) -> Optional[Dict[str, Any]]:
+    response = supabase.table('group_join_requests')\
+        .select('id, user_id, status, consented_view, consented_manage, created_at')\
+        .eq('group_id', group_id)\
+        .eq('user_id', user_id)\
+        .limit(1)\
+        .execute()
+
+    if response.data:
+        return response.data[0]
+
+    return None
+
+
+def _submit_join_request(
+    supabase,
+    group_id: str,
+    user_id: str,
+    consented_view: str,
+    consented_manage: str,
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    existing = _get_any_join_request(supabase, group_id, user_id)
+
+    if existing:
+        if existing.get('status') == 'pending':
+            return None, 'Sua solicitação de entrada já está pendente'
+
+        updated = supabase.table('group_join_requests')\
+            .update({
+                'status': 'pending',
+                'consented_view': consented_view,
+                'consented_manage': consented_manage,
+            })\
+            .eq('id', existing['id'])\
+            .execute()
+
+        if not updated.data:
+            return None, 'Erro ao solicitar entrada no grupo'
+
+        return updated.data[0], None
+
+    inserted = supabase.table('group_join_requests').insert({
+        'group_id': group_id,
+        'user_id': user_id,
+        'status': 'pending',
+        'consented_view': consented_view,
+        'consented_manage': consented_manage,
+    }).execute()
+
+    if not inserted.data:
+        return None, 'Erro ao solicitar entrada no grupo'
+
+    return inserted.data[0], None
 
 
 def _serialize_join_request(row: Dict[str, Any]) -> Dict[str, Any]:
@@ -550,6 +623,73 @@ def _group_requires_consent(group: Dict[str, Any]) -> bool:
         group.get('view_permission') == 'ninguem'
         and group.get('manage_permission') == 'ninguem'
     )
+
+
+def _member_needs_reconsent_for_permissions(
+    member: Dict[str, Any],
+    new_view: str,
+    new_manage: str,
+) -> bool:
+    consented_view = member.get('consented_view') or 'ninguem'
+    consented_manage = member.get('consented_manage') or 'ninguem'
+
+    view_increased = PERMISSION_LEVELS[new_view] > PERMISSION_LEVELS[consented_view]
+    manage_increased = PERMISSION_LEVELS[new_manage] > PERMISSION_LEVELS[consented_manage]
+
+    return view_increased or manage_increased
+
+
+def _apply_reconsent_for_permission_changes(
+    supabase,
+    group: Dict[str, Any],
+    actor_id: str,
+) -> None:
+    new_view = group.get('view_permission') or 'ninguem'
+    new_manage = group.get('manage_permission') or 'ninguem'
+    group_name = group.get('name') or 'Grupo'
+
+    members_response = supabase.table('group_members')\
+        .select('id, user_id, is_founder, status, consented_view, consented_manage')\
+        .eq('group_id', group['id'])\
+        .in_('status', ['active', 'pending_reconsent'])\
+        .execute()
+
+    for member in (members_response.data or []):
+        if member.get('is_founder') or member.get('user_id') == actor_id:
+            continue
+
+        needs_reconsent = _member_needs_reconsent_for_permissions(member, new_view, new_manage)
+        current_status = member.get('status')
+
+        if current_status == 'pending_reconsent' and not needs_reconsent:
+            supabase.table('group_members')\
+                .update({'status': 'active'})\
+                .eq('id', member['id'])\
+                .execute()
+            continue
+
+        if not needs_reconsent:
+            continue
+
+        was_active = current_status == 'active'
+
+        supabase.table('group_members')\
+            .update({'status': 'pending_reconsent'})\
+            .eq('id', member['id'])\
+            .execute()
+
+        if was_active:
+            create_notification(
+                user_id=member['user_id'],
+                notification_type='group_reconsent_required',
+                title='Permissões do grupo alteradas',
+                description=(
+                    f'O grupo {group_name} atualizou as permissões. '
+                    'Seu consentimento é necessário para continuar.'
+                ),
+                icon='clock-history',
+                metadata={'group_id': group['id']},
+            )
 
 
 def _is_group_at_capacity(supabase, group: Dict[str, Any]) -> bool:
@@ -916,10 +1056,6 @@ def join_group(group_id: str, user_id: str, payload: Dict[str, Any]) -> Dict[str
         if existing_membership and existing_membership.get('status') in ('pending_approval', 'invited'):
             return {'success': False, 'message': 'Sua entrada neste grupo já está pendente'}
 
-        existing_request = _get_user_join_request(supabase, group_id, user_id)
-        if existing_request:
-            return {'success': False, 'message': 'Sua solicitação de entrada já está pendente'}
-
         if _is_group_at_capacity(supabase, group):
             return {'success': False, 'message': 'Este grupo atingiu o limite de membros'}
 
@@ -936,19 +1072,17 @@ def join_group(group_id: str, user_id: str, payload: Dict[str, Any]) -> Dict[str
         consented_manage = group.get('manage_permission') if requires_consent else 'ninguem'
 
         if group.get('visibility') == 'publico':
-            member_response = supabase.table('group_members').insert({
-                'group_id': group_id,
-                'user_id': user_id,
-                'is_founder': False,
-                'is_leader': False,
-                'status': 'active',
-                'consented_view': consented_view,
-                'consented_manage': consented_manage,
-                'consented_at': _now_iso() if requires_consent else None,
-            }).execute()
+            activated, message = _activate_group_member(
+                supabase,
+                group,
+                user_id,
+                consented_view,
+                consented_manage,
+                requires_consent,
+            )
 
-            if not member_response.data:
-                return {'success': False, 'message': 'Erro ao entrar no grupo'}
+            if not activated:
+                return {'success': False, 'message': message}
 
             return {
                 'success': True,
@@ -956,19 +1090,18 @@ def join_group(group_id: str, user_id: str, payload: Dict[str, Any]) -> Dict[str
                 'data': _build_group_detail(supabase, group, user_id),
             }
 
-        request_response = supabase.table('group_join_requests').insert({
-            'group_id': group_id,
-            'user_id': user_id,
-            'status': 'pending',
-            'consented_view': consented_view,
-            'consented_manage': consented_manage,
-        }).execute()
+        request_row, error_message = _submit_join_request(
+            supabase,
+            group_id,
+            user_id,
+            consented_view,
+            consented_manage,
+        )
 
-        if not request_response.data:
-            return {'success': False, 'message': 'Erro ao solicitar entrada no grupo'}
+        if error_message:
+            return {'success': False, 'message': error_message}
 
-        request = request_response.data[0]
-        _notify_group_leaders_join_pending(supabase, group, user_id, request['id'])
+        _notify_group_leaders_join_pending(supabase, group, user_id, request_row['id'])
 
         return {
             'success': True,
@@ -977,6 +1110,9 @@ def join_group(group_id: str, user_id: str, payload: Dict[str, Any]) -> Dict[str
         }
     except Exception as error:
         print(f'Erro ao entrar no grupo: {error}')
+        error_text = str(error).lower()
+        if 'duplicate' in error_text or 'unique' in error_text:
+            return {'success': False, 'message': 'Sua solicitação de entrada já está pendente'}
         return {'success': False, 'message': 'Erro ao entrar no grupo'}
 
 
@@ -1403,12 +1539,6 @@ def get_invite_link(group_id: str, actor_id: str, regenerate: bool = False) -> D
                 'status_code': 403,
             }
 
-        if group.get('visibility') != 'privado':
-            return {
-                'success': False,
-                'message': 'Link de convite disponível apenas para grupos privados',
-            }
-
         invite_code = group.get('invite_code')
 
         if regenerate or not invite_code:
@@ -1523,3 +1653,165 @@ def accept_invite(token: str, user_id: str, payload: Dict[str, Any]) -> Dict[str
     except Exception as error:
         print(f'Erro ao aceitar convite: {error}')
         return {'success': False, 'message': 'Erro ao aceitar convite'}
+
+
+def accept_reconsent(group_id: str, user_id: str) -> Dict[str, Any]:
+    try:
+        supabase = get_supabase_admin_client()
+
+        group_response = supabase.table('groups')\
+            .select('*')\
+            .eq('id', group_id)\
+            .limit(1)\
+            .execute()
+
+        if not group_response.data:
+            return {'success': False, 'message': 'Grupo não encontrado', 'status_code': 404}
+
+        group = group_response.data[0]
+        membership = _get_user_membership(supabase, group_id, user_id)
+
+        if not membership or membership.get('status') != 'pending_reconsent':
+            return {
+                'success': False,
+                'message': 'Não há re-consentimento pendente para este grupo',
+            }
+
+        updated = supabase.table('group_members')\
+            .update({
+                'status': 'active',
+                'consented_view': group.get('view_permission'),
+                'consented_manage': group.get('manage_permission'),
+                'consented_at': _now_iso(),
+            })\
+            .eq('id', membership['id'])\
+            .execute()
+
+        if not updated.data:
+            return {'success': False, 'message': 'Erro ao confirmar re-consentimento'}
+
+        return {
+            'success': True,
+            'message': 'Consentimento atualizado com sucesso',
+            'data': _build_group_detail(supabase, group, user_id),
+        }
+    except Exception as error:
+        print(f'Erro ao aceitar re-consentimento: {error}')
+        return {'success': False, 'message': 'Erro ao confirmar re-consentimento'}
+
+
+def decline_reconsent(group_id: str, user_id: str) -> Dict[str, Any]:
+    try:
+        supabase = get_supabase_admin_client()
+
+        group_response = supabase.table('groups')\
+            .select('id')\
+            .eq('id', group_id)\
+            .limit(1)\
+            .execute()
+
+        if not group_response.data:
+            return {'success': False, 'message': 'Grupo não encontrado', 'status_code': 404}
+
+        membership = _get_user_membership(supabase, group_id, user_id)
+
+        if not membership or membership.get('status') != 'pending_reconsent':
+            return {
+                'success': False,
+                'message': 'Não há re-consentimento pendente para este grupo',
+            }
+
+        supabase.table('group_members')\
+            .delete()\
+            .eq('id', membership['id'])\
+            .execute()
+
+        return {
+            'success': True,
+            'message': 'Você saiu do grupo',
+        }
+    except Exception as error:
+        print(f'Erro ao recusar re-consentimento: {error}')
+        return {'success': False, 'message': 'Erro ao recusar re-consentimento'}
+
+
+def _can_view_member_wallet(
+    group: Dict[str, Any],
+    actor_membership: Optional[Dict[str, Any]],
+    actor_id: str,
+    target_user_id: str,
+) -> Tuple[bool, str]:
+    if not actor_membership or actor_membership.get('status') != 'active':
+        return False, 'Você precisa ser membro ativo do grupo'
+
+    if target_user_id == actor_id:
+        return True, ''
+
+    view_permission = group.get('view_permission') or 'ninguem'
+
+    if view_permission == 'ninguem':
+        return False, 'Este grupo não permite visualizar carteiras de outros membros'
+
+    if view_permission == 'lideres':
+        if not (actor_membership.get('is_founder') or actor_membership.get('is_leader')):
+            return False, 'Apenas líderes podem visualizar carteiras de membros'
+
+    return True, ''
+
+
+def get_member_wallet(group_id: str, actor_id: str, target_user_id: str) -> Dict[str, Any]:
+    try:
+        supabase = get_supabase_admin_client()
+
+        group_response = supabase.table('groups')\
+            .select('*')\
+            .eq('id', group_id)\
+            .limit(1)\
+            .execute()
+
+        if not group_response.data:
+            return {'success': False, 'message': 'Grupo não encontrado', 'status_code': 404}
+
+        group = group_response.data[0]
+        actor_membership = _get_user_membership(supabase, group_id, actor_id)
+
+        can_view, message = _can_view_member_wallet(
+            group,
+            actor_membership,
+            actor_id,
+            target_user_id,
+        )
+
+        if not can_view:
+            return {'success': False, 'message': message, 'status_code': 403}
+
+        target_membership = _get_user_membership(supabase, group_id, target_user_id)
+
+        if not target_membership or target_membership.get('status') != 'active':
+            return {'success': False, 'message': 'Membro não encontrado', 'status_code': 404}
+
+        target_user = _fetch_user_profile(supabase, target_user_id)
+        portfolio = get_user_portfolio_full(target_user_id, use_admin=True)
+        transactions_result = list_transactions(target_user_id)
+
+        if not transactions_result.get('success'):
+            return {
+                'success': False,
+                'message': transactions_result.get('message', 'Erro ao carregar transações'),
+            }
+
+        return {
+            'success': True,
+            'data': {
+                'member': {
+                    'userId': target_user_id,
+                    'name': _format_display_name(target_user),
+                    'email': target_user.get('email'),
+                },
+                'portfolio': portfolio or [],
+                'transactions': transactions_result.get('data') or [],
+            },
+        }
+    except Exception as error:
+        print(f'Erro ao buscar carteira do membro: {error}')
+        return {'success': False, 'message': 'Erro ao carregar carteira do membro'}

@@ -135,6 +135,23 @@
   transform: scale(0.998);
 }
 
+.portfolio-row-readonly {
+  cursor: default;
+}
+
+.portfolio-row-readonly:hover {
+  background: transparent;
+  transform: none;
+}
+
+.portfolio-row-readonly:hover td {
+  border-bottom-color: #2a2b30;
+}
+
+.portfolio-row-readonly:active {
+  transform: none;
+}
+
 /* Estado vazio */
 .empty-row td {
   text-align: center;

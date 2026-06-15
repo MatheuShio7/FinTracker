@@ -3,7 +3,14 @@ import { authFetch } from '../lib/authFetch'
 import './TransactionButton.css'
 import './TransactionHistoryTable.css'
 
-function TransactionHistoryTable({ transactions, loading, error, onRetry, onTransactionChanged }) {
+function TransactionHistoryTable({
+  transactions,
+  loading,
+  error,
+  onRetry,
+  onTransactionChanged,
+  readOnly = false,
+}) {
   const [editTransaction, setEditTransaction] = useState(null)
   const [editType, setEditType] = useState('compra')
   const [editPrice, setEditPrice] = useState('')
@@ -229,13 +236,13 @@ function TransactionHistoryTable({ transactions, loading, error, onRetry, onTran
             <th>Preço</th>
             <th>Total</th>
             <th>Data</th>
-            <th>Ações</th>
+            {!readOnly && <th>Ações</th>}
           </tr>
         </thead>
         <tbody>
           {transactions.length === 0 ? (
             <tr className="transaction-history-empty-row">
-              <td colSpan="7">Nenhuma transação encontrada</td>
+              <td colSpan={readOnly ? 6 : 7}>Nenhuma transação encontrada</td>
             </tr>
           ) : (
             transactions.map((transaction) => (
@@ -248,33 +255,35 @@ function TransactionHistoryTable({ transactions, loading, error, onRetry, onTran
                 <td className="transaction-history-number-cell">{formatCurrency(transaction.price)}</td>
                 <td className="transaction-history-number-cell">{formatCurrency(transaction.total)}</td>
                 <td className="transaction-history-date-cell">{formatDate(transaction.date)}</td>
-                <td className="transaction-history-actions-cell">
-                  <button
-                    type="button"
-                    className="transaction-history-icon-button transaction-history-edit-button"
-                    onClick={() => openEditModal(transaction)}
-                    title="Editar transação"
-                    aria-label="Editar transação"
-                  >
-                    <i className="bi bi-pencil-square"></i>
-                  </button>
-                  <button
-                    type="button"
-                    className="transaction-history-icon-button transaction-history-delete-button"
-                    onClick={() => openDeleteModal(transaction)}
-                    title="Excluir transação"
-                    aria-label="Excluir transação"
-                  >
-                    <i className="bi bi-trash3-fill"></i>
-                  </button>
-                </td>
+                {!readOnly && (
+                  <td className="transaction-history-actions-cell">
+                    <button
+                      type="button"
+                      className="transaction-history-icon-button transaction-history-edit-button"
+                      onClick={() => openEditModal(transaction)}
+                      title="Editar transação"
+                      aria-label="Editar transação"
+                    >
+                      <i className="bi bi-pencil-square"></i>
+                    </button>
+                    <button
+                      type="button"
+                      className="transaction-history-icon-button transaction-history-delete-button"
+                      onClick={() => openDeleteModal(transaction)}
+                      title="Excluir transação"
+                      aria-label="Excluir transação"
+                    >
+                      <i className="bi bi-trash3-fill"></i>
+                    </button>
+                  </td>
+                )}
               </tr>
             ))
           )}
         </tbody>
       </table>
 
-      {editTransaction && (
+      {!readOnly && editTransaction && (
         <div className="transaction-modal-overlay" onClick={closeEditModal} role="presentation">
           <div
             className="transaction-modal-card"
@@ -375,7 +384,7 @@ function TransactionHistoryTable({ transactions, loading, error, onRetry, onTran
         </div>
       )}
 
-      {deleteTransaction && (
+      {!readOnly && deleteTransaction && (
         <div className="transaction-modal-overlay" onClick={closeDeleteModal} role="presentation">
           <div
             className="transaction-modal-card transaction-history-confirm-modal"

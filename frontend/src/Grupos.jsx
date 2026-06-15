@@ -5,6 +5,7 @@ import Logo from './components/Logo'
 import PageTitle from './components/PageTitle'
 import ReloadButton from './components/ReloadButton'
 import NotificationsButton from './components/NotificationsButton'
+import MemberWalletModal from './components/MemberWalletModal'
 import { useAuth } from './contexts/AuthContext'
 import { useNotifications } from './contexts/NotificationsContext'
 import { authFetch } from './lib/authFetch'
@@ -97,6 +98,7 @@ function Grupos() {
   const [invitePreview, setInvitePreview] = useState(null)
   const [inviteToken, setInviteToken] = useState('')
   const [consentMode, setConsentMode] = useState('join')
+  const [walletMember, setWalletMember] = useState(null)
 
   const fetchGroups = useCallback(async (showRefreshSpinner = false) => {
     if (!user) {
@@ -202,6 +204,45 @@ function Grupos() {
     loadInvitePreview()
   }, [searchParams, user, fetchGroups, loadNotifications, setSearchParams])
 
+  useEffect(() => {
+    const groupId = searchParams.get('grupo')
+
+    if (!groupId || !user) {
+      return
+    }
+
+    const openGroupFromNotification = async () => {
+      setIsDetailsModalOpen(true)
+      setDetailsError(null)
+      setIsDetailsLoading(true)
+
+      try {
+        const response = await authFetch(`api/groups/${groupId}`)
+        const data = await response.json()
+
+        if (!response.ok || data.status !== 'success') {
+          setError(data.message || 'Erro ao carregar grupo')
+          return
+        }
+
+        setSelectedGroup(data.data)
+
+        if (data.data.currentUserMembership?.status === 'pending_reconsent') {
+          setConsentMode('reconsent')
+          setIsConsentModalOpen(true)
+        }
+      } catch (groupErr) {
+        console.error('Erro ao abrir grupo:', groupErr)
+        setError('Erro ao carregar grupo')
+      } finally {
+        setIsDetailsLoading(false)
+        setSearchParams({}, { replace: true })
+      }
+    }
+
+    openGroupFromNotification()
+  }, [searchParams, user, setSearchParams])
+
   const resetGroupForm = () => {
     setGroupName('')
     setGroupDescription('')
@@ -237,6 +278,7 @@ function Grupos() {
     setInviteSearchTerm('')
     setInviteSearchResults([])
     setInviteSearchError('')
+    setWalletMember(null)
   }
 
   useEffect(() => {
@@ -413,6 +455,11 @@ function Grupos() {
       }
 
       setSelectedGroup(data.data)
+
+      if (data.data.currentUserMembership?.status === 'pending_reconsent') {
+        setConsentMode('reconsent')
+        setIsConsentModalOpen(true)
+      }
     } catch (detailsErr) {
       console.error('Erro ao carregar detalhes do grupo:', detailsErr)
       setDetailsError(detailsErr.message || 'Erro ao carregar detalhes do grupo')
@@ -588,23 +635,25 @@ function Grupos() {
   }
 
   const handleConfirmJoin = async () => {
-    if (!selectedGroup?.id || isJoining) {
+    const joinTargetGroup = detailsGroup || selectedGroup
+
+    if (!joinTargetGroup?.id || isJoining) {
       return
     }
 
     setIsJoining(true)
     setActionError('')
 
-    const payload = groupRequiresConsent(selectedGroup)
+    const payload = groupRequiresConsent(joinTargetGroup)
       ? {
           consented: true,
-          consented_view: selectedGroup.permissions.view,
-          consented_manage: selectedGroup.permissions.manage,
+          consented_view: joinTargetGroup.permissions.view,
+          consented_manage: joinTargetGroup.permissions.manage,
         }
       : { consented: false }
 
     try {
-      const response = await authFetch(`api/groups/${selectedGroup.id}/join`, {
+      const response = await authFetch(`api/groups/${joinTargetGroup.id}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -681,9 +730,78 @@ function Grupos() {
     }
   }
 
+  const handleConfirmReconsent = async () => {
+    if (!selectedGroup?.id || isJoining) {
+      return
+    }
+
+    setIsJoining(true)
+    setActionError('')
+
+    try {
+      const response = await authFetch(`api/groups/${selectedGroup.id}/reconsent/accept`, {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || data.status !== 'success') {
+        setActionError(data.message || 'Erro ao confirmar re-consentimento')
+        return
+      }
+
+      applyGroupUpdate(data.data)
+      await fetchGroups(true)
+      await loadNotifications()
+      setIsConsentModalOpen(false)
+      setConsentMode('join')
+    } catch (reconsentErr) {
+      console.error('Erro ao confirmar re-consentimento:', reconsentErr)
+      setActionError('Erro ao conectar com o servidor')
+    } finally {
+      setIsJoining(false)
+    }
+  }
+
+  const handleDeclineReconsent = async () => {
+    if (!selectedGroup?.id || isJoining) {
+      return
+    }
+
+    setIsJoining(true)
+    setActionError('')
+
+    try {
+      const response = await authFetch(`api/groups/${selectedGroup.id}/reconsent/decline`, {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || data.status !== 'success') {
+        setActionError(data.message || 'Erro ao recusar re-consentimento')
+        return
+      }
+
+      handleCloseDetailsModal()
+      await fetchGroups(true)
+      await loadNotifications()
+    } catch (reconsentErr) {
+      console.error('Erro ao recusar re-consentimento:', reconsentErr)
+      setActionError('Erro ao conectar com o servidor')
+    } finally {
+      setIsJoining(false)
+    }
+  }
+
   const handleConfirmConsent = () => {
     if (consentMode === 'invite') {
       handleConfirmInviteAccept()
+      return
+    }
+
+    if (consentMode === 'reconsent') {
+      handleConfirmReconsent()
       return
     }
 
@@ -698,15 +816,23 @@ function Grupos() {
     setConsentMode('join')
   }
 
+  const handleOpenReconsentModal = () => {
+    setActionError('')
+    setConsentMode('reconsent')
+    setIsConsentModalOpen(true)
+  }
+
   const handleOpenJoinFlow = () => {
-    if (!selectedGroup) {
+    const joinTargetGroup = detailsGroup || selectedGroup
+
+    if (!joinTargetGroup) {
       return
     }
 
     setActionError('')
     setConsentMode('join')
 
-    if (groupRequiresConsent(selectedGroup)) {
+    if (groupRequiresConsent(joinTargetGroup)) {
       setIsConsentModalOpen(true)
       return
     }
@@ -939,9 +1065,11 @@ function Grupos() {
   const isEditingGroup = Boolean(editingGroupId)
   const currentUserMembership = detailsGroup?.currentUserMembership
   const currentUserJoinRequest = detailsGroup?.currentUserJoinRequest
+  const hasMembership = Boolean(currentUserMembership)
   const isActiveMember = currentUserMembership?.status === 'active'
+  const needsReconsent = currentUserMembership?.status === 'pending_reconsent'
   const hasPendingJoin = currentUserJoinRequest?.status === 'pending'
-  const canJoin = !isActiveMember
+  const canJoin = !hasMembership
     && !hasPendingJoin
     && detailsGroup?.visibility !== 'privado'
   const canLeave = isActiveMember && !currentUserMembership?.is_founder
@@ -950,6 +1078,40 @@ function Grupos() {
   )
   const canDeleteGroup = Boolean(currentUserMembership?.is_founder)
   const isFounder = Boolean(currentUserMembership?.is_founder)
+
+  const canViewMemberWallet = (member) => {
+    if (!isActiveMember || needsReconsent) {
+      return false
+    }
+
+    if (member.status !== 'active') {
+      return false
+    }
+
+    if (member.user_id === user?.id) {
+      return true
+    }
+
+    const viewPermission = detailsGroup?.permissions?.view
+
+    if (viewPermission === 'ninguem') {
+      return false
+    }
+
+    if (viewPermission === 'lideres') {
+      return canManageMembers
+    }
+
+    return viewPermission === 'todos'
+  }
+
+  const handleOpenMemberWallet = (member) => {
+    setWalletMember(member)
+  }
+
+  const handleCloseMemberWallet = () => {
+    setWalletMember(null)
+  }
 
   const transferCandidates = (detailsGroup?.members || []).filter(
     (member) => member.status === 'active' && member.user_id !== user?.id && !member.is_founder
@@ -1297,6 +1459,17 @@ function Grupos() {
                             : `${detailsGroup.membersCount} Membros`}
                         </span>
                       </div>
+                      {needsReconsent && (
+                        <button
+                          type="button"
+                          className="grupos-member-action grupos-member-action-reconsent"
+                          onClick={handleOpenReconsentModal}
+                          disabled={isJoining}
+                        >
+                          <i className="bi bi-clock-history"></i>
+                          Revisar permissões
+                        </button>
+                      )}
                       {canJoin && (
                         <button
                           type="button"
@@ -1374,6 +1547,13 @@ function Grupos() {
                               {member.user_id === user?.id ? `${member.name} (Você)` : member.name}
                             </strong>
                             <div className="grupos-member-badges">
+                              {member.needsReconsent && (
+                                <i
+                                  className="bi bi-clock-history grupos-member-reconsent-icon"
+                                  title="Aguardando re-consentimento"
+                                  aria-label="Aguardando re-consentimento"
+                                ></i>
+                              )}
                               {getMemberRoles(member).map((role) => (
                                 <span key={role} className="grupos-member-badge">{role}</span>
                               ))}
@@ -1383,7 +1563,20 @@ function Grupos() {
                             <span className="grupos-member-email">{member.email}</span>
                           )}
                         </div>
-                        {renderMemberActions(member)}
+                        <div className="grupos-member-actions">
+                          {canViewMemberWallet(member) && (
+                            <button
+                              type="button"
+                              className="grupos-details-icon-button grupos-member-wallet-button"
+                              aria-label={`Ver carteira de ${member.name}`}
+                              title="Ver carteira"
+                              onClick={() => handleOpenMemberWallet(member)}
+                            >
+                              <i className="bi bi-wallet2"></i>
+                            </button>
+                          )}
+                          {renderMemberActions(member)}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1420,19 +1613,17 @@ function Grupos() {
                 </div>
 
                 <div className="grupos-invite-link-section">
-                  {detailsGroup?.visibility === 'privado' && (
-                    <button
-                      type="button"
-                      className="grupos-invite-link-button"
-                      onClick={handleCreateInviteLink}
-                      disabled={isCreatingInviteLink}
-                    >
-                      <i className="bi bi-link-45deg"></i>
-                      <span>
-                        {isCreatingInviteLink ? 'Gerando link...' : 'Criar e copiar link de convite'}
-                      </span>
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className="grupos-invite-link-button"
+                    onClick={handleCreateInviteLink}
+                    disabled={isCreatingInviteLink}
+                  >
+                    <i className="bi bi-link-45deg"></i>
+                    <span>
+                      {isCreatingInviteLink ? 'Gerando link...' : 'Criar e copiar link de convite'}
+                    </span>
+                  </button>
 
                   {inviteLinkFeedback && (
                     <p className="grupos-invite-feedback grupos-invite-feedback-success">{inviteLinkFeedback}</p>
@@ -1639,6 +1830,16 @@ function Grupos() {
         </div>
       )}
 
+      {walletMember && detailsGroup?.id && (
+        <MemberWalletModal
+          groupId={detailsGroup.id}
+          member={walletMember}
+          currentUserId={user?.id}
+          isOpen={Boolean(walletMember)}
+          onClose={handleCloseMemberWallet}
+        />
+      )}
+
       {isConsentModalOpen && consentGroup && (
         <div
           className="grupos-modal-overlay grupos-consent-overlay"
@@ -1653,7 +1854,9 @@ function Grupos() {
             aria-label="Consentimento de permissões"
           >
             <div className="grupos-details-header grupos-consent-header">
-              <h3>Consentimento de permissões</h3>
+              <h3>
+                {consentMode === 'reconsent' ? 'Re-consentimento de permissões' : 'Consentimento de permissões'}
+              </h3>
               <button
                 type="button"
                 className="grupos-close-button"
@@ -1666,7 +1869,12 @@ function Grupos() {
 
             <div className="grupos-consent-body">
               <p className="grupos-delete-message">
-                {consentMode === 'invite' ? (
+                {consentMode === 'reconsent' ? (
+                  <>
+                    O grupo <strong>{consentGroup.name}</strong> atualizou as permissões sobre carteiras e
+                    transações. Você concordou anteriormente com:
+                  </>
+                ) : consentMode === 'invite' ? (
                   <>
                     Ao aceitar o convite para <strong>{consentGroup.name}</strong>, você concorda com as
                     permissões abaixo sobre sua carteira e transações:
@@ -1679,16 +1887,39 @@ function Grupos() {
                 )}
               </p>
 
+              {consentMode === 'reconsent' && (
+                <ul className="grupos-consent-list grupos-consent-list-previous">
+                  <li>
+                    <strong>Visualizar (anterior):</strong>{' '}
+                    {permissionLabels[currentUserMembership?.consentedView] || currentUserMembership?.consentedView}
+                  </li>
+                  <li>
+                    <strong>Gerenciar (anterior):</strong>{' '}
+                    {permissionLabels[currentUserMembership?.consentedManage] || currentUserMembership?.consentedManage}
+                  </li>
+                </ul>
+              )}
+
+              {consentMode === 'reconsent' && (
+                <p className="grupos-consent-note">Novas permissões propostas:</p>
+              )}
+
               <ul className="grupos-consent-list">
                 <li>
-                  <strong>Visualizar:</strong>{' '}
+                  <strong>Visualizar{consentMode === 'reconsent' ? ' (nova)' : ''}:</strong>{' '}
                   {permissionLabels[consentGroup.permissions.view] || consentGroup.permissions.view}
                 </li>
                 <li>
-                  <strong>Gerenciar:</strong>{' '}
+                  <strong>Gerenciar{consentMode === 'reconsent' ? ' (nova)' : ''}:</strong>{' '}
                   {permissionLabels[consentGroup.permissions.manage] || consentGroup.permissions.manage}
                 </li>
               </ul>
+
+              {consentMode === 'reconsent' && (
+                <p className="grupos-consent-note">
+                  Se recusar, você sairá do grupo imediatamente.
+                </p>
+              )}
 
               {consentMode === 'join' && detailsGroup?.visibility === 'restrito' && (
                 <p className="grupos-consent-note">
@@ -1704,10 +1935,10 @@ function Grupos() {
                 <button
                   type="button"
                   className="grupos-delete-cancel-button"
-                  onClick={handleCloseConsentModal}
+                  onClick={consentMode === 'reconsent' ? handleDeclineReconsent : handleCloseConsentModal}
                   disabled={isJoining}
                 >
-                  Cancelar
+                  {consentMode === 'reconsent' ? 'Recusar e sair' : 'Cancelar'}
                 </button>
                 <button
                   type="button"

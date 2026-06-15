@@ -1,7 +1,7 @@
 """
 Serviço para gerenciamento de portfolio e watchlist de usuários
 """
-from config.supabase_config import get_supabase_client
+from config.supabase_config import get_supabase_client, get_supabase_admin_client
 from datetime import datetime, timedelta
 
 
@@ -691,12 +691,13 @@ def update_watchlist_prices_on_login(user_id):
         }
 
 
-def get_user_portfolio_full(user_id):
+def get_user_portfolio_full(user_id, use_admin=False):
     """
     Retorna carteira completa do usuário com preços atuais e valores calculados
     
     Args:
         user_id: ID do usuário
+        use_admin: Usa service role (necessário para leitura cross-user autorizada)
         
     Returns:
         list: [
@@ -711,7 +712,7 @@ def get_user_portfolio_full(user_id):
         Retorna lista vazia [] se usuário não tiver ações
     """
     try:
-        supabase = get_supabase_client()
+        supabase = get_supabase_admin_client() if use_admin else get_supabase_client()
         
         # 1. Buscar portfolio com join nas tabelas stocks e stock_prices
         # Query complexa para buscar:
