@@ -24,10 +24,13 @@ def _extract_bearer_token() -> Optional[str]:
     return token or None
 
 
-def _extract_legacy_user_id() -> Optional[str]:
+def _extract_legacy_user_id(include_body: bool = True) -> Optional[str]:
     legacy_user_id = request.args.get('user_id')
     if legacy_user_id:
         return legacy_user_id
+
+    if not include_body:
+        return None
 
     payload = request.get_json(silent=True) or {}
     if isinstance(payload, dict):
@@ -75,7 +78,9 @@ def resolve_authenticated_user(
     2. user_id legado em query/body, se allow_legacy=True
     """
     token = _extract_bearer_token()
-    legacy_user_id = _extract_legacy_user_id()
+    # Com JWT, user_id no body e dado de negocio (ex.: convite/transferencia),
+    # nao identificador legado de autenticacao.
+    legacy_user_id = _extract_legacy_user_id(include_body=not token)
 
     if token:
         try:

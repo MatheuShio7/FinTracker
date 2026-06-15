@@ -5,6 +5,7 @@ Endpoints para verificar status de MFA (TOTP) de um usuário
 from flask import Blueprint, jsonify, g
 from utils.auth_context import require_authenticated_user
 from services.auth_service import get_mfa_status
+from services.notification_service import sync_mfa_notification
 
 # Cria blueprint para rotas de MFA
 bp = Blueprint('mfa', __name__, url_prefix='/api/mfa')
@@ -38,10 +39,13 @@ def mfa_status():
                 "status": "error",
                 "message": "Não foi possível verificar o status de MFA"
             }), 500
+
+        has_mfa = mfa_data.get('has_mfa', False)
+        sync_mfa_notification(user_id, has_mfa)
         
         return jsonify({
             "status": "success",
-            "has_mfa": mfa_data.get('has_mfa', False),
+            "has_mfa": has_mfa,
             "mfa_type": mfa_data.get('mfa_type', None)
         }), 200
         

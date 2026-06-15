@@ -5,16 +5,8 @@ import { useNavigate } from 'react-router-dom'
 
 function NotificationsButton({ className = '' }) {
   const [isOpen, setIsOpen] = useState(false)
-  const { notifications, hasNotifications, markNotificationAsSeen } = useNotifications()
+  const { notifications, unreadCount, hasNotifications, markNotificationAsSeen } = useNotifications()
   const navigate = useNavigate()
-
-  useEffect(() => {
-    console.log('🔔 NotificationsButton - Notificações atualizadas:', {
-      count: notifications.length,
-      hasNotifications,
-      notifications: notifications.map(n => ({ id: n.id, type: n.type }))
-    })
-  }, [notifications, hasNotifications])
 
   useEffect(() => {
     if (!isOpen) {
@@ -32,10 +24,23 @@ function NotificationsButton({ className = '' }) {
   }, [isOpen])
 
   const handleNotificationClick = (notification) => {
-    if (notification.type === 'warning' && notification.id === 'mfa-disabled') {
+    if (notification.rawType === 'mfa_disabled') {
       markNotificationAsSeen(notification.id)
       navigate('/configuracoes')
       setIsOpen(false)
+      return
+    }
+
+    if (notification.rawType === 'group_invite_received') {
+      const token = notification.metadata?.invite_token
+      markNotificationAsSeen(notification.id)
+      setIsOpen(false)
+
+      if (token) {
+        navigate(`/grupos?convite=${encodeURIComponent(token)}`)
+      } else {
+        navigate('/grupos')
+      }
     }
   }
 
@@ -65,7 +70,7 @@ function NotificationsButton({ className = '' }) {
       >
         <i className="bi bi-bell-fill"></i>
         {hasNotifications && (
-          <span className="notifications-badge">{notifications.length}</span>
+          <span className="notifications-badge">{unreadCount}</span>
         )}
       </button>
 

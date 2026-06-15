@@ -16,6 +16,8 @@ from routes import auth_routes  # Rotas de autenticação
 from routes import portfolio_routes  # Rotas de portfolio e watchlist
 from routes import mfa_routes  # Rotas de autenticação em 2 fatores
 from routes import transaction_routes  # Rotas de transações
+from routes import notification_routes  # Rotas de notificações
+from routes import group_routes  # Rotas de grupos
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -38,6 +40,8 @@ def create_app(config_class=Config):
     app.register_blueprint(portfolio_routes.portfolio_bp)  # Rotas de portfolio e watchlist
     app.register_blueprint(mfa_routes.bp)  # Rotas de autenticação em 2 fatores
     app.register_blueprint(transaction_routes.transactions_bp)  # Rotas de transações
+    app.register_blueprint(notification_routes.bp)  # Rotas de notificações
+    app.register_blueprint(group_routes.bp)  # Rotas de grupos
     
     return app
 

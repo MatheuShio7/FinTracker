@@ -21,7 +21,7 @@ import './App.css'
 function AppContent() {
   const location = useLocation()
   const { user } = useAuth()
-  const { addNotification, resetNotificationsState } = useNotifications()
+  const { loadNotifications, resetNotificationsState } = useNotifications()
   const mfaCheckDoneRef = useRef(false)
   const lastUserIdRef = useRef(null)
 
@@ -42,47 +42,38 @@ function AppContent() {
   }, [user, resetNotificationsState])
 
   useEffect(() => {
-    if (!user || mfaCheckDoneRef.current) return
+    if (!user) return
 
-    const checkMfaStatus = async () => {
+    const initializeNotifications = async () => {
+      await loadNotifications()
+
+      if (mfaCheckDoneRef.current) {
+        return
+      }
+
       try {
-        console.log('🔍 Iniciando verificação de status MFA...')
         const response = await authFetch('api/mfa/status')
-        
+
         if (!response.ok) {
-          console.error('❌ Resposta do servidor com status:', response.status)
+          console.error('Erro ao verificar status MFA:', response.status)
           return
         }
-        
+
         const data = await response.json()
-        console.log('📊 Resposta MFA:', data)
 
         if (data.status === 'success') {
-          if (data.has_mfa === false) {
-            console.log('⚠️  Usuário não tem MFA ativado, adicionando notificação...')
-            addNotification({
-              id: 'mfa-disabled',
-              type: 'warning',
-              title: 'Autenticação em 2 Fatores Desativada',
-              description: 'Ative a autenticação em 2 fatores para aumentar a segurança da sua conta.',
-              icon: 'shield-exclamation',
-            })
-            console.log('✅ Notificação adicionada com sucesso')
-            mfaCheckDoneRef.current = true
-          } else {
-            console.log('✅ Usuário tem MFA ativado')
-            mfaCheckDoneRef.current = true
-          }
+          mfaCheckDoneRef.current = true
+          await loadNotifications()
         } else {
-          console.error('❌ Erro na resposta:', data.message)
+          console.error('Erro na resposta MFA:', data.message)
         }
       } catch (error) {
-        console.error('❌ Erro ao verificar status de MFA:', error)
+        console.error('Erro ao verificar status de MFA:', error)
       }
     }
 
-    checkMfaStatus()
-  }, [user, addNotification])
+    initializeNotifications()
+  }, [user, loadNotifications])
 
   const hiddenRoutes = ['/login', '/cadastro', '/']
   const shouldHideSidebar = hiddenRoutes.includes(location.pathname)
