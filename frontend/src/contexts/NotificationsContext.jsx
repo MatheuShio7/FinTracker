@@ -101,6 +101,23 @@ export function NotificationsProvider({ children }) {
     setNotifications((prev) => prev.filter((notification) => notification.id !== notificationId))
   }, [])
 
+  const deleteNotification = useCallback(async (notificationId) => {
+    setNotifications((prev) => prev.filter((notification) => notification.id !== notificationId))
+
+    try {
+      const response = await authFetch(`api/notifications/${notificationId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        await loadNotifications()
+      }
+    } catch (error) {
+      console.error('Erro ao excluir notificação:', error)
+      await loadNotifications()
+    }
+  }, [loadNotifications])
+
   const resetNotificationsState = useCallback(() => {
     setNotifications([])
     setIsLoading(false)
@@ -118,6 +135,7 @@ export function NotificationsProvider({ children }) {
     loadNotifications,
     addNotification,
     removeNotification,
+    deleteNotification,
     markNotificationAsSeen,
     markAllNotificationsAsSeen,
     resetNotificationsState,
@@ -130,6 +148,7 @@ export function NotificationsProvider({ children }) {
     loadNotifications,
     addNotification,
     removeNotification,
+    deleteNotification,
     markNotificationAsSeen,
     markAllNotificationsAsSeen,
     resetNotificationsState,

@@ -63,6 +63,32 @@ def mark_notification_read(notification_id: str, user_id: str) -> Dict[str, Any]
         return {'success': False, 'message': 'Erro ao marcar notificação como lida'}
 
 
+def delete_notification(notification_id: str, user_id: str) -> Dict[str, Any]:
+    """Remove uma notificação do usuário."""
+    try:
+        supabase = get_supabase_admin_client()
+        existing = supabase.table('notifications')\
+            .select('id')\
+            .eq('id', notification_id)\
+            .eq('user_id', user_id)\
+            .limit(1)\
+            .execute()
+
+        if not existing.data:
+            return {'success': False, 'message': 'Notificação não encontrada'}
+
+        supabase.table('notifications')\
+            .delete()\
+            .eq('id', notification_id)\
+            .eq('user_id', user_id)\
+            .execute()
+
+        return {'success': True}
+    except Exception as error:
+        print(f'Erro ao excluir notificação: {error}')
+        return {'success': False, 'message': 'Erro ao excluir notificação'}
+
+
 def mark_all_notifications_read(user_id: str) -> Dict[str, Any]:
     """Marca todas as notificações do usuário como lidas."""
     try:

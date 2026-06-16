@@ -5,7 +5,14 @@ import { useNavigate } from 'react-router-dom'
 
 function NotificationsButton({ className = '' }) {
   const [isOpen, setIsOpen] = useState(false)
-  const { notifications, unreadCount, hasNotifications, markNotificationAsSeen } = useNotifications()
+  const {
+    notifications,
+    unreadCount,
+    hasNotifications,
+    markNotificationAsSeen,
+    markAllNotificationsAsSeen,
+    deleteNotification,
+  } = useNotifications()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -73,6 +80,15 @@ function NotificationsButton({ className = '' }) {
       }
       return
     }
+
+    if (!notification.read_at) {
+      markNotificationAsSeen(notification.id)
+    }
+  }
+
+  const handleDeleteNotification = (event, notificationId) => {
+    event.stopPropagation()
+    deleteNotification(notificationId)
   }
 
   const getNotificationIcon = (notification) => {
@@ -119,15 +135,33 @@ function NotificationsButton({ className = '' }) {
             aria-label="Notificações"
           >
             <div className="notifications-modal-header">
-              <h3>Notificações</h3>
-              <button
-                type="button"
-                className="notifications-close-button"
-                onClick={() => setIsOpen(false)}
-                aria-label="Fechar notificações"
-              >
-                <i className="bi bi-x-lg"></i>
-              </button>
+              <div className="notifications-modal-header-title">
+                <h3>Notificações</h3>
+                {unreadCount > 0 && (
+                  <span className="notifications-unread-summary">
+                    {unreadCount} {unreadCount === 1 ? 'nova' : 'novas'}
+                  </span>
+                )}
+              </div>
+              <div className="notifications-modal-header-actions">
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    className="notifications-mark-all-button"
+                    onClick={() => markAllNotificationsAsSeen()}
+                  >
+                    Marcar todas como lidas
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="notifications-close-button"
+                  onClick={() => setIsOpen(false)}
+                  aria-label="Fechar notificações"
+                >
+                  <i className="bi bi-x-lg"></i>
+                </button>
+              </div>
             </div>
 
             <div className="notifications-modal-body">
@@ -138,30 +172,48 @@ function NotificationsButton({ className = '' }) {
                 </div>
               ) : (
                 <div className="notifications-list">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`notification-item notification-${notification.type}`}
-                      onClick={() => handleNotificationClick(notification)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          handleNotificationClick(notification)
-                        }
-                      }}
-                    >
-                      <i
-                        className={`bi ${getNotificationIcon(
-                          notification
-                        )} notification-icon`}
-                      ></i>
-                      <div className="notification-content">
-                        <h4>{notification.title}</h4>
-                        <p>{notification.description}</p>
+                  {notifications.map((notification) => {
+                    const isUnread = !notification.read_at
+
+                    return (
+                      <div
+                        key={notification.id}
+                        className={`notification-item notification-${notification.type}${
+                          isUnread ? ' notification-unread' : ' notification-read'
+                        }`}
+                        onClick={() => handleNotificationClick(notification)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            handleNotificationClick(notification)
+                          }
+                        }}
+                      >
+                        {isUnread && (
+                          <span className="notification-unread-dot" aria-hidden="true" />
+                        )}
+                        <i
+                          className={`bi ${getNotificationIcon(
+                            notification
+                          )} notification-icon`}
+                        ></i>
+                        <div className="notification-content">
+                          <h4>{notification.title}</h4>
+                          <p>{notification.description}</p>
+                        </div>
+                        <button
+                          type="button"
+                          className="notification-delete-button"
+                          onClick={(event) => handleDeleteNotification(event, notification.id)}
+                          aria-label="Excluir notificação"
+                          title="Excluir notificação"
+                        >
+                          <i className="bi bi-trash3"></i>
+                        </button>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
