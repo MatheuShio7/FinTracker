@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { authFetch } from '../lib/authFetch'
 import ReloadButton from './ReloadButton'
+import TransactionButton from './TransactionButton'
 import PortfolioTable from './PortfolioTable'
 import PortfolioPieChart from './PortfolioPieChart'
 import TransactionHistoryTable from './TransactionHistoryTable'
@@ -9,9 +11,30 @@ import './MemberWalletModal.css'
 function MemberWalletModal({ groupId, member, currentUserId, isOpen, onClose }) {
   const [portfolioData, setPortfolioData] = useState([])
   const [transactions, setTransactions] = useState([])
+  const [canManage, setCanManage] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const transactionsApiBase = useMemo(() => {
+    if (!groupId || !member?.user_id) {
+      return null
+    }
+
+    return `api/groups/${groupId}/members/${member.user_id}/transactions`
+  }, [groupId, member?.user_id])
+
+  const applyWalletData = useCallback((walletData) => {
+    if (!walletData) {
+      return
+    }
+
+    setPortfolioData(walletData.portfolio || [])
+    setTransactions(walletData.transactions || [])
+    if (typeof walletData.canManage === 'boolean') {
+      setCanManage(walletData.canManage)
+    }
+  }, [])
 
   const fetchWallet = useCallback(async (showRefreshSpinner = false) => {
     if (!groupId || !member?.user_id) {
@@ -35,18 +58,27 @@ function MemberWalletModal({ groupId, member, currentUserId, isOpen, onClose }) 
         throw new Error(data.message || 'Erro ao carregar carteira do membro')
       }
 
-      setPortfolioData(data.data?.portfolio || [])
-      setTransactions(data.data?.transactions || [])
+      applyWalletData(data.data)
     } catch (walletErr) {
       console.error('Erro ao carregar carteira do membro:', walletErr)
       setError(walletErr.message || 'Erro ao conectar com o servidor')
       setPortfolioData([])
       setTransactions([])
+      setCanManage(false)
     } finally {
       setLoading(false)
       setIsRefreshing(false)
     }
-  }, [groupId, member?.user_id])
+  }, [groupId, member?.user_id, applyWalletData])
+
+  const handleWalletUpdated = useCallback((walletData) => {
+    if (walletData?.portfolio || walletData?.transactions) {
+      applyWalletData(walletData)
+      return
+    }
+
+    fetchWallet(true)
+  }, [applyWalletData, fetchWallet])
 
   useEffect(() => {
     if (!isOpen || !member?.user_id) {
@@ -79,7 +111,9 @@ function MemberWalletModal({ groupId, member, currentUserId, isOpen, onClose }) 
     ? `${member.name} (Você)`
     : member.name
 
-  return (
+  const elevatedModalOverlayClassName = 'transaction-modal-overlay transaction-modal-overlay-elevated'
+
+  return createPortal(
     <div className="grupos-modal-overlay grupos-wallet-overlay" onClick={onClose} role="presentation">
       <div
         className="grupos-modal-card grupos-wallet-modal-card"
@@ -91,9 +125,23 @@ function MemberWalletModal({ groupId, member, currentUserId, isOpen, onClose }) 
         <div className="grupos-details-header grupos-wallet-header">
           <div className="grupos-wallet-title-row">
             <h3>Carteira de {memberLabel}</h3>
-            <span className="grupos-wallet-readonly-badge">Somente leitura</span>
+            <span
+              className={`grupos-wallet-mode-badge ${
+                canManage ? 'grupos-wallet-mode-badge-manage' : 'grupos-wallet-mode-badge-readonly'
+              }`}
+            >
+              {canManage ? 'Gerenciável' : 'Somente leitura'}
+            </span>
           </div>
           <div className="grupos-wallet-header-actions">
+            {canManage && transactionsApiBase && (
+              <TransactionButton
+                className="grupos-wallet-transaction-button"
+                submitEndpoint={transactionsApiBase}
+                modalOverlayClassName={elevatedModalOverlayClassName}
+                onTransactionSaved={handleWalletUpdated}
+              />
+            )}
             <ReloadButton
               onClick={() => fetchWallet(true)}
               isLoading={isRefreshing}
@@ -111,24 +159,36 @@ function MemberWalletModal({ groupId, member, currentUserId, isOpen, onClose }) 
         </div>
 
         <div className="grupos-wallet-body">
-          <PortfolioTable
-            portfolioData={portfolioData}
-            loading={loading}
-            error={error}
-            onRetry={() => fetchWallet(true)}
-            readOnly
-          />
-          <PortfolioPieChart portfolio={portfolioData} />
-          <TransactionHistoryTable
-            transactions={transactions}
-            loading={loading}
-            error={error}
-            onRetry={() => fetchWallet(true)}
-            readOnly
-          />
+          <section className="grupos-wallet-section">
+            <PortfolioTable
+              portfolioData={portfolioData}
+              loading={loading}
+              error={error}
+              onRetry={() => fetchWallet(true)}
+              readOnly
+            />
+          </section>
+
+          <section className="grupos-wallet-section grupos-wallet-chart-section">
+            <PortfolioPieChart portfolio={portfolioData} compact />
+          </section>
+
+          <section className="grupos-wallet-section grupos-wallet-history-section">
+            <TransactionHistoryTable
+              transactions={transactions}
+              loading={loading}
+              error={error}
+              onRetry={() => fetchWallet(true)}
+              onTransactionChanged={() => fetchWallet(true)}
+              readOnly={!canManage}
+              transactionsApiBase={canManage ? transactionsApiBase : null}
+              modalOverlayClassName={elevatedModalOverlayClassName}
+            />
+          </section>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

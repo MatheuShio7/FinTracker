@@ -63,11 +63,35 @@
 
 /* Estilos das fatias do gráfico */
 .pie-cell {
-  fill: #16171b;
+  fill: #202128;
   stroke: #111111;
   stroke-width: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+.portfolio-pie-chart-container--compact {
+  margin: 0 0 8px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.portfolio-pie-chart-container--compact .portfolio-total-info {
+  right: 20%;
+  top: 50%;
+}
+
+.portfolio-pie-chart-container--compact .total-label {
+  font-size: 32px;
+  margin-left: 0;
+}
+
+.portfolio-pie-chart-container--compact .total-value {
+  font-size: 26px;
+}
+
+.portfolio-pie-chart-container--compact .recharts-pie-label-text {
+  font-size: 14px;
 }
 
 .pie-cell:hover {

@@ -70,15 +70,44 @@ Elementos importantes:
 - `PageTitle` com o titulo `Explorar`.
 
 ### `/grupos`
-Tela de grupos.
+Tela para criar e participar de grupos de investidores.
 
 O usuario pode:
-- Acessar a area reservada para agrupamentos.
-- Ver a estrutura da pagina, que ainda esta em evolucao.
+- Criar um novo grupo com nome, descricao, visibilidade, permissoes e limite de membros.
+- Ver grupos em que participa e grupos publicos disponiveis.
+- Abrir detalhes de um grupo, editar configuracoes (fundador/lider) e convidar membros.
+- Entrar em grupos publicos ou solicitar entrada em grupos com aprovacao.
+- Aceitar convites por notificacao ou link (`/grupos?convite=TOKEN`).
+- Promover, rebaixar ou expulsar membros (fundador/lider).
+- Transferir a fundacao ou excluir o grupo (somente fundador).
+- Visualizar e, quando permitido, gerenciar a carteira de outro membro.
+- Revisar permissoes quando o grupo torna regras mais permissivas (re-consentimento).
+- Sair de um grupo (membros comuns e lideres nao fundadores).
+
+Visibilidade do grupo:
+- `publico` — qualquer usuario pode entrar apos consentir (se necessario).
+- `restrito` — entrada publica, mas exige aprovacao de um lider.
+- `privado` — apenas por convite direto ou link.
+
+Permissoes de carteira (visualizar / gerenciar):
+- `ninguem` — ninguem acessa carteiras alheias (exceto a propria).
+- `lideres` — apenas fundador e lideres.
+- `todos` — qualquer membro ativo.
+- Gerenciar nunca pode ser mais permissivo que visualizar.
 
 Elementos importantes:
-- `Logo`.
-- `PageTitle` com o titulo `Grupos`.
+- `Logo`, `PageTitle` (Grupos), `NotificationsButton`, `ReloadButton`.
+- Cards de grupos com contagem de membros e badge `Lotado` quando cheio.
+- Modal de detalhes com lista de membros, papeis (Fundador/Lider) e acoes.
+- Icone `bi-wallet2` para abrir a carteira de um membro.
+- Icone `bi-clock-history` vermelho quando um membro aguarda re-consentimento.
+- `MemberWalletModal` com carteira, grafico e historico (somente leitura ou gerenciavel).
+- Modal de consentimento antes de entrar, aceitar convite ou re-consentir.
+
+Notificacoes relacionadas a grupos:
+- Convite recebido, solicitacao de entrada pendente, entrada aprovada.
+- Permissoes alteradas (re-consentimento necessario).
+- Acao de outro membro na carteira do usuario.
 
 ### `/:ticker`
 Pagina de detalhes de uma acao, como `/PETR4` ou `/VALE3`.
@@ -177,6 +206,29 @@ Elementos importantes:
 2. Clicar no botao de recarga.
 3. Aguardar o recarregamento dos dados.
 
+### Criar um grupo
+1. Abrir `/grupos`.
+2. Clicar em `Grupo`.
+3. Preencher nome, descricao, visibilidade e permissoes.
+4. Opcionalmente ativar limite maximo de membros.
+5. Salvar.
+
+### Entrar em um grupo publico
+1. Abrir `/grupos` e escolher um grupo em "Grupos publicos".
+2. Clicar em `Entrar`.
+3. Se o grupo exigir consentimento, revisar permissoes e confirmar.
+4. Em grupos com aprovacao (`restrito`), aguardar um lider aprovar.
+
+### Ver carteira de um membro do grupo
+1. Abrir `/grupos` e entrar nos detalhes do grupo.
+2. Clicar no icone de carteira (`bi-wallet2`) ao lado do membro.
+3. Se tiver permissao de gerenciamento, usar `Transacao` para registrar operacoes.
+
+### Aceitar convite para grupo
+1. Abrir a notificacao de convite ou acessar o link `/grupos?convite=TOKEN`.
+2. Revisar permissoes no modal de consentimento.
+3. Confirmar para entrar no grupo.
+
 ## Descricao dos elementos importantes da interface
 
 - `Logo`: identidade visual do sistema e ponto de referencia no topo.
@@ -195,6 +247,7 @@ Elementos importantes:
 - `DividendsChart`: grafico de dividendos.
 - `AuthCard`: formulario de login, cadastro e modais de suporte.
 - `ChatWidget`: assistente IA nas paginas protegidas.
+- `MemberWalletModal`: modal com carteira de outro membro em grupos.
 
 ## Perguntas frequentes
 
@@ -220,4 +273,16 @@ Sim. A pagina `/configuracoes` permite editar dados pessoais e senha.
 Em `/carteira`, `/explorar` e `/grupos`.
 
 ### O assistente IA pode ajudar com quais assuntos?
-Com navegacao do sistema, carteira, transacoes, watchlist, configuracoes e explicacao dos elementos da interface.
+Com navegacao do sistema, carteira, transacoes, watchlist, grupos, configuracoes e explicacao dos elementos da interface.
+
+### Onde crio ou entro em grupos?
+Na pagina `/grupos`. Grupos publicos aparecem na segunda secao; grupos em que voce participa ficam em "Grupos que voce pertence".
+
+### Quem pode ver ou editar a carteira de outro membro?
+Depende das permissoes do grupo (`visualizar` e `gerenciar`). O icone de carteira so aparece quando voce tem permissao de visualizacao. Edicao exige permissao de gerenciamento.
+
+### O que e re-consentimento em grupos?
+Quando um lider torna as permissoes mais permissivas, cada membro precisa aceitar novamente. O icone de relogio vermelho indica pendencia. Recusar faz o membro sair do grupo imediatamente.
+
+### Como funcionam convites de grupo?
+Lideres podem convidar por busca de usuario ou gerar link. Convites chegam como notificacao ou URL com `?convite=`. Grupos privados so aceitam entrada por convite.

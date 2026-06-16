@@ -10,6 +10,8 @@ function TransactionHistoryTable({
   onRetry,
   onTransactionChanged,
   readOnly = false,
+  transactionsApiBase = null,
+  modalOverlayClassName = 'transaction-modal-overlay',
 }) {
   const [editTransaction, setEditTransaction] = useState(null)
   const [editType, setEditType] = useState('compra')
@@ -75,6 +77,14 @@ function TransactionHistoryTable({
     }
 
     return parsed.toISOString().split('T')[0]
+  }
+
+  const buildTransactionUrl = (transactionId) => {
+    if (transactionsApiBase) {
+      return `${transactionsApiBase}/${transactionId}`
+    }
+
+    return `api/transactions/${transactionId}`
   }
 
   const triggerRefresh = async () => {
@@ -151,7 +161,7 @@ function TransactionHistoryTable({
     try {
       setIsEditing(true)
 
-      const response = await authFetch(`api/transactions/${editTransaction.id}`, {
+      const response = await authFetch(buildTransactionUrl(editTransaction.id), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
@@ -183,7 +193,7 @@ function TransactionHistoryTable({
       setIsDeleting(true)
       setDeleteError(null)
 
-      const response = await authFetch(`api/transactions/${deleteTransaction.id}`, {
+      const response = await authFetch(buildTransactionUrl(deleteTransaction.id), {
         method: 'DELETE'
       })
       const data = await response.json()
@@ -284,7 +294,7 @@ function TransactionHistoryTable({
       </table>
 
       {!readOnly && editTransaction && (
-        <div className="transaction-modal-overlay" onClick={closeEditModal} role="presentation">
+        <div className={modalOverlayClassName} onClick={closeEditModal} role="presentation">
           <div
             className="transaction-modal-card"
             onClick={(event) => event.stopPropagation()}
@@ -385,7 +395,7 @@ function TransactionHistoryTable({
       )}
 
       {!readOnly && deleteTransaction && (
-        <div className="transaction-modal-overlay" onClick={closeDeleteModal} role="presentation">
+        <div className={modalOverlayClassName} onClick={closeDeleteModal} role="presentation">
           <div
             className="transaction-modal-card transaction-history-confirm-modal"
             onClick={(event) => event.stopPropagation()}

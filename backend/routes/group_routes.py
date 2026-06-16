@@ -9,8 +9,10 @@ from services.group_service import (
     approve_join_request,
     create_direct_invite,
     create_group,
+    create_member_transaction,
     decline_reconsent,
     delete_group,
+    delete_member_transaction,
     demote_member,
     get_group,
     get_invite_link,
@@ -25,6 +27,7 @@ from services.group_service import (
     remove_member,
     transfer_founder,
     update_group,
+    update_member_transaction,
 )
 from utils.auth_context import require_authenticated_user
 
@@ -536,7 +539,7 @@ def accept_invite_route(token):
 @bp.route('/api/groups/<group_id>/members/<member_user_id>/wallet', methods=['GET'])
 @require_authenticated_user(allow_legacy=False)
 def get_member_wallet_route(group_id, member_user_id):
-    """Retorna carteira e transações de um membro (somente leitura)."""
+    """Retorna carteira e transações de um membro."""
     try:
         result = get_member_wallet(group_id, g.auth_user_id, member_user_id)
         status_code = result.get('status_code', 200 if result['success'] else 400)
@@ -553,6 +556,105 @@ def get_member_wallet_route(group_id, member_user_id):
         }), status_code
     except Exception as error:
         print(f'Erro na rota GET member wallet: {error}')
+        return jsonify({
+            'status': 'error',
+            'message': f'Erro interno: {str(error)}',
+        }), 500
+
+
+@bp.route('/api/groups/<group_id>/members/<member_user_id>/transactions', methods=['POST'])
+@require_authenticated_user(allow_legacy=False)
+def create_member_transaction_route(group_id, member_user_id):
+    """Cria transação na carteira de um membro quando permitido."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        result = create_member_transaction(
+            group_id,
+            g.auth_user_id,
+            member_user_id,
+            payload,
+        )
+        status_code = result.get('status_code', 201 if result['success'] else 400)
+
+        if result['success']:
+            return jsonify({
+                'status': 'success',
+                'message': result.get('message'),
+                'data': result.get('data'),
+            }), 201
+
+        return jsonify({
+            'status': 'error',
+            'message': result.get('message', 'Erro ao criar transação'),
+        }), status_code
+    except Exception as error:
+        print(f'Erro na rota POST member transaction: {error}')
+        return jsonify({
+            'status': 'error',
+            'message': f'Erro interno: {str(error)}',
+        }), 500
+
+
+@bp.route('/api/groups/<group_id>/members/<member_user_id>/transactions/<transaction_id>', methods=['PATCH'])
+@require_authenticated_user(allow_legacy=False)
+def update_member_transaction_route(group_id, member_user_id, transaction_id):
+    """Atualiza transação na carteira de um membro quando permitido."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        result = update_member_transaction(
+            group_id,
+            g.auth_user_id,
+            member_user_id,
+            transaction_id,
+            payload,
+        )
+        status_code = result.get('status_code', 200 if result['success'] else 400)
+
+        if result['success']:
+            return jsonify({
+                'status': 'success',
+                'message': result.get('message'),
+                'data': result.get('data'),
+            }), 200
+
+        return jsonify({
+            'status': 'error',
+            'message': result.get('message', 'Erro ao atualizar transação'),
+        }), status_code
+    except Exception as error:
+        print(f'Erro na rota PATCH member transaction: {error}')
+        return jsonify({
+            'status': 'error',
+            'message': f'Erro interno: {str(error)}',
+        }), 500
+
+
+@bp.route('/api/groups/<group_id>/members/<member_user_id>/transactions/<transaction_id>', methods=['DELETE'])
+@require_authenticated_user(allow_legacy=False)
+def delete_member_transaction_route(group_id, member_user_id, transaction_id):
+    """Remove transação na carteira de um membro quando permitido."""
+    try:
+        result = delete_member_transaction(
+            group_id,
+            g.auth_user_id,
+            member_user_id,
+            transaction_id,
+        )
+        status_code = result.get('status_code', 200 if result['success'] else 400)
+
+        if result['success']:
+            return jsonify({
+                'status': 'success',
+                'message': result.get('message'),
+                'data': result.get('data'),
+            }), 200
+
+        return jsonify({
+            'status': 'error',
+            'message': result.get('message', 'Erro ao remover transação'),
+        }), status_code
+    except Exception as error:
+        print(f'Erro na rota DELETE member transaction: {error}')
         return jsonify({
             'status': 'error',
             'message': f'Erro interno: {str(error)}',

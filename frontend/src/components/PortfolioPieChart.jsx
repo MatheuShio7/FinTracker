@@ -1,10 +1,14 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import './PortfolioPieChart.css'
 
-function PortfolioPieChart({ portfolio }) {
+function PortfolioPieChart({ portfolio, compact = false }) {
   if (!portfolio || portfolio.length === 0) {
     return null
   }
+
+  const chartHeight = compact ? 380 : 600
+  const outerRadius = compact ? 118 : 200
+  const chartCenterX = compact ? '34%' : '30%'
 
   // Calcular valor total da carteira
   const totalValue = portfolio.reduce((sum, stock) => sum + (stock.total_value || 0), 0)
@@ -65,16 +69,16 @@ function PortfolioPieChart({ portfolio }) {
   }
 
   return (
-    <div className="portfolio-pie-chart-container">
-      <ResponsiveContainer width="100%" height={600}>
+    <div className={`portfolio-pie-chart-container${compact ? ' portfolio-pie-chart-container--compact' : ''}`}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
         <PieChart>
           <Pie
             data={chartData}
-            cx="30%"
+            cx={chartCenterX}
             cy="50%"
             labelLine={false}
             label={renderLabel}
-            outerRadius={200}
+            outerRadius={outerRadius}
             innerRadius={0}
             fill={COLORS.default}
             dataKey="value"

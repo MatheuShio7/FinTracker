@@ -1,5 +1,5 @@
 .grupos-wallet-overlay {
-  z-index: 1200;
+  z-index: 1500;
 }
 
 .grupos-wallet-modal-card {
@@ -11,28 +11,34 @@
 }
 
 .grupos-wallet-header {
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  padding: 18px 24px;
+  gap: 16px;
+  flex-shrink: 0;
 }
 
 .grupos-wallet-title-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 16px;
+  min-width: 0;
 }
 
 .grupos-wallet-title-row h3 {
   margin: 0;
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
-.grupos-wallet-readonly-badge {
+.grupos-wallet-mode-badge {
   display: inline-flex;
   align-items: center;
   width: fit-content;
   padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid #4b5563;
-  color: #9ca3af;
   font-family: 'Poppins', sans-serif;
   font-size: 11px;
   font-weight: 600;
@@ -40,25 +46,107 @@
   letter-spacing: 0.04em;
 }
 
+.grupos-wallet-mode-badge-readonly {
+  border: 1px solid #4b5563;
+  color: #9ca3af;
+}
+
+.grupos-wallet-mode-badge-manage {
+  border: 1px solid #f65308;
+  color: #ff8a3d;
+}
+
+.grupos-wallet-header-actions .reload-button.grupos-wallet-transaction-button {
+  position: static;
+  top: auto;
+  right: auto;
+  min-width: 130px;
+  height: 36px;
+  border-width: 2px;
+  border-radius: 10px;
+  padding: 0 12px;
+}
+
+.grupos-wallet-header-actions .reload-button.grupos-wallet-transaction-button span {
+  font-size: 14px;
+}
+
 .grupos-wallet-header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
-.grupos-wallet-reload-button {
+.grupos-wallet-header-actions .reload-button.grupos-wallet-reload-button {
   position: static;
+  top: auto;
+  right: auto;
+  width: 36px;
+  height: 36px;
+  border-width: 2px;
+  border-radius: 10px;
+}
+
+.grupos-wallet-header-actions .reload-button.grupos-wallet-reload-button i {
+  font-size: 18px;
 }
 
 .grupos-wallet-body {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 0 24px 24px;
+  padding: 8px 24px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: #2a2b30 #111216;
 }
 
-.grupos-wallet-body .portfolio-pie-chart-container {
-  margin-top: 8px;
+.grupos-wallet-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.grupos-wallet-body::-webkit-scrollbar-track {
+  background: #111216;
+  border-radius: 999px;
+  margin: 12px 0;
+}
+
+.grupos-wallet-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ff8a3d 0%, #f65308 100%);
+  border: 2px solid #111216;
+  border-radius: 999px;
+}
+
+.grupos-wallet-section {
+  position: relative;
+}
+
+.grupos-wallet-chart-section {
+  z-index: 0;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.grupos-wallet-history-section {
+  z-index: 1;
+  background: #16171b;
+  padding-top: 4px;
+}
+
+.grupos-wallet-body .portfolio-table-container {
+  margin: 0 0 16px;
+  max-width: none;
+  padding: 0;
 }
 
 .grupos-wallet-body .transaction-history-container {
-  margin-top: 8px;
+  margin: 0;
+  max-width: none;
+  padding: 0;
+}
+
+.grupos-wallet-body .transaction-history-title {
+  font-size: 18px;
+  position: relative;
+  z-index: 2;
 }

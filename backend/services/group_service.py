@@ -8,7 +8,12 @@ from typing import Any, Dict, List, Optional, Tuple
 from config.supabase_config import get_supabase_admin_client
 from services.notification_service import create_notification
 from services.portfolio_service import get_user_portfolio_full
-from services.transaction_service import list_transactions
+from services.transaction_service import (
+    create_transaction,
+    delete_transaction,
+    list_transactions,
+    update_transaction,
+)
 
 VALID_VISIBILITY = {'publico', 'restrito', 'privado'}
 VALID_PERMISSIONS = {'todos', 'lideres', 'ninguem'}
@@ -436,22 +441,36 @@ def update_group(group_id: str, user_id: str, payload: Dict[str, Any]) -> Dict[s
         if not is_valid:
             return {'success': False, 'message': message}
 
-        updated_response = supabase.table('groups')\
+        supabase.table('groups')\
             .update(update_data)\
             .eq('id', group_id)\
             .execute()
 
-        if not updated_response.data:
+        refetch_response = supabase.table('groups')\
+            .select('*')\
+            .eq('id', group_id)\
+            .limit(1)\
+            .execute()
+
+        if not refetch_response.data:
             return {'success': False, 'message': 'Erro ao atualizar grupo'}
 
-        updated_group = updated_response.data[0]
+        updated_group = refetch_response.data[0]
 
         permissions_changed = (
-            'view_permission' in update_data or 'manage_permission' in update_data
+            (
+                'view_permission' in update_data
+                and update_data.get('view_permission') != group.get('view_permission')
+            )
+            or (
+                'manage_permission' in update_data
+                and update_data.get('manage_permission') != group.get('manage_permission')
+            )
         )
 
         if permissions_changed:
             _apply_reconsent_for_permission_changes(supabase, updated_group, user_id)
+            _sync_editor_consent_after_permission_update(supabase, updated_group, user_id)
 
         return {
             'success': True,
@@ -690,6 +709,26 @@ def _apply_reconsent_for_permission_changes(
                 icon='clock-history',
                 metadata={'group_id': group['id']},
             )
+
+
+def _sync_editor_consent_after_permission_update(
+    supabase,
+    group: Dict[str, Any],
+    actor_id: str,
+) -> None:
+    membership = _get_user_membership(supabase, group['id'], actor_id)
+
+    if not membership or membership.get('status') != 'active':
+        return
+
+    supabase.table('group_members')\
+        .update({
+            'consented_view': group.get('view_permission'),
+            'consented_manage': group.get('manage_permission'),
+            'consented_at': _now_iso(),
+        })\
+        .eq('id', membership['id'])\
+        .execute()
 
 
 def _is_group_at_capacity(supabase, group: Dict[str, Any]) -> bool:
@@ -1759,6 +1798,155 @@ def _can_view_member_wallet(
     return True, ''
 
 
+def _can_manage_member_wallet(
+    group: Dict[str, Any],
+    actor_membership: Optional[Dict[str, Any]],
+    actor_id: str,
+    target_user_id: str,
+) -> Tuple[bool, str]:
+    if not actor_membership or actor_membership.get('status') != 'active':
+        return False, 'Você precisa ser membro ativo do grupo'
+
+    if actor_id == target_user_id:
+        return True, ''
+
+    manage_permission = group.get('manage_permission') or 'ninguem'
+
+    if manage_permission == 'ninguem':
+        return False, 'Este grupo não permite gerenciar carteiras de outros membros'
+
+    if manage_permission == 'lideres':
+        if not (actor_membership.get('is_founder') or actor_membership.get('is_leader')):
+            return False, 'Apenas líderes podem gerenciar carteiras de membros'
+
+    return True, ''
+
+
+def _ensure_member_wallet_manage_access(
+    group: Dict[str, Any],
+    actor_membership: Optional[Dict[str, Any]],
+    actor_id: str,
+    target_user_id: str,
+) -> Tuple[bool, str]:
+    if actor_id != target_user_id:
+        can_view, view_message = _can_view_member_wallet(
+            group,
+            actor_membership,
+            actor_id,
+            target_user_id,
+        )
+        if not can_view:
+            return False, view_message
+
+    return _can_manage_member_wallet(
+        group,
+        actor_membership,
+        actor_id,
+        target_user_id,
+    )
+
+
+def _get_group_and_memberships(
+    supabase,
+    group_id: str,
+    actor_id: str,
+    target_user_id: str,
+) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]], Optional[Dict[str, Any]], Optional[str]]:
+    group_response = supabase.table('groups')\
+        .select('*')\
+        .eq('id', group_id)\
+        .limit(1)\
+        .execute()
+
+    if not group_response.data:
+        return None, None, None, 'Grupo não encontrado'
+
+    group = group_response.data[0]
+    actor_membership = _get_user_membership(supabase, group_id, actor_id)
+    target_membership = _get_user_membership(supabase, group_id, target_user_id)
+
+    if not target_membership or target_membership.get('status') != 'active':
+        return group, actor_membership, None, 'Membro não encontrado'
+
+    return group, actor_membership, target_membership, None
+
+
+def _format_transaction_type_label(tx_type: Optional[str]) -> str:
+    if tx_type == 'buy':
+        return 'compra'
+    if tx_type == 'sell':
+        return 'venda'
+    return 'transação'
+
+
+def _notify_wallet_owner_managed(
+    supabase,
+    group: Dict[str, Any],
+    actor_id: str,
+    target_user_id: str,
+    action: str,
+    transaction_data: Optional[Dict[str, Any]] = None,
+) -> None:
+    if actor_id == target_user_id:
+        return
+
+    actor = _fetch_user_profile(supabase, actor_id)
+    actor_name = _format_display_name(actor)
+    group_name = group.get('name') or 'Grupo'
+
+    ticker = (transaction_data or {}).get('ticker') or 'ação'
+    tx_type = _format_transaction_type_label((transaction_data or {}).get('type'))
+
+    action_messages = {
+        'created': f'{actor_name} registrou uma {tx_type} de {ticker} na sua carteira no grupo {group_name}.',
+        'updated': f'{actor_name} atualizou uma transação de {ticker} na sua carteira no grupo {group_name}.',
+        'deleted': f'{actor_name} removeu uma transação de {ticker} na sua carteira no grupo {group_name}.',
+    }
+
+    create_notification(
+        user_id=target_user_id,
+        notification_type='group_wallet_managed',
+        title='Carteira gerenciada no grupo',
+        description=action_messages.get(action, action_messages['updated']),
+        icon='wallet2',
+        metadata={
+            'group_id': group['id'],
+            'actor_id': actor_id,
+            'action': action,
+            'transaction_id': (transaction_data or {}).get('id'),
+            'ticker': ticker,
+        },
+    )
+
+
+def _wallet_payload_from_member(
+    supabase,
+    group: Dict[str, Any],
+    actor_id: str,
+    target_user_id: str,
+) -> Dict[str, Any]:
+    can_manage, _ = _can_manage_member_wallet(
+        group,
+        _get_user_membership(supabase, group['id'], actor_id),
+        actor_id,
+        target_user_id,
+    )
+    target_user = _fetch_user_profile(supabase, target_user_id)
+    portfolio = get_user_portfolio_full(target_user_id, use_admin=True)
+    transactions_result = list_transactions(target_user_id)
+
+    return {
+        'member': {
+            'userId': target_user_id,
+            'name': _format_display_name(target_user),
+            'email': target_user.get('email'),
+        },
+        'portfolio': portfolio or [],
+        'transactions': transactions_result.get('data') or [] if transactions_result.get('success') else [],
+        'canManage': can_manage,
+    }
+
+
 def get_member_wallet(group_id: str, actor_id: str, target_user_id: str) -> Dict[str, Any]:
     try:
         supabase = get_supabase_admin_client()
@@ -1800,6 +1988,13 @@ def get_member_wallet(group_id: str, actor_id: str, target_user_id: str) -> Dict
                 'message': transactions_result.get('message', 'Erro ao carregar transações'),
             }
 
+        can_manage, _ = _can_manage_member_wallet(
+            group,
+            actor_membership,
+            actor_id,
+            target_user_id,
+        )
+
         return {
             'success': True,
             'data': {
@@ -1810,8 +2005,185 @@ def get_member_wallet(group_id: str, actor_id: str, target_user_id: str) -> Dict
                 },
                 'portfolio': portfolio or [],
                 'transactions': transactions_result.get('data') or [],
+                'canManage': can_manage,
             },
         }
     except Exception as error:
         print(f'Erro ao buscar carteira do membro: {error}')
         return {'success': False, 'message': 'Erro ao carregar carteira do membro'}
+
+
+def create_member_transaction(
+    group_id: str,
+    actor_id: str,
+    target_user_id: str,
+    payload: Dict[str, Any],
+) -> Dict[str, Any]:
+    try:
+        supabase = get_supabase_admin_client()
+        group, actor_membership, target_membership, error_message = _get_group_and_memberships(
+            supabase,
+            group_id,
+            actor_id,
+            target_user_id,
+        )
+
+        if error_message:
+            return {'success': False, 'message': error_message, 'status_code': 404}
+
+        can_manage, message = _ensure_member_wallet_manage_access(
+            group,
+            actor_membership,
+            actor_id,
+            target_user_id,
+        )
+
+        if not can_manage:
+            return {'success': False, 'message': message, 'status_code': 403}
+
+        result = create_transaction(target_user_id, payload)
+
+        if not result.get('success'):
+            return {'success': False, 'message': result.get('message', 'Erro ao criar transação')}
+
+        _notify_wallet_owner_managed(
+            supabase,
+            group,
+            actor_id,
+            target_user_id,
+            'created',
+            result.get('data'),
+        )
+
+        return {
+            'success': True,
+            'message': result.get('message'),
+            'data': _wallet_payload_from_member(supabase, group, actor_id, target_user_id),
+        }
+    except Exception as error:
+        print(f'Erro ao criar transação do membro: {error}')
+        return {'success': False, 'message': 'Erro ao criar transação'}
+
+
+def update_member_transaction(
+    group_id: str,
+    actor_id: str,
+    target_user_id: str,
+    transaction_id: str,
+    payload: Dict[str, Any],
+) -> Dict[str, Any]:
+    try:
+        supabase = get_supabase_admin_client()
+        group, actor_membership, target_membership, error_message = _get_group_and_memberships(
+            supabase,
+            group_id,
+            actor_id,
+            target_user_id,
+        )
+
+        if error_message:
+            status_code = 404
+            return {'success': False, 'message': error_message, 'status_code': status_code}
+
+        can_manage, message = _ensure_member_wallet_manage_access(
+            group,
+            actor_membership,
+            actor_id,
+            target_user_id,
+        )
+
+        if not can_manage:
+            return {'success': False, 'message': message, 'status_code': 403}
+
+        result = update_transaction(target_user_id, transaction_id, payload)
+
+        if not result.get('success'):
+            return {'success': False, 'message': result.get('message', 'Erro ao atualizar transação')}
+
+        _notify_wallet_owner_managed(
+            supabase,
+            group,
+            actor_id,
+            target_user_id,
+            'updated',
+            result.get('data'),
+        )
+
+        return {
+            'success': True,
+            'message': result.get('message'),
+            'data': _wallet_payload_from_member(supabase, group, actor_id, target_user_id),
+        }
+    except Exception as error:
+        print(f'Erro ao atualizar transação do membro: {error}')
+        return {'success': False, 'message': 'Erro ao atualizar transação'}
+
+
+def delete_member_transaction(
+    group_id: str,
+    actor_id: str,
+    target_user_id: str,
+    transaction_id: str,
+) -> Dict[str, Any]:
+    try:
+        supabase = get_supabase_admin_client()
+        group, actor_membership, target_membership, error_message = _get_group_and_memberships(
+            supabase,
+            group_id,
+            actor_id,
+            target_user_id,
+        )
+
+        if error_message:
+            return {'success': False, 'message': error_message, 'status_code': 404}
+
+        can_manage, message = _ensure_member_wallet_manage_access(
+            group,
+            actor_membership,
+            actor_id,
+            target_user_id,
+        )
+
+        if not can_manage:
+            return {'success': False, 'message': message, 'status_code': 403}
+
+        existing = supabase.table('transactions')\
+            .select('id, type, stocks(ticker)')\
+            .eq('id', transaction_id)\
+            .eq('user_id', target_user_id)\
+            .limit(1)\
+            .execute()
+
+        tx_snapshot = None
+        if existing.data:
+            stock = existing.data[0].get('stocks') or {}
+            if isinstance(stock, list):
+                stock = stock[0] if stock else {}
+            tx_snapshot = {
+                'id': transaction_id,
+                'type': existing.data[0].get('type'),
+                'ticker': stock.get('ticker'),
+            }
+
+        result = delete_transaction(target_user_id, transaction_id)
+
+        if not result.get('success'):
+            return {'success': False, 'message': result.get('message', 'Erro ao remover transação')}
+
+        _notify_wallet_owner_managed(
+            supabase,
+            group,
+            actor_id,
+            target_user_id,
+            'deleted',
+            tx_snapshot,
+        )
+
+        return {
+            'success': True,
+            'message': result.get('message'),
+            'data': _wallet_payload_from_member(supabase, group, actor_id, target_user_id),
+        }
+    except Exception as error:
+        print(f'Erro ao remover transação do membro: {error}')
+        return {'success': False, 'message': 'Erro ao remover transação'}

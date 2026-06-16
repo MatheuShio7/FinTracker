@@ -122,6 +122,34 @@
   font-weight: 600;
 }
 
+.grupos-card-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.grupos-card-badge-full {
+  background: rgba(180, 83, 9, 0.18);
+  color: #fbbf24;
+}
+
+.grupos-card-pending-reconsent {
+  border-color: #7f1d1d;
+}
+
+.grupos-card-reconsent-icon {
+  margin-left: 8px;
+  color: #ef4444;
+  font-size: 16px;
+  vertical-align: middle;
+}
+
+.grupos-details-chip-warning {
+  border-color: #b45309;
+  color: #fbbf24;
+}
+
 .grupos-card-description {
   margin: 0;
   color: #c8c8c8;
@@ -415,6 +443,16 @@
 .grupos-details-icon-button:hover {
   color: #f65308;
   background: rgba(246, 83, 8, 0.08);
+}
+
+.grupos-details-icon-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.grupos-details-icon-button:disabled:hover {
+  color: #d1d5db;
+  background: transparent;
 }
 
 .grupos-details-icon-button-danger {

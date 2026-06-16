@@ -41,6 +41,24 @@ const permissionLabels = {
   ninguem: 'Ninguém',
 }
 
+const PERMISSION_LEVELS = {
+  ninguem: 0,
+  lideres: 1,
+  todos: 2,
+}
+
+const validateGroupPermissions = (view, manage) => {
+  if (PERMISSION_LEVELS[manage] > PERMISSION_LEVELS[view]) {
+    return 'Gerenciar não pode ser mais permissivo que visualizar.'
+  }
+
+  return ''
+}
+
+const isGroupAtCapacity = (group) => (
+  Boolean(group?.maxMembers && group.membersCount >= group.maxMembers)
+)
+
 const groupRequiresConsent = (group) => {
   if (!group?.permissions) {
     return false
@@ -398,6 +416,12 @@ function Grupos() {
       return
     }
 
+    const permissionError = validateGroupPermissions(viewPermission, managePermission)
+    if (permissionError) {
+      setSubmitError(permissionError)
+      return
+    }
+
     setIsSubmitting(true)
     setSubmitError('')
 
@@ -431,6 +455,9 @@ function Grupos() {
       }
 
       await fetchGroups(true)
+      if (editingGroupId && isDetailsModalOpen) {
+        await fetchGroupDetails(editingGroupId)
+      }
       setIsGroupModalOpen(false)
       setEditingGroupId(null)
       resetGroupForm()
@@ -1041,20 +1068,36 @@ function Grupos() {
     const memberLabel = group.maxMembers
       ? `${group.membersCount}/${group.maxMembers} membros`
       : `${group.membersCount} membros`
+    const needsReconsentOnCard = group.currentUserMembership?.status === 'pending_reconsent'
+    const groupIsFull = isGroupAtCapacity(group)
 
     return (
       <button
         type="button"
         key={group.id}
-        className="grupos-card"
+        className={`grupos-card${needsReconsentOnCard ? ' grupos-card-pending-reconsent' : ''}`}
         onClick={() => handleOpenGroupDetails(group)}
       >
         <div className="grupos-card-header">
           <div>
-            <h3>{group.name}</h3>
+            <h3>
+              {group.name}
+              {needsReconsentOnCard && (
+                <i
+                  className="bi bi-clock-history grupos-card-reconsent-icon"
+                  title="Re-consentimento pendente"
+                  aria-label="Re-consentimento pendente"
+                ></i>
+              )}
+            </h3>
             <p className="grupos-card-visibility">{visibilityLabels[group.visibility] || group.visibility}</p>
           </div>
-          <span className="grupos-card-badge">{memberLabel}</span>
+          <div className="grupos-card-badges">
+            {groupIsFull && (
+              <span className="grupos-card-badge grupos-card-badge-full">Lotado</span>
+            )}
+            <span className="grupos-card-badge">{memberLabel}</span>
+          </div>
         </div>
         <p className="grupos-card-description">{group.description || 'Sem descrição.'}</p>
       </button>
@@ -1069,9 +1112,11 @@ function Grupos() {
   const isActiveMember = currentUserMembership?.status === 'active'
   const needsReconsent = currentUserMembership?.status === 'pending_reconsent'
   const hasPendingJoin = currentUserJoinRequest?.status === 'pending'
+  const isGroupFull = isGroupAtCapacity(detailsGroup)
   const canJoin = !hasMembership
     && !hasPendingJoin
     && detailsGroup?.visibility !== 'privado'
+    && !isGroupFull
   const canLeave = isActiveMember && !currentUserMembership?.is_founder
   const canManageMembers = isActiveMember && Boolean(
     currentUserMembership?.is_founder || currentUserMembership?.is_leader
@@ -1288,7 +1333,14 @@ function Grupos() {
                   <select
                     id="group-view-permission"
                     value={viewPermission}
-                    onChange={(event) => setViewPermission(event.target.value)}
+                    onChange={(event) => {
+                      const nextView = event.target.value
+                      setViewPermission(nextView)
+
+                      if (PERMISSION_LEVELS[managePermission] > PERMISSION_LEVELS[nextView]) {
+                        setManagePermission(nextView)
+                      }
+                    }}
                   >
                     <option value="todos">Todos</option>
                     <option value="lideres">Apenas líderes</option>
@@ -1400,8 +1452,9 @@ function Grupos() {
                       type="button"
                       className="grupos-details-icon-button"
                       onClick={handleOpenInviteModal}
+                      disabled={isGroupFull}
                       aria-label="Convidar membros"
-                      title="Convidar membros"
+                      title={isGroupFull ? 'Grupo atingiu o limite de membros' : 'Convidar membros'}
                     >
                       <i className="bi bi-envelope"></i>
                     </button>
@@ -1458,6 +1511,11 @@ function Grupos() {
                             ? `${detailsGroup.membersCount}/${detailsGroup.maxMembers} Membros`
                             : `${detailsGroup.membersCount} Membros`}
                         </span>
+                        {isGroupFull && (
+                          <span className="grupos-details-chip grupos-details-chip-warning">
+                            Lotado
+                          </span>
+                        )}
                       </div>
                       {needsReconsent && (
                         <button
@@ -1487,6 +1545,15 @@ function Grupos() {
                           disabled
                         >
                           Aguardando aprovação
+                        </button>
+                      )}
+                      {isGroupFull && !hasMembership && !hasPendingJoin && detailsGroup?.visibility !== 'privado' && (
+                        <button
+                          type="button"
+                          className="grupos-member-action grupos-member-action-pending"
+                          disabled
+                        >
+                          Grupo lotado
                         </button>
                       )}
                       {canLeave && (
@@ -1539,6 +1606,9 @@ function Grupos() {
                   )}
 
                   <div className="grupos-members-list">
+                    {(detailsGroup.members || []).length === 0 && (
+                      <p className="grupos-section-feedback">Nenhum membro listado neste grupo.</p>
+                    )}
                     {(detailsGroup.members || []).map((member) => (
                       <div key={member.id} className="grupos-member-item">
                         <div className="grupos-member-info">

@@ -54,6 +54,24 @@ function NotificationsButton({ className = '' }) {
       } else {
         navigate('/grupos')
       }
+      return
+    }
+
+    if (
+      notification.rawType === 'group_join_pending'
+      || notification.rawType === 'group_join_approved'
+      || notification.rawType === 'group_wallet_managed'
+    ) {
+      const groupId = notification.metadata?.group_id
+      markNotificationAsSeen(notification.id)
+      setIsOpen(false)
+
+      if (groupId) {
+        navigate(`/grupos?grupo=${encodeURIComponent(groupId)}`)
+      } else {
+        navigate('/grupos')
+      }
+      return
     }
   }
 

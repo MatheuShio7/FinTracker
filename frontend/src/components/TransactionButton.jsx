@@ -4,7 +4,13 @@ import { authFetch } from '../lib/authFetch'
 import './TransactionButton.css'
 
 const TransactionButton = forwardRef(function TransactionButton(
-  { className = '', onTransactionSaved, showTriggerButton = true },
+  {
+    className = '',
+    onTransactionSaved,
+    showTriggerButton = true,
+    submitEndpoint = 'api/transactions',
+    modalOverlayClassName = 'transaction-modal-overlay',
+  },
   ref
 ) {
   const [isOpen, setIsOpen] = useState(false)
@@ -207,7 +213,7 @@ const TransactionButton = forwardRef(function TransactionButton(
     try {
       setIsSubmitting(true)
 
-      const response = await authFetch('api/transactions', {
+      const response = await authFetch(submitEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -254,7 +260,7 @@ const TransactionButton = forwardRef(function TransactionButton(
       )}
 
       {isOpen && (
-        <div className="transaction-modal-overlay" onClick={handleClose} role="presentation">
+        <div className={modalOverlayClassName} onClick={handleClose} role="presentation">
           <div
             className="transaction-modal-card"
             onClick={(event) => event.stopPropagation()}
