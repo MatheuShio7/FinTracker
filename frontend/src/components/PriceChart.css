@@ -3,9 +3,9 @@
   max-width: 1200px;
   margin: 16rem auto 2rem auto;
   padding: 1.5rem;
-  background: #16171b;
+  background: var(--color-bg-surface);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px var(--color-shadow);
 }
 
 /* Header do gráfico com título e seletores */
@@ -21,7 +21,7 @@
 .chart-header h2 {
   margin: 0;
   font-size: 1.5rem;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-weight: 700;
 }
 
@@ -41,8 +41,8 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: #202128;
-  color: #9f9f9f;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-secondary);
 }
 
 .range-selector button:hover:not(:disabled) {
@@ -50,8 +50,8 @@
 }
 
 .range-selector button.selected {
-  background: #ffffff;
-  color: #111111;
+  background: var(--color-chart-tooltip-bg);
+  color: var(--color-text-inverse);
 }
 
 .range-selector button:disabled {
@@ -96,7 +96,7 @@
 
 .tooltip-price {
   font-size: 1rem;
-  color: #ffffff;
+  color: var(--color-text-primary);
   margin: 0;
   font-weight: 700;
 }
@@ -131,7 +131,7 @@
 
 .stat-value {
   font-size: 1.125rem;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-weight: 700;
 }
 

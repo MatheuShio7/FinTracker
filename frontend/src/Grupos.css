@@ -31,7 +31,7 @@
 }
 
 .grupos-group-button span {
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
   font-weight: 500;
@@ -56,7 +56,7 @@
 
 .grupos-section-title {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 20px;
   font-weight: 600;
@@ -72,9 +72,9 @@
   height: 188px;
   display: flex;
   flex-direction: column;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 16px;
-  background: linear-gradient(180deg, #16171b 0%, #111216 100%);
+  background: linear-gradient(180deg, var(--color-bg-surface) 0%, var(--color-transaction-bg) 100%);
   padding: 18px;
   text-align: left;
   cursor: pointer;
@@ -98,7 +98,7 @@
 
 .grupos-card-header h3 {
   margin: 0 0 6px;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 18px;
   font-weight: 600;
@@ -106,7 +106,7 @@
 
 .grupos-card-visibility {
   margin: 0;
-  color: #9f9f9f;
+  color: var(--color-text-secondary);
   font-family: 'Poppins', sans-serif;
   font-size: 13px;
 }
@@ -152,7 +152,7 @@
 
 .grupos-card-description {
   margin: 0;
-  color: #c8c8c8;
+  color: var(--color-text-subtle);
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
   line-height: 1.5;
@@ -178,8 +178,8 @@
   width: min(720px, 100%);
   max-height: calc(100vh - 32px);
   overflow: hidden;
-  background: #16171b;
-  border: 1px solid #2a2b30;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   box-shadow: 0 28px 64px rgba(0, 0, 0, 0.45);
 }
@@ -187,7 +187,7 @@
 .grupos-create-modal-card {
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #2a2b30 #111216;
+  scrollbar-color: var(--color-grupos-scrollbar-thumb) var(--color-grupos-scrollbar-track);
 }
 
 .grupos-create-modal-card::-webkit-scrollbar {
@@ -195,14 +195,14 @@
 }
 
 .grupos-create-modal-card::-webkit-scrollbar-track {
-  background: #111216;
+  background: var(--color-transaction-bg);
   border-radius: 999px;
   margin: 12px 0;
 }
 
 .grupos-create-modal-card::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #ff8a3d 0%, #f65308 100%);
-  border: 2px solid #111216;
+  border: 2px solid var(--color-transaction-bg);
   border-radius: 999px;
 }
 
@@ -215,12 +215,12 @@
   align-items: center;
   justify-content: space-between;
   padding: 18px 22px;
-  border-bottom: 1px solid #2a2b30;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .grupos-modal-header h3 {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 20px;
   font-weight: 600;
@@ -229,10 +229,10 @@
 .grupos-close-button {
   width: 36px;
   height: 36px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   background: transparent;
-  color: #ffffff;
+  color: var(--color-text-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -259,7 +259,7 @@
 }
 
 .grupos-field label {
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
   font-weight: 500;
@@ -270,10 +270,10 @@
 .grupos-field select {
   width: 100%;
   min-height: 46px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #111216;
-  color: #ffffff;
+  background: var(--color-transaction-bg);
+  color: var(--color-text-primary);
   padding: 0 14px;
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
@@ -318,7 +318,7 @@
   top: 50%;
   right: 14px;
   transform: translateY(-50%);
-  color: #ffffff;
+  color: var(--color-text-primary);
   pointer-events: none;
 }
 
@@ -327,7 +327,7 @@
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  color: #c8c8c8;
+  color: var(--color-text-subtle);
 }
 
 .grupos-toggle-row input {
@@ -350,9 +350,9 @@
 
 .grupos-permissions-card {
   padding: 18px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 14px;
-  background: #111216;
+  background: var(--color-transaction-bg);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -360,7 +360,7 @@
 
 .grupos-permissions-header h4 {
   margin: 0 0 6px;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
   font-weight: 600;
@@ -368,7 +368,7 @@
 
 .grupos-permissions-header p {
   margin: 0;
-  color: #9f9f9f;
+  color: var(--color-text-secondary);
   font-family: 'Poppins', sans-serif;
   font-size: 13px;
   line-height: 1.45;
@@ -378,7 +378,7 @@
   width: min(760px, 100%);
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #2a2b30 #111216;
+  scrollbar-color: var(--color-grupos-scrollbar-thumb) var(--color-grupos-scrollbar-track);
 }
 
 .grupos-details-modal-card::-webkit-scrollbar {
@@ -386,14 +386,14 @@
 }
 
 .grupos-details-modal-card::-webkit-scrollbar-track {
-  background: #111216;
+  background: var(--color-transaction-bg);
   border-radius: 999px;
   margin: 12px 0;
 }
 
 .grupos-details-modal-card::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #ff8a3d 0%, #f65308 100%);
-  border: 2px solid #111216;
+  border: 2px solid var(--color-transaction-bg);
   border-radius: 999px;
 }
 
@@ -403,7 +403,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 22px 25px 18px;
-  border-bottom: 1px solid #2a2b30;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .grupos-details-title-row {
@@ -415,7 +415,7 @@
 
 .grupos-details-title-row h3 {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 24px;
   font-weight: 600;
@@ -428,7 +428,7 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #ffffff;
+  color: var(--color-text-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -476,12 +476,12 @@
   flex-direction: column;
   gap: 26px;
   padding-bottom: 18px;
-  border-bottom: 1px solid #2a2b30;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .grupos-details-description {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
   line-height: 1.65;
@@ -524,7 +524,7 @@
   justify-content: space-between;
   gap: 20px;
   padding: 18px 8px;
-  border-bottom: 1px solid #2a2b30;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .grupos-member-item:last-child {
@@ -546,7 +546,7 @@
 }
 
 .grupos-member-info strong {
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
   font-weight: 600;
@@ -645,7 +645,7 @@
 
 .grupos-invite-header h3 {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 20px;
   font-weight: 600;
@@ -662,10 +662,10 @@
   justify-content: center;
   gap: 10px;
   padding: 10px 16px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #111216;
-  color: #ffffff;
+  background: var(--color-transaction-bg);
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
   font-weight: 500;
@@ -700,7 +700,7 @@
   top: 50%;
   left: 14px;
   transform: translateY(-50%);
-  color: #9f9f9f;
+  color: var(--color-text-secondary);
   font-size: 16px;
   pointer-events: none;
 }
@@ -708,10 +708,10 @@
 .grupos-invite-search-input {
   width: 100%;
   height: 46px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #111216;
-  color: #ffffff;
+  background: var(--color-transaction-bg);
+  color: var(--color-text-primary);
   padding: 0 14px 0 42px;
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
@@ -730,7 +730,7 @@
   overflow-y: auto;
   padding-right: 4px;
   scrollbar-width: thin;
-  scrollbar-color: #2a2b30 #111216;
+  scrollbar-color: var(--color-grupos-scrollbar-thumb) var(--color-grupos-scrollbar-track);
 }
 
 .grupos-invite-results::-webkit-scrollbar {
@@ -738,19 +738,19 @@
 }
 
 .grupos-invite-results::-webkit-scrollbar-track {
-  background: #111216;
+  background: var(--color-transaction-bg);
   border-radius: 999px;
 }
 
 .grupos-invite-results::-webkit-scrollbar-thumb {
-  background: #2a2b30;
+  background: var(--color-border);
   border-radius: 999px;
 }
 
 .grupos-invite-feedback {
   margin: 0;
   padding: 24px 8px;
-  color: #9f9f9f;
+  color: var(--color-text-secondary);
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
   text-align: center;
@@ -767,7 +767,7 @@
 .grupos-section-feedback {
   margin: 0;
   padding: 32px 16px;
-  color: #9f9f9f;
+  color: var(--color-text-secondary);
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
   text-align: center;
@@ -796,7 +796,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px 8px;
-  border-bottom: 1px solid #2a2b30;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .grupos-invite-result-item:last-child {
@@ -811,7 +811,7 @@
 }
 
 .grupos-invite-result-info strong {
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
   font-weight: 600;
@@ -840,7 +840,7 @@
 
 .grupos-delete-header h3 {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 20px;
   font-weight: 600;
@@ -855,14 +855,14 @@
 
 .grupos-delete-message {
   margin: 0;
-  color: #c8c8c8;
+  color: var(--color-text-subtle);
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
   line-height: 1.65;
 }
 
 .grupos-delete-message strong {
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 
@@ -874,10 +874,10 @@
 
 .grupos-delete-cancel-button {
   padding: 10px 18px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   background: transparent;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -887,7 +887,7 @@
 
 .grupos-delete-cancel-button:hover {
   border-color: #4a4b52;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-auth-secondary-bg);
 }
 
 .grupos-delete-confirm-button {
@@ -915,7 +915,7 @@
   border: 1px solid #f65308;
   border-radius: 12px;
   background: transparent;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
   font-weight: 600;
@@ -966,7 +966,7 @@
 
 .grupos-consent-header h3 {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 24px;
   font-weight: 600;
@@ -994,7 +994,7 @@
 
 .grupos-consent-note {
   margin: 0;
-  color: #9f9f9f;
+  color: var(--color-text-secondary);
   font-family: 'Poppins', sans-serif;
   font-size: 13px;
 }
@@ -1034,14 +1034,14 @@
   gap: 12px;
   margin-bottom: 16px;
   padding: 16px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: #111216;
+  background: var(--color-transaction-bg);
 }
 
 .grupos-pending-requests-title {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
   font-weight: 600;
@@ -1053,7 +1053,7 @@
   justify-content: space-between;
   gap: 12px;
   padding-top: 8px;
-  border-top: 1px solid #2a2b30;
+  border-top: 1px solid var(--color-border);
 }
 
 .grupos-pending-request-item:first-of-type {
@@ -1068,13 +1068,13 @@
 }
 
 .grupos-pending-request-info strong {
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
 }
 
 .grupos-pending-request-info span {
-  color: #9f9f9f;
+  color: var(--color-text-secondary);
   font-family: 'Poppins', sans-serif;
   font-size: 13px;
 }

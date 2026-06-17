@@ -41,7 +41,7 @@
 }
 
 .total-value {
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 30px;
   font-weight: 400;
   align-self: flex-end;
@@ -63,8 +63,8 @@
 
 /* Estilos das fatias do gráfico */
 .pie-cell {
-  fill: #202128;
-  stroke: #111111;
+  fill: var(--color-pie-fill);
+  stroke: var(--color-pie-stroke);
   stroke-width: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -101,7 +101,7 @@
 
 /* Labels das fatias */
 .recharts-pie-label-text {
-  fill: #ffffff !important;
+  fill: var(--color-text-primary) !important;
   font-size: 16px;
   font-weight: 400;
   text-anchor: middle;
@@ -131,7 +131,7 @@
 }
 
 .tooltip-value {
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 13px;
   margin: 0 0 4px 0;
 }

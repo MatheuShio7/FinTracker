@@ -1,0 +1,150 @@
+:root,
+[data-theme="dark"] {
+  --color-accent: #f65308;
+  --color-accent-light: #ff8a3d;
+  --color-accent-hover: #ff8c42;
+  --color-accent-bg: rgba(246, 83, 8, 0.14);
+  --color-accent-bg-soft: rgba(246, 83, 8, 0.08);
+
+  --color-bg-base: #111111;
+  --color-bg-surface: #16171b;
+  --color-bg-surface-hover: #1a1b20;
+  --color-bg-elevated: #202128;
+  --color-bg-input: #111111;
+  --color-bg-overlay: rgba(0, 0, 0, 0.35);
+  --color-bg-modal: linear-gradient(165deg, rgba(33, 34, 41, 0.95), rgba(20, 21, 26, 0.96));
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #9f9f9f;
+  --color-text-muted: #666666;
+  --color-text-subtle: #c8c8c8;
+  --color-text-inverse: #111111;
+  --color-text-placeholder: rgba(255, 255, 255, 0.6);
+
+  --color-border: #2a2b30;
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+  --color-border-focus: rgba(255, 255, 255, 0.3);
+  --color-border-row: rgba(42, 43, 48, 0.5);
+
+  --color-page-title: #202128;
+  --color-section-title: #32343f;
+
+  --color-sidebar-text: #ffffff;
+  --color-sidebar-hover: rgba(255, 255, 255, 0.025);
+  --color-sidebar-logout-hover: rgba(245, 11, 11, 0.116);
+
+  --color-scrollbar-thumb: #666666;
+  --color-scrollbar-thumb-hover: #888888;
+
+  --color-shadow: rgba(0, 0, 0, 0.3);
+  --color-shadow-lg: rgba(0, 0, 0, 0.45);
+  --color-shadow-dropdown: rgba(0, 0, 0, 0.178);
+
+  --color-hover-overlay: rgba(255, 255, 255, 0.05);
+  --color-hover-row: rgba(255, 255, 255, 0.05);
+
+  --color-two-factor-bg: #431f0f;
+  --color-two-factor-active-bg: #143f24;
+  --color-toggle-track: #202128;
+
+  --color-chart-bg: #111111;
+  --color-chart-tooltip-bg: #202128;
+  --color-chart-tooltip-text: #111111;
+
+  --color-illustration-bg: #16171b;
+
+  --color-reload-border: #202128;
+  --color-language-divider: #202128;
+
+  --color-auth-overlay: rgba(8, 8, 10, 0.5);
+  --color-auth-secondary-bg: rgba(255, 255, 255, 0.04);
+  --color-auth-secondary-border: rgba(255, 255, 255, 0.25);
+  --color-auth-secondary-text: #e3e3e3;
+  --color-auth-subtitle: #b8bcc7;
+
+  --color-chat-user-bg: #f1f1f1;
+  --color-chat-bot-text: #d7d7d7;
+  --color-chat-placeholder: #90939a;
+  --color-chat-accent-text: #ffb4a1;
+  --color-chat-card-bg: #1b1b1b;
+
+  --color-pie-stroke: #111111;
+  --color-pie-fill: #202128;
+
+  --color-transaction-bg: #111216;
+
+  --color-grupos-scrollbar-track: #111216;
+  --color-grupos-scrollbar-thumb: #2a2b30;
+}
+
+[data-theme="light"] {
+  --color-bg-base: #f4f5f7;
+  --color-bg-surface: #ffffff;
+  --color-bg-surface-hover: #f0f2f5;
+  --color-bg-elevated: #eef0f4;
+  --color-bg-input: #f8f9fb;
+  --color-bg-overlay: rgba(0, 0, 0, 0.25);
+  --color-bg-modal: linear-gradient(165deg, #ffffff, #f8f9fb);
+
+  --color-text-primary: #1a1d26;
+  --color-text-secondary: #5c6370;
+  --color-text-muted: #8b929e;
+  --color-text-subtle: #6b7280;
+  --color-text-inverse: #ffffff;
+  --color-text-placeholder: #a0a6b1;
+
+  --color-border: #e2e5eb;
+  --color-border-subtle: #eef0f4;
+  --color-border-focus: rgba(246, 83, 8, 0.4);
+  --color-border-row: #eef0f4;
+
+  --color-page-title: #d94a06;
+  --color-section-title: #1a1d26;
+
+  --color-sidebar-text: #1a1d26;
+  --color-sidebar-hover: rgba(246, 83, 8, 0.06);
+  --color-sidebar-logout-hover: rgba(239, 68, 68, 0.08);
+
+  --color-scrollbar-thumb: #c5cad3;
+  --color-scrollbar-thumb-hover: #a8adb8;
+
+  --color-shadow: rgba(0, 0, 0, 0.08);
+  --color-shadow-lg: rgba(0, 0, 0, 0.12);
+  --color-shadow-dropdown: rgba(0, 0, 0, 0.1);
+
+  --color-hover-overlay: rgba(246, 83, 8, 0.04);
+  --color-hover-row: rgba(246, 83, 8, 0.04);
+
+  --color-two-factor-bg: #fff5f0;
+  --color-two-factor-active-bg: #ecfdf3;
+  --color-toggle-track: #202128;
+
+  --color-chart-bg: #ffffff;
+  --color-chart-tooltip-bg: #ffffff;
+  --color-chart-tooltip-text: #1a1d26;
+
+  --color-illustration-bg: #f0f2f5;
+
+  --color-reload-border: #e2e5eb;
+  --color-language-divider: #e2e5eb;
+
+  --color-auth-overlay: rgba(0, 0, 0, 0.3);
+  --color-auth-secondary-bg: #f0f2f5;
+  --color-auth-secondary-border: #e2e5eb;
+  --color-auth-secondary-text: #1a1d26;
+  --color-auth-subtitle: #5c6370;
+
+  --color-chat-user-bg: #fff0e8;
+  --color-chat-bot-text: #5c6370;
+  --color-chat-placeholder: #8b929e;
+  --color-chat-accent-text: #f65308;
+  --color-chat-card-bg: #ffffff;
+
+  --color-pie-stroke: #ffffff;
+  --color-pie-fill: #eef0f4;
+
+  --color-transaction-bg: #f8f9fb;
+
+  --color-grupos-scrollbar-track: #f0f2f5;
+  --color-grupos-scrollbar-thumb: #c5cad3;
+}

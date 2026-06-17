@@ -3,6 +3,7 @@ import Logo from './components/Logo'
 import PageTitle from './components/PageTitle'
 import { useState, useEffect } from 'react'
 import { useAuth } from './contexts/AuthContext'
+import { useTheme } from './contexts/ThemeContext'
 
 function Configuracoes() {
   const {
@@ -15,7 +16,7 @@ function Configuracoes() {
     disableMfa,
   } = useAuth()
   
-  const [isDarkTheme, setIsDarkTheme] = useState(true) // Tema padrão é escuro
+  const { isDark, setTheme } = useTheme()
   const [selectedLanguage, setSelectedLanguage] = useState('pt-BR') // Idioma padrão português
   const [isTwoFactorEnabled, setIsTwoFactorEnabled] = useState(false)
   const [mfaLoading, setMfaLoading] = useState(false)
@@ -324,8 +325,8 @@ function Configuracoes() {
           <label className="theme-toggle-switch">
             <input 
               type="checkbox" 
-              checked={isDarkTheme}
-              onChange={() => setIsDarkTheme(!isDarkTheme)}
+              checked={isDark}
+              onChange={() => setTheme(isDark ? 'light' : 'dark')}
             />
             <span className="theme-toggle-slider">
               <i className="bi bi-sun-fill theme-icon sun-icon"></i>

@@ -11,14 +11,14 @@
 }
 
 .configuracoes-section-title {
-  color: white;
+  color: var(--color-text-primary);
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 15px;
 }
 
 .configuracoes-group-title {
-  color: #32343f;
+  color: var(--color-section-title);
   font-size: 1.55rem;
   font-weight: 600;
   margin: 52px 0 20px;
@@ -72,7 +72,7 @@
   width: 26px;
   left: 4px;
   bottom: 4px;
-  background-color: white;
+  background-color: #ffffff;
   transition: 0.4s;
   border-radius: 50%;
   z-index: 2;
@@ -95,13 +95,13 @@
 }
 
 .moon-icon {
-  color: #202128;
+  color: var(--color-toggle-track);
   left: 10px;
   opacity: 0;
 }
 
 .theme-toggle-switch input:checked + .theme-toggle-slider {
-  background-color: #202128;
+  background-color: var(--color-bg-elevated);
 }
 
 .theme-toggle-switch input:checked + .theme-toggle-slider:before {
@@ -157,7 +157,7 @@
   height: 32.5px;
   object-fit: cover;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px var(--color-shadow);
 }
 
 .language-underline {
@@ -176,21 +176,21 @@
 .language-divider {
   width: 3px;
   height: 40px;
-  background-color: #202128;
+  background-color: var(--color-language-divider);
   margin: 0 5px;
 }
 
 .two-factor-card {
   max-width: 780px;
-  background-color: #431F0F;
+  background-color: var(--color-two-factor-bg);
   border: 2px solid #f65308;
   border-radius: 14px;
   padding: 22px;
-  color: #ffffff;
+  color: var(--color-text-primary);
 }
 
 .two-factor-card-active {
-  background-color: #143f24;
+  background-color: var(--color-two-factor-active-bg);
   border-color: #1bb355;
 }
 
@@ -231,12 +231,12 @@
 
 .two-factor-card-button-primary {
   background-color: #f65308;
-  color: #ffffff;
+  color: var(--color-text-primary);
 }
 
 .two-factor-card-button-danger {
   background-color: #d92d2d;
-  color: #ffffff;
+  color: var(--color-text-primary);
 }
 
 .mfa-setup-container {
@@ -354,7 +354,7 @@
 .profile-input-icon {
   position: absolute;
   left: 15px;
-  color: #9f9f9f;
+  color: var(--color-text-secondary);
   font-size: 18px;
   pointer-events: none;
   z-index: 1;
@@ -363,13 +363,13 @@
 .profile-input {
   width: 100%;
   height: 45px;
-  background-color: #16171b;
-  border: 1px solid #2a2b30;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 0 15px 0 45px;
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
-  color: #ffffff;
+  color: var(--color-text-primary);
   outline: none;
   transition: border-color 0.2s ease;
 }
@@ -403,7 +403,7 @@
 .password-eye-icon {
   position: absolute;
   right: 15px;
-  color: #9f9f9f;
+  color: var(--color-text-secondary);
   font-size: 18px;
   cursor: pointer;
   z-index: 2;
@@ -412,7 +412,7 @@
 }
 
 .password-eye-icon:hover {
-  color: #ffffff;
+  color: var(--color-text-primary);
 }
 
 .password-eye-icon:active {
@@ -434,14 +434,14 @@
   transition: all 0.3s ease;
   
   /* Estado padrão (sem mudanças) */
-  background-color: #16171b;
-  color: #9f9f9f;
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-secondary);
 }
 
 .profile-save-button-active {
   /* Estado ativo (com mudanças) */
-  background-color: #16171b;
-  color: white;
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
   border: 1px solid #f65308;
   animation: glow-border 2s ease-in-out infinite alternate;
 }
@@ -517,20 +517,20 @@
   transition: all 0.3s ease;
   
   /* Estado padrão (desabilitado) */
-  background-color: #16171b;
-  color: #9f9f9f;
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-secondary);
 }
 
 .profile-clear-button-active {
   /* Estado ativo */
-  background-color: #16171b;
-  color: white;
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
   border: 1px solid #6b6b6b;
 }
 
 .profile-clear-button-active:hover {
   transform: scale(1.02);
-  border-color: #9f9f9f;
+  border-color: var(--color-text-secondary);
 }
 
 .profile-clear-button:disabled {

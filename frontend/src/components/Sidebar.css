@@ -35,7 +35,7 @@
   align-items: center;
   width: 100%;
   padding: 1rem 2rem;
-  color: white;
+  color: var(--color-text-primary);
   background: none;
   border: none;
   border-radius: 5px;
@@ -48,12 +48,12 @@
 }
 
 .sidebar-link:hover {
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--color-sidebar-hover);
   transform: translateX(5px);
 }
 
 .sidebar-link.active {
-  background: #f6530823;
+  background: var(--color-accent-bg);
 }
 
 .sidebar-link.active::before {
@@ -76,7 +76,7 @@
   align-items: center;
   width: 100%;
   padding: 1rem 2rem;
-  color: white;
+  color: var(--color-text-primary);
   background: none;
   border: none;
   border-radius: 5px;
@@ -89,7 +89,7 @@
 }
 
 .sidebar-logout:hover {
-  background: rgba(245, 11, 11, 0.116);
+  background: var(--color-sidebar-logout-hover);
   transform: translateX(5px);
 }
 

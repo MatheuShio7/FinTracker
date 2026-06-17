@@ -5,7 +5,7 @@
   transform: translateY(-50%);
   width: 36vw;
   height: 85vh;
-  background-color: #16171b;
+  background-color: var(--color-bg-surface);
   border-radius: 40px;
   z-index: 10;
   display: flex;
@@ -34,7 +34,7 @@
   font-family: 'Poppins', sans-serif;
   font-size: 35px;
   font-weight: 400;
-  color: #ffffff;
+  color: var(--color-text-primary);
   margin: 0;
   text-align: center;
 }
@@ -67,7 +67,7 @@
   left: 15px;
   top: 50%;
   transform: translateY(-50%);
-  color: #9f9f9f;
+  color: var(--color-text-secondary);
   font-size: 18px;
   z-index: 1;
 }
@@ -75,18 +75,18 @@
 .auth-input {
   width: 100%;
   height: 45px;
-  background-color: #111111;
+  background-color: var(--color-bg-input);
   border: none;
   border-radius: 8px;
   padding: 0 20px 0 50px;
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
-  color: #ffffff;
+  color: var(--color-text-primary);
   outline: none;
 }
 
 .auth-input::placeholder {
-  color: #9f9f9f;
+  color: var(--color-text-secondary);
   font-family: 'Poppins', sans-serif;
 }
 
@@ -104,14 +104,14 @@
   position: relative;
   
   /* Estado padrão (campos vazios) */
-  background-color: #111111;
-  color: #9f9f9f;
+  background-color: var(--color-bg-input);
+  color: var(--color-text-secondary);
 }
 
 .auth-button-active {
   /* Estado ativo (campos preenchidos) */
-  background-color: #111111;
-  color: white;
+  background-color: var(--color-bg-input);
+  color: var(--color-text-primary);
   border: 1px solid #f65308;
   animation: glow-border 2s ease-in-out infinite alternate;
 }
@@ -152,7 +152,7 @@
 
 .signup-text {
   font-family: 'Poppins', sans-serif;
-  color: #666666;
+  color: var(--color-text-muted);
   margin: 0;
   text-align: center;
 }
@@ -170,7 +170,7 @@
 .login-text {
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
-  color: #666666;
+  color: var(--color-text-muted);
   margin: 0;
   text-align: center;
 }
@@ -232,13 +232,13 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba(8, 8, 10, 0.5);
+  background: var(--color-auth-overlay);
   backdrop-filter: blur(9px);
 }
 
 .auth-modal-card {
   width: min(560px, 92vw);
-  background: linear-gradient(165deg, rgba(33, 34, 41, 0.95), rgba(20, 21, 26, 0.96));
+  background: var(--color-bg-modal);
   border: 1px solid rgba(246, 83, 8, 0.25);
   border-radius: 24px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
@@ -250,7 +250,7 @@
 
 .auth-modal-title {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 30px;
   font-weight: 500;
@@ -258,7 +258,7 @@
 
 .auth-modal-subtitle {
   margin: 0;
-  color: #b8bcc7;
+  color: var(--color-auth-subtitle);
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
   line-height: 1.5;
@@ -302,9 +302,9 @@
   min-width: 110px;
   height: 50px;
   border-radius: 25px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.04);
-  color: #e3e3e3;
+  border: 1px solid var(--color-auth-secondary-border);
+  background: var(--color-auth-secondary-bg);
+  color: var(--color-auth-secondary-text);
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
   cursor: pointer;

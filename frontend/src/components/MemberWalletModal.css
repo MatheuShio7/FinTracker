@@ -26,7 +26,7 @@
 
 .grupos-wallet-title-row h3 {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 22px;
   font-weight: 600;
@@ -98,7 +98,7 @@
   overflow-y: auto;
   padding: 8px 24px 24px;
   scrollbar-width: thin;
-  scrollbar-color: #2a2b30 #111216;
+  scrollbar-color: var(--color-grupos-scrollbar-thumb) var(--color-grupos-scrollbar-track);
 }
 
 .grupos-wallet-body::-webkit-scrollbar {
@@ -106,14 +106,14 @@
 }
 
 .grupos-wallet-body::-webkit-scrollbar-track {
-  background: #111216;
+  background: var(--color-transaction-bg);
   border-radius: 999px;
   margin: 12px 0;
 }
 
 .grupos-wallet-body::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #ff8a3d 0%, #f65308 100%);
-  border: 2px solid #111216;
+  border: 2px solid var(--color-transaction-bg);
   border-radius: 999px;
 }
 
@@ -129,7 +129,7 @@
 
 .grupos-wallet-history-section {
   z-index: 1;
-  background: #16171b;
+  background: var(--color-bg-surface);
   padding-top: 4px;
 }
 

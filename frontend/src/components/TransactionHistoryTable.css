@@ -7,7 +7,7 @@
 
 .transaction-history-title {
   margin: 0 0 14px;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 20px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -15,10 +15,10 @@
 
 .transaction-history-table {
   width: 100%;
-  background-color: #16171b;
+  background-color: var(--color-bg-surface);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px var(--color-shadow);
   border-collapse: separate;
   border-spacing: 0;
   display: flex;
@@ -27,12 +27,12 @@
 }
 
 .transaction-history-table thead {
-  background-color: #16171b;
-  border-bottom: 3px solid #2a2b30;
+  background-color: var(--color-bg-surface);
+  border-bottom: 3px solid var(--color-border);
   position: sticky;
   top: 0;
   z-index: 10;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 12px var(--color-shadow);
 }
 
 .transaction-history-table thead tr {
@@ -44,12 +44,12 @@
 .transaction-history-table thead th {
   padding: 20px 18px;
   text-align: center;
-  color: #666666;
+  color: var(--color-text-muted);
   font-weight: 600;
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  background-color: #16171b;
+  background-color: var(--color-bg-surface);
 }
 
 .transaction-history-table tbody {
@@ -58,7 +58,7 @@
   overflow-x: hidden;
   max-height: 430px;
   scrollbar-width: thin;
-  scrollbar-color: #666666 transparent;
+  scrollbar-color: var(--color-text-muted) transparent;
 }
 
 .transaction-history-table tbody::-webkit-scrollbar {
@@ -70,7 +70,7 @@
 }
 
 .transaction-history-table tbody::-webkit-scrollbar-thumb {
-  background-color: #666666;
+  background-color: var(--color-text-muted);
   border-radius: 8px;
 }
 
@@ -82,9 +82,9 @@
 
 .transaction-history-table tbody td {
   padding: 20px 18px;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 15px;
-  border-bottom: 1px solid rgba(42, 43, 48, 0.5);
+  border-bottom: 1px solid var(--color-border-row);
   transition: all 0.2s ease;
   text-align: center;
 }
@@ -94,7 +94,7 @@
 }
 
 .transaction-history-row:hover {
-  background-color: #1a1b20;
+  background-color: var(--color-bg-surface-hover);
 }
 
 .transaction-history-action-cell {
@@ -117,7 +117,7 @@
 .transaction-history-icon-button {
   width: 32px;
   height: 32px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   background: transparent;
   display: inline-flex;
@@ -136,11 +136,11 @@
 }
 
 .transaction-history-edit-button {
-  color: #ffffff;
+  color: var(--color-text-primary);
 }
 
 .transaction-history-edit-button:hover {
-  border-color: #ffffff;
+  border-color: var(--color-text-primary);
 }
 
 .transaction-history-delete-button {
@@ -166,21 +166,21 @@
 .transaction-history-empty-row td {
   text-align: center;
   padding: 40px 20px;
-  color: #666666;
+  color: var(--color-text-muted);
   font-style: italic;
 }
 
 .transaction-history-loading,
 .transaction-history-error {
-  background-color: #16171b;
+  background-color: var(--color-bg-surface);
   border-radius: 16px;
   padding: 50px 32px;
   text-align: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px var(--color-shadow-lg);
 }
 
 .transaction-history-loading {
-  color: #666666;
+  color: var(--color-text-muted);
   font-size: 16px;
 }
 
@@ -196,17 +196,17 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 14px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #111216;
+  background: var(--color-transaction-bg);
 }
 
 .transaction-history-readonly-stock strong {
-  color: #ffffff;
+  color: var(--color-text-primary);
 }
 
 .transaction-history-readonly-stock span {
-  color: #c8c8c8;
+  color: var(--color-text-subtle);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -222,7 +222,7 @@
 
 .transaction-history-confirm-content p {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 15px;
   line-height: 1.5;
 }
@@ -238,7 +238,7 @@
 .transaction-history-confirm-delete-button {
   height: 40px;
   border-radius: 10px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   padding: 0 16px;
   font-size: 14px;
   font-weight: 600;
@@ -248,16 +248,16 @@
 
 .transaction-history-cancel-button {
   background: transparent;
-  color: #ffffff;
+  color: var(--color-text-primary);
 }
 
 .transaction-history-cancel-button:hover {
-  border-color: #ffffff;
+  border-color: var(--color-text-primary);
 }
 
 .transaction-history-confirm-delete-button {
   background: #ff4d4f;
-  color: #ffffff;
+  color: var(--color-text-primary);
   border-color: #ff4d4f;
 }
 
@@ -278,7 +278,7 @@
 
 .transaction-history-retry-button {
   background-color: #4a9eff;
-  color: #ffffff;
+  color: var(--color-text-primary);
   border: none;
   border-radius: 10px;
   padding: 14px 28px;

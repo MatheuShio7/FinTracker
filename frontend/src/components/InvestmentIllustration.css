@@ -19,7 +19,7 @@
 .ellipse {
   width: 500px;
   height: 275px;
-  background-color: #16171b;
+  background-color: var(--color-bg-surface);
   border-radius: 50%;
   margin-top: -330px;
   margin-bottom: 0;

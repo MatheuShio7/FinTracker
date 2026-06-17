@@ -11,7 +11,7 @@
   font-family: 'Poppins', sans-serif;
   font-size: 100px;
   font-weight: 700;
-  color: #202128;
+  color: var(--color-page-title);
   margin: 0;
   user-select: none;
 } 

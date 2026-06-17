@@ -3,9 +3,9 @@
   max-width: 1200px;
   margin: 2rem auto 0.5rem auto;
   padding: 1.5rem;
-  background: #16171b;
+  background: var(--color-bg-surface);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px var(--color-shadow);
 }
 
 .chart-header {
@@ -13,7 +13,7 @@
 }
 
 .chart-header h3 {
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
@@ -49,7 +49,7 @@
 
 .tooltip-value {
   font-size: 1rem;
-  color: #ffffff;
+  color: var(--color-text-primary);
   margin: 0;
   font-weight: 700;
 }
@@ -84,7 +84,7 @@
 
 .stat-value {
   font-size: 1.125rem;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-weight: 700;
 }
 

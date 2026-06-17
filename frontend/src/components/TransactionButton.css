@@ -10,7 +10,7 @@
 }
 
 .transaction-button span {
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
   font-weight: 500;
@@ -39,8 +39,8 @@
   width: min(540px, 100%);
   max-height: calc(100vh - 32px);
   overflow-y: auto;
-  background: #16171b;
-  border: 1px solid #2a2b30;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   box-shadow: 0 28px 64px rgba(0, 0, 0, 0.45);
 }
@@ -50,12 +50,12 @@
   align-items: center;
   justify-content: space-between;
   padding: 18px 22px;
-  border-bottom: 1px solid #2a2b30;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .transaction-modal-header h3 {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 20px;
   font-weight: 600;
@@ -64,10 +64,10 @@
 .transaction-close-button {
   width: 36px;
   height: 36px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   background: transparent;
-  color: #ffffff;
+  color: var(--color-text-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -101,7 +101,7 @@
 }
 
 .transaction-field label {
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
   font-weight: 500;
@@ -110,10 +110,10 @@
 .transaction-field input:not(.transaction-search-input),
 .transaction-field select {
   height: 46px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #111216;
-  color: #ffffff;
+  background: var(--color-transaction-bg);
+  color: var(--color-text-primary);
   padding: 0 14px;
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
@@ -152,7 +152,7 @@
   top: 50%;
   right: 14px;
   transform: translateY(-50%) rotate(0deg);
-  color: #ffffff;
+  color: var(--color-text-primary);
   pointer-events: none;
   transition: transform 0.2s ease;
 }
@@ -170,8 +170,8 @@
 .transaction-search-bar {
   position: relative;
   display: block;
-  background-color: #111216;
-  border: 1px solid #2a2b30;
+  background-color: var(--color-transaction-bg);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   height: 46px;
 }
@@ -181,7 +181,7 @@
   top: 50%;
   left: 16px;
   transform: translateY(-50%);
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 15px;
   opacity: 0.7;
   pointer-events: none;
@@ -194,7 +194,7 @@
   border: none;
   background: transparent;
   outline: none;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 16px;
   font-family: inherit;
 }
@@ -216,8 +216,8 @@
   top: calc(100% + 6px);
   left: 0;
   right: 0;
-  background-color: #16171b;
-  border: 1px solid #2a2b30;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   overflow: hidden;
   z-index: 20;
@@ -227,7 +227,7 @@
   width: 100%;
   border: none;
   background: transparent;
-  color: #ffffff;
+  color: var(--color-text-primary);
   text-align: left;
   display: flex;
   align-items: center;
@@ -242,7 +242,7 @@
 }
 
 .transaction-result-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--color-hover-overlay);
 }
 
 .transaction-result-item.loading,
@@ -275,9 +275,9 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 14px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #111216;
+  background: var(--color-transaction-bg);
 }
 
 .transaction-selected-stock-info {
@@ -288,11 +288,11 @@
 }
 
 .transaction-selected-stock strong {
-  color: #ffffff;
+  color: var(--color-text-primary);
 }
 
 .transaction-selected-stock span {
-  color: #c8c8c8;
+  color: var(--color-text-subtle);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -301,10 +301,10 @@
 .transaction-selected-stock-remove {
   width: 34px;
   height: 34px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   background: transparent;
-  color: #ffffff;
+  color: var(--color-text-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -324,7 +324,7 @@
   border: 1px solid #f65308;
   border-radius: 12px;
   background: transparent;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
   font-weight: 600;
@@ -360,7 +360,7 @@
 
 .transaction-helper-text {
   margin: 0;
-  color: #9f9f9f;
+  color: var(--color-text-secondary);
   font-family: 'Poppins', sans-serif;
   font-size: 13px;
   text-align: center;

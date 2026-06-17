@@ -7,7 +7,7 @@
   border: none;
   border-radius: 50%;
   background: #f65308;
-  color: #111111;
+  color: var(--color-text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,12 +51,12 @@
   flex-direction: column;
   overflow: hidden;
   z-index: 1199;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 1rem;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
-    #1b1b1b;
-  box-shadow: 0 28px 26px rgba(0, 0, 0, 0.45);
+    var(--color-chat-card-bg);
+  box-shadow: 0 28px 26px var(--color-shadow-lg);
   transform-origin: right bottom;
   opacity: 0;
   transform: translate3d(0, 18px, 0) scale(0.96);
@@ -99,12 +99,12 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 1rem;
-  border-bottom: 1px solid #2a2b30;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .chat-widget-header h3 {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 1rem;
   font-weight: 600;
 }
@@ -112,10 +112,10 @@
 .chat-widget-close {
   width: 36px;
   height: 36px;
-  border: 1px solid white;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   background: transparent;
-  color: #ffffff;
+  color: var(--color-text-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -167,15 +167,15 @@
 
 .chat-widget-message.is-assistant {
   align-self: flex-start;
-  background: #111216;
-  border: 1px solid #2a2b30;
-  color: #f1f1f1;
+  background: var(--color-transaction-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
 }
 
 .chat-widget-message.is-user {
   align-self: flex-end;
   background: linear-gradient(135deg, #f65308, #ff7b32);
-  color: #111111;
+  color: var(--color-text-inverse);
   box-shadow: 0 10px 18px rgba(246, 83, 8, 0.18);
 }
 
@@ -186,7 +186,7 @@
 }
 
 .chat-widget-typing-text {
-  color: #d7d7d7;
+  color: var(--color-chat-bot-text);
 }
 
 .chat-widget-typing-dots {
@@ -213,7 +213,7 @@
 
 .chat-widget-error {
   padding: 0 1rem 0.8rem;
-  color: #ffb4a1;
+  color: var(--color-chat-accent-text);
   font-size: 0.84rem;
   line-height: 1.35;
 }
@@ -222,7 +222,7 @@
   position: relative;
   z-index: 1;
   padding: 0.85rem;
-  border-top: 1px solid #2a2b30;
+  border-top: 1px solid var(--color-border);
 }
 
 .chat-widget-form {
@@ -233,10 +233,10 @@
 .chat-widget-footer input {
   flex: 1;
   height: 46px;
-  border: 1px solid #2a2b30;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #111216;
-  color: #ffffff;
+  background: var(--color-transaction-bg);
+  color: var(--color-text-primary);
   padding: 0 14px;
   font: inherit;
   font-size: 15px;
@@ -249,7 +249,7 @@
 }
 
 .chat-widget-footer input::placeholder {
-  color: #90939a;
+  color: var(--color-chat-placeholder);
 }
 
 .chat-widget-footer input:focus {
@@ -262,7 +262,7 @@
   border: none;
   border-radius: 10px;
   background: #f65308;
-  color: #111111;
+  color: var(--color-text-inverse);
   display: inline-flex;
   align-items: center;
   justify-content: center;

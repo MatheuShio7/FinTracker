@@ -69,7 +69,7 @@
 }
 
 .backend-loading {
-  background: #111111;
+  background: var(--color-bg-base);
   border: 2px dashed #333333;
 }
 
@@ -81,7 +81,7 @@
 }
 
 .backend-error {
-  background: #111111;
+  background: var(--color-bg-base);
   border: 2px solid #dc2626;
 }
 
