@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import './Grupos.css'
 import Logo from './components/Logo'
@@ -117,6 +117,8 @@ function Grupos() {
   const [inviteToken, setInviteToken] = useState('')
   const [consentMode, setConsentMode] = useState('join')
   const [walletMember, setWalletMember] = useState(null)
+  const [isDetailsMenuOpen, setIsDetailsMenuOpen] = useState(false)
+  const detailsMenuRef = useRef(null)
 
   const fetchGroups = useCallback(async (showRefreshSpinner = false) => {
     if (!user) {
@@ -297,7 +299,23 @@ function Grupos() {
     setInviteSearchResults([])
     setInviteSearchError('')
     setWalletMember(null)
+    setIsDetailsMenuOpen(false)
   }
+
+  useEffect(() => {
+    if (!isDetailsMenuOpen) {
+      return undefined
+    }
+
+    const handleClickOutside = (event) => {
+      if (detailsMenuRef.current && !detailsMenuRef.current.contains(event.target)) {
+        setIsDetailsMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isDetailsMenuOpen])
 
   useEffect(() => {
     if (!isGroupModalOpen && !isDetailsModalOpen && !isInviteModalOpen && !isDeleteModalOpen && !isTransferModalOpen && !isConsentModalOpen) {
@@ -306,6 +324,11 @@ function Grupos() {
 
     const handleEsc = (event) => {
       if (event.key === 'Escape') {
+        if (isDetailsMenuOpen) {
+          setIsDetailsMenuOpen(false)
+          return
+        }
+
         if (isDeleteModalOpen) {
           setIsDeleteModalOpen(false)
           return
@@ -351,7 +374,7 @@ function Grupos() {
 
     window.addEventListener('keydown', handleEsc)
     return () => window.removeEventListener('keydown', handleEsc)
-  }, [isDetailsModalOpen, isGroupModalOpen, isInviteModalOpen, isDeleteModalOpen, isTransferModalOpen, isConsentModalOpen, editingGroupId])
+  }, [isDetailsModalOpen, isGroupModalOpen, isInviteModalOpen, isDeleteModalOpen, isTransferModalOpen, isConsentModalOpen, isDetailsMenuOpen, editingGroupId])
 
   const handleOpenGroupModal = () => {
     resetGroupForm()
@@ -1134,7 +1157,7 @@ function Grupos() {
     }
 
     if (member.user_id === user?.id) {
-      return true
+      return false
     }
 
     const viewPermission = detailsGroup?.permissions?.view
@@ -1152,6 +1175,29 @@ function Grupos() {
 
   const handleOpenMemberWallet = (member) => {
     setWalletMember(member)
+  }
+
+  const handleDetailsMenuAction = (action) => {
+    setIsDetailsMenuOpen(false)
+
+    if (action === 'edit') {
+      handleOpenEditGroup()
+      return
+    }
+
+    if (action === 'invite') {
+      handleOpenInviteModal()
+      return
+    }
+
+    if (action === 'transfer') {
+      handleOpenTransferModal()
+      return
+    }
+
+    if (action === 'delete') {
+      handleOpenDeleteModal()
+    }
   }
 
   const handleCloseMemberWallet = () => {
@@ -1438,49 +1484,63 @@ function Grupos() {
               <div className="grupos-details-title-row">
                 <h3>{detailsGroup.name}</h3>
                 {canManageMembers && (
-                  <>
+                  <div className="grupos-details-menu" ref={detailsMenuRef}>
                     <button
                       type="button"
-                      className="grupos-details-icon-button"
-                      onClick={handleOpenEditGroup}
-                      aria-label="Editar grupo"
-                      title="Editar grupo"
+                      className="grupos-details-menu-trigger"
+                      onClick={() => setIsDetailsMenuOpen((current) => !current)}
+                      aria-label="Opções do grupo"
+                      aria-expanded={isDetailsMenuOpen}
+                      aria-haspopup="menu"
                     >
-                      <i className="bi bi-pencil-square"></i>
+                      <i className="bi bi-three-dots"></i>
                     </button>
-                    <button
-                      type="button"
-                      className="grupos-details-icon-button"
-                      onClick={handleOpenInviteModal}
-                      disabled={isGroupFull}
-                      aria-label="Convidar membros"
-                      title={isGroupFull ? 'Grupo atingiu o limite de membros' : 'Convidar membros'}
-                    >
-                      <i className="bi bi-envelope"></i>
-                    </button>
-                    {canDeleteGroup && (
-                      <button
-                        type="button"
-                        className="grupos-details-icon-button"
-                        onClick={handleOpenTransferModal}
-                        aria-label="Transferir fundação"
-                        title="Transferir fundação"
-                      >
-                        <i className="bi bi-arrow-left-right"></i>
-                      </button>
+                    {isDetailsMenuOpen && (
+                      <div className="grupos-details-menu-popover" role="menu">
+                        <button
+                          type="button"
+                          className="grupos-details-menu-item"
+                          role="menuitem"
+                          onClick={() => handleDetailsMenuAction('edit')}
+                        >
+                          <i className="bi bi-pencil-square"></i>
+                          <span>Editar configurações</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="grupos-details-menu-item"
+                          role="menuitem"
+                          disabled={isGroupFull}
+                          onClick={() => handleDetailsMenuAction('invite')}
+                        >
+                          <i className="bi bi-envelope"></i>
+                          <span>Convidar membros</span>
+                        </button>
+                        {canDeleteGroup && (
+                          <button
+                            type="button"
+                            className="grupos-details-menu-item"
+                            role="menuitem"
+                            onClick={() => handleDetailsMenuAction('transfer')}
+                          >
+                            <i className="bi bi-arrow-left-right"></i>
+                            <span>Transferir fundação</span>
+                          </button>
+                        )}
+                        {canDeleteGroup && (
+                          <button
+                            type="button"
+                            className="grupos-details-menu-item grupos-details-menu-item-danger"
+                            role="menuitem"
+                            onClick={() => handleDetailsMenuAction('delete')}
+                          >
+                            <i className="bi bi-trash"></i>
+                            <span>Excluir grupo</span>
+                          </button>
+                        )}
+                      </div>
                     )}
-                    {canDeleteGroup && (
-                      <button
-                        type="button"
-                        className="grupos-details-icon-button grupos-details-icon-button-danger"
-                        onClick={handleOpenDeleteModal}
-                        aria-label="Excluir grupo"
-                        title="Excluir grupo"
-                      >
-                        <i className="bi bi-trash"></i>
-                      </button>
-                    )}
-                  </>
+                  </div>
                 )}
               </div>
               <button
@@ -1502,19 +1562,31 @@ function Grupos() {
                   <div className="grupos-details-summary">
                     <p className="grupos-details-description">{detailsGroup.description || 'Sem descrição.'}</p>
                     <div className="grupos-details-meta-row">
-                      <div className="grupos-details-chip-row">
-                        <span className="grupos-details-chip">
-                          {visibilityLabels[detailsGroup.visibility] || detailsGroup.visibility}
-                        </span>
-                        <span className="grupos-details-chip">
-                          {detailsGroup.maxMembers
-                            ? `${detailsGroup.membersCount}/${detailsGroup.maxMembers} Membros`
-                            : `${detailsGroup.membersCount} Membros`}
-                        </span>
-                        {isGroupFull && (
-                          <span className="grupos-details-chip grupos-details-chip-warning">
-                            Lotado
+                      <div className="grupos-details-meta-info">
+                        <div className="grupos-details-chip-row">
+                          <span className="grupos-details-chip">
+                            {visibilityLabels[detailsGroup.visibility] || detailsGroup.visibility}
                           </span>
+                          <span className="grupos-details-chip">
+                            {detailsGroup.maxMembers
+                              ? `${detailsGroup.membersCount}/${detailsGroup.maxMembers} Membros`
+                              : `${detailsGroup.membersCount} Membros`}
+                          </span>
+                          {isGroupFull && (
+                            <span className="grupos-details-chip grupos-details-chip-warning">
+                              Lotado
+                            </span>
+                          )}
+                        </div>
+                        {detailsGroup.permissions && (
+                          <div className="grupos-details-chip-row">
+                            <span className="grupos-details-chip">
+                              Visualizar: {permissionLabels[detailsGroup.permissions.view] || detailsGroup.permissions.view}
+                            </span>
+                            <span className="grupos-details-chip">
+                              Gerenciar: {permissionLabels[detailsGroup.permissions.manage] || detailsGroup.permissions.manage}
+                            </span>
+                          </div>
                         )}
                       </div>
                       {needsReconsent && (
