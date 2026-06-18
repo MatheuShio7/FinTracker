@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import './ChatWidget.css'
@@ -17,6 +17,41 @@ function ChatWidget({ enabled = false }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const messagesEndRef = useRef(null)
+  const inputRef = useRef(null)
+  const cursorPositionRef = useRef(null)
+
+  const moveCursorToEnd = () => {
+    const input = inputRef.current
+
+    if (!input) {
+      return
+    }
+
+    const length = input.value.length
+    input.setSelectionRange(length, length)
+    cursorPositionRef.current = length
+  }
+
+  const adjustTextareaHeight = () => {
+    const input = inputRef.current
+
+    if (!input) {
+      return
+    }
+
+    input.style.height = 'auto'
+    input.style.height = `${Math.min(input.scrollHeight, 120)}px`
+  }
+
+  const resetTextareaHeight = () => {
+    const input = inputRef.current
+
+    if (!input) {
+      return
+    }
+
+    input.style.height = 'auto'
+  }
 
   useEffect(() => {
     if (!enabled) {
@@ -54,6 +89,48 @@ function ChatWidget({ enabled = false }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [messages, loading, isMounted])
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (
+        document.visibilityState === 'visible'
+        && inputRef.current?.value
+        && document.activeElement === inputRef.current
+      ) {
+        moveCursorToEnd()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
+
+  useLayoutEffect(() => {
+    if (inputRef.current && cursorPositionRef.current !== null) {
+      inputRef.current.setSelectionRange(
+        cursorPositionRef.current,
+        cursorPositionRef.current,
+      )
+    }
+
+    adjustTextareaHeight()
+  }, [inputValue])
+
+  const handleInputChange = (event) => {
+    cursorPositionRef.current = event.target.selectionStart
+    setInputValue(event.target.value)
+  }
+
+  const handleInputFocus = (event) => {
+    const { selectionStart, selectionEnd, value } = event.target
+
+    if (value.length > 0 && selectionStart === 0 && selectionEnd === 0) {
+      moveCursorToEnd()
+    }
+  }
+
   const handleSendMessage = async (event) => {
     event.preventDefault()
 
@@ -72,6 +149,8 @@ function ChatWidget({ enabled = false }) {
 
     setMessages(nextHistory)
     setInputValue('')
+    cursorPositionRef.current = null
+    resetTextareaHeight()
     setError('')
     setLoading(true)
 
@@ -110,6 +189,13 @@ function ChatWidget({ enabled = false }) {
       ])
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleInputKeyDown = (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
+      handleSendMessage(event)
     }
   }
 
@@ -174,12 +260,15 @@ function ChatWidget({ enabled = false }) {
 
           <footer className="chat-widget-footer">
             <form className="chat-widget-form" onSubmit={handleSendMessage}>
-              <input
-                type="text"
+              <textarea
+                ref={inputRef}
+                rows={1}
                 placeholder={user ? 'Digite sua mensagem...' : 'Faça login para conversar'}
                 aria-label="Campo de mensagem"
                 value={inputValue}
-                onChange={(event) => setInputValue(event.target.value)}
+                onChange={handleInputChange}
+                onFocus={handleInputFocus}
+                onKeyDown={handleInputKeyDown}
                 disabled={loading || !user}
               />
               <button

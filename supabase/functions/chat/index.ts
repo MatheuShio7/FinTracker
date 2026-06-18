@@ -38,8 +38,28 @@ type DividendSnapshot = {
   error?: string
 }
 
+type StockSearchResult = {
+  ticker: string
+  company_name: string
+  source: string
+}
+
+type MarketRankingEntry = {
+  ticker: string
+  company_name: string
+  close: number | null
+  change: number | null
+}
+
+type MarketRankingSnapshot = {
+  source: string
+  sort_by: string
+  stocks: MarketRankingEntry[]
+  error?: string
+}
+
 const SYSTEM_PROMPT =
-  'Você é o assistente virtual do FinTracker, um sistema de controle de carteira de ações. Responda sempre em português brasileiro. Seja objetivo e use linguagem simples e acessível. Quando a pergunta for sobre o FinTracker, use o knowledge base e os dados fornecidos no contexto. Quando a pergunta for sobre o usuário logado, use os dados do Supabase fornecidos no contexto. Quando a pergunta for sobre preço atual de ações, use a cotação consultada na BRAPI fornecida no contexto. Para conceitos e indicadores financeiros como P/VP, P/L, Dividend Yield, estratégias de investimento, educação financeira em geral e outros conhecimentos de mercado, você pode usar seu próprio conhecimento. Priorize primeiro os dados fornecidos no contexto quando eles forem relevantes, depois seu próprio conhecimento para conceitos gerais, e por fim admita honestamente quando não souber. Não recomende compra ou venda de ações específicas. Quando analisar dados numéricos do usuário ou cotações, seja preciso com os números.'
+  'Você é o assistente virtual do FinTracker, um sistema de controle de carteira de ações. Responda sempre em português brasileiro. Seja objetivo e use linguagem simples e acessível. Quando a pergunta for sobre o FinTracker, use o knowledge base e os dados fornecidos no contexto. Quando a pergunta for sobre o usuário logado, use os dados do Supabase fornecidos no contexto. Quando a pergunta for sobre preço atual de ações, use a cotação consultada na BRAPI fornecida no contexto. Quando a pergunta for sobre dividendos de uma ação específica, use os dividendos consultados no contexto. Para conceitos e indicadores financeiros (P/VP, P/L, P/S, P/EBITDA, Dividend Yield, ROE, etc.), estratégias de investimento, funcionamento da B3, educação financeira e outras perguntas gerais sobre o mercado, use seu próprio conhecimento e responda de forma educativa — mesmo que não haja dados no contexto. Para perguntas sobre rankings ou dados de mercado em tempo real que não estejam no contexto, responda com base no seu conhecimento e deixe claro quando os valores podem estar desatualizados. Priorize os dados fornecidos no contexto quando forem relevantes; depois use seu conhecimento. Não invente cotações ou dividendos específicos quando não houver consulta no contexto. Não recomende compra ou venda de ações específicas. Quando analisar dados numéricos do usuário ou cotações, seja preciso com os números.'
 
 const SYSTEM_CONTEXT = String.raw`# FinTracker - Knowledge Base do Assistente IA
 
@@ -408,8 +428,294 @@ function detectTicker(message: string) {
     return candidates[0]
   }
 
-  const compactTicker = normalizedMessage.match(/\b[A-Z]{4}\b/g) ?? []
-  return compactTicker[0] ?? null
+  return null
+}
+
+function sanitizeSearchTerm(term: string) {
+  return term.trim().replace(/[%_\\]/g, '').slice(0, 60)
+}
+
+function extractCompanySearchTerms(message: string) {
+  const terms = new Set<string>()
+
+  const patterns = [
+    /\bempresa\s+([A-Za-zÀ-ú0-9][A-Za-zÀ-ú0-9\s&.\-']{1,40}?)(?:\?|\.|,|$|\s+(?:na|no|da|do|de|das|dos|e)\b)/i,
+    /\b(?:ação|acao)\s+(?:da\s+)?(?:empresa\s+)?([A-Za-zÀ-ú0-9][A-Za-zÀ-ú0-9\s&.\-']{1,40}?)(?:\?|\.|,|$|\s+(?:na|no|da|do|de|das|dos|e)\b)/i,
+    /\b(?:distribu(?:í|i)d[oa]s?)\s+(?:por|pela?)\s+(?:a\s+)?(?:ação\s+(?:da\s+)?(?:empresa\s+)?)?([A-Za-zÀ-ú0-9][A-Za-zÀ-ú0-9\s&.\-']{1,40}?)(?:\?|\.|,|$)/i,
+    /\b(?:cotação|cotação|preco|preço)\s+(?:da\s+)?(?:ação\s+(?:da\s+)?(?:empresa\s+)?)?([A-Za-zÀ-ú0-9][A-Za-zÀ-ú0-9\s&.\-']{1,40}?)(?:\?|\.|,|$)/i,
+  ]
+
+  for (const pattern of patterns) {
+    const match = message.match(pattern)
+
+    if (match?.[1]) {
+      const cleaned = sanitizeSearchTerm(match[1].replace(/[?.!,;:]+$/g, ''))
+
+      if (cleaned.length >= 3) {
+        terms.add(cleaned)
+      }
+    }
+  }
+
+  const capitalizedWords = message.match(/\b[A-ZÀ-Ú][a-zà-ú]{2,}(?:\s+[A-ZÀ-Ú][a-zà-ú]+){0,2}\b/g) ?? []
+
+  for (const word of capitalizedWords) {
+    const cleaned = sanitizeSearchTerm(word)
+
+    if (cleaned.length >= 4 && !/^(Qual|Quais|Como|Onde|Pode|Poderia|Consegue|Informe|Ultimo|Último|Ultima|Última|Acao|Ação|Empresa|Brasil|Bolsa|B3)$/i.test(cleaned)) {
+      terms.add(cleaned)
+    }
+  }
+
+  return [...terms]
+}
+
+function isGeneralKnowledgeQuestion(message: string) {
+  const normalizedMessage = message.toLowerCase()
+
+  return (
+    normalizedMessage.includes('o que é') ||
+    normalizedMessage.includes('o que e ') ||
+    normalizedMessage.includes('o que significa') ||
+    normalizedMessage.includes('significa o indic') ||
+    normalizedMessage.includes('significa o p/') ||
+    normalizedMessage.includes('explique') ||
+    normalizedMessage.includes('explicar') ||
+    normalizedMessage.includes('como funciona') ||
+    normalizedMessage.includes('diferença entre') ||
+    normalizedMessage.includes('diferenca entre') ||
+    /\bp\/(?:l|vp|sr|ebitda|atr)\b/i.test(message) ||
+    normalizedMessage.includes('dividend yield') ||
+    normalizedMessage.includes('mercado financeiro') ||
+    normalizedMessage.includes('bolsa de valores') ||
+    (normalizedMessage.includes('b3') && !detectTicker(message))
+  )
+}
+
+function isMarketRankingQuestion(message: string) {
+  const normalizedMessage = message.toLowerCase()
+
+  return (
+    (normalizedMessage.includes('mais cara') ||
+      normalizedMessage.includes('maior preço') ||
+      normalizedMessage.includes('maior preco') ||
+      normalizedMessage.includes('maior valor') ||
+      normalizedMessage.includes('mais caras') ||
+      normalizedMessage.includes('top ') ||
+      normalizedMessage.includes('ranking')) &&
+    (normalizedMessage.includes('b3') ||
+      normalizedMessage.includes('bolsa') ||
+      normalizedMessage.includes('ação') ||
+      normalizedMessage.includes('acao') ||
+      normalizedMessage.includes('ações') ||
+      normalizedMessage.includes('acoes'))
+  )
+}
+
+function pickBestStockMatch<T extends { ticker: string; company_name: string }>(
+  stocks: T[],
+  searchTerm: string,
+) {
+  const normalizedTerm = searchTerm.toLowerCase()
+
+  const candidates = stocks.filter((stock) => {
+    const ticker = stock.ticker.toLowerCase()
+    const companyName = stock.company_name.toLowerCase()
+
+    return companyName.includes(normalizedTerm) || ticker.startsWith(normalizedTerm)
+  })
+
+  const pool = candidates.length > 0 ? candidates : stocks
+
+  const priority = (ticker: string) => {
+    if (/\d$/.test(ticker) && ticker.endsWith('4')) return 0
+    if (/\d$/.test(ticker) && ticker.endsWith('3')) return 1
+    if (/\d$/.test(ticker) && ticker.endsWith('5')) return 2
+    if (ticker.endsWith('11')) return 3
+    return 9
+  }
+
+  return [...pool].sort((left, right) => priority(left.ticker) - priority(right.ticker))[0]
+}
+
+async function searchTickerByName(
+  supabaseClient: ReturnType<typeof createClient>,
+  term: string,
+): Promise<StockSearchResult | null> {
+  const cleanedTerm = sanitizeSearchTerm(term)
+
+  if (cleanedTerm.length < 3) {
+    return null
+  }
+
+  const { data: stocksData, error: stocksError } = await supabaseClient
+    .from('stocks')
+    .select('ticker, company_name')
+    .or(`company_name.ilike.%${cleanedTerm}%,ticker.ilike.%${cleanedTerm}%`)
+    .limit(10)
+
+  if (stocksError) {
+    console.error('Erro ao buscar ação por nome no Supabase:', stocksError)
+  }
+
+  if (Array.isArray(stocksData) && stocksData.length > 0) {
+    const normalizedStocks = stocksData
+      .map((stock) => ({
+        ticker: typeof stock.ticker === 'string' ? stock.ticker.trim().toUpperCase() : '',
+        company_name: typeof stock.company_name === 'string' ? stock.company_name.trim() : '',
+      }))
+      .filter((stock) => stock.ticker)
+
+    const selected = pickBestStockMatch(normalizedStocks, cleanedTerm)
+
+    if (selected?.ticker) {
+      return {
+        ticker: selected.ticker,
+        company_name: selected.company_name || selected.ticker,
+        source: 'supabase',
+      }
+    }
+  }
+
+  if (!brapiToken) {
+    return null
+  }
+
+  try {
+    const url = new URL('https://brapi.dev/api/quote/list')
+    url.searchParams.set('search', cleanedTerm)
+    url.searchParams.set('limit', '10')
+    url.searchParams.set('type', 'stock')
+    url.searchParams.set('token', brapiToken)
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'User-Agent': 'FinTracker/1.0',
+        Accept: 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      console.error('Erro BRAPI list:', response.status, await response.text())
+      return null
+    }
+
+    const data = await response.json()
+    const stocks = (Array.isArray(data?.stocks) ? data.stocks : [])
+      .map((stock: { stock?: string; name?: string }) => ({
+        ticker: typeof stock.stock === 'string' ? stock.stock.toUpperCase() : '',
+        company_name: typeof stock.name === 'string' ? stock.name : '',
+      }))
+      .filter((stock: { ticker: string }) => stock.ticker)
+
+    const selected = pickBestStockMatch(stocks, cleanedTerm)
+
+    if (!selected?.ticker) {
+      return null
+    }
+
+    return {
+      ticker: selected.ticker,
+      company_name: selected.company_name || selected.ticker,
+      source: 'brapi',
+    }
+  } catch (error) {
+    console.error('Erro ao buscar ação por nome na BRAPI:', error)
+    return null
+  }
+}
+
+async function resolveTickerFromMessage(
+  supabaseClient: ReturnType<typeof createClient>,
+  message: string,
+) {
+  const explicitTicker = detectTicker(message)
+
+  if (explicitTicker) {
+    return {
+      ticker: explicitTicker,
+      company_name: null as string | null,
+      source: 'message',
+    }
+  }
+
+  const searchTerms = extractCompanySearchTerms(message)
+
+  for (const term of searchTerms) {
+    const result = await searchTickerByName(supabaseClient, term)
+
+    if (result?.ticker) {
+      return {
+        ticker: result.ticker,
+        company_name: result.company_name,
+        source: result.source,
+      }
+    }
+  }
+
+  return null
+}
+
+async function fetchTopStocksByPrice(limit = 10): Promise<MarketRankingSnapshot> {
+  if (!brapiToken) {
+    return {
+      source: 'brapi',
+      sort_by: 'close',
+      stocks: [],
+      error: 'BRAPI_TOKEN não configurado na Edge Function.',
+    }
+  }
+
+  try {
+    const url = new URL('https://brapi.dev/api/quote/list')
+    url.searchParams.set('sortBy', 'close')
+    url.searchParams.set('sortOrder', 'desc')
+    url.searchParams.set('limit', String(Math.min(limit, 20)))
+    url.searchParams.set('type', 'stock')
+    url.searchParams.set('token', brapiToken)
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'User-Agent': 'FinTracker/1.0',
+        Accept: 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Erro BRAPI ranking:', response.status, errorText)
+
+      return {
+        source: 'brapi',
+        sort_by: 'close',
+        stocks: [],
+        error: `BRAPI retornou status ${response.status}`,
+      }
+    }
+
+    const data = await response.json()
+    const stocks = Array.isArray(data?.stocks) ? data.stocks : []
+
+    return {
+      source: 'brapi',
+      sort_by: 'close',
+      stocks: stocks.map((stock: { stock?: string; name?: string; close?: number; change?: number }) => ({
+        ticker: typeof stock.stock === 'string' ? stock.stock : '',
+        company_name: typeof stock.name === 'string' ? stock.name : '',
+        close: typeof stock.close === 'number' ? stock.close : null,
+        change: typeof stock.change === 'number' ? stock.change : null,
+      })).filter((stock: MarketRankingEntry) => stock.ticker),
+    }
+  } catch (error) {
+    console.error('Erro ao buscar ranking de ações na BRAPI:', error)
+
+    return {
+      source: 'brapi',
+      sort_by: 'close',
+      stocks: [],
+      error: 'Falha ao consultar a BRAPI.',
+    }
+  }
 }
 
 function isPriceQuestion(message: string) {
@@ -636,6 +942,53 @@ async function fetchDividendHistory(ticker: string, requestedCount: number): Pro
   }
 }
 
+async function callGemini(prompt: string) {
+  const basePayload = {
+    systemInstruction: {
+      parts: [{ text: SYSTEM_PROMPT }],
+    },
+    contents: [
+      {
+        role: 'user',
+        parts: [{ text: prompt }],
+      },
+    ],
+    generationConfig: {
+      temperature: 0.2,
+      maxOutputTokens: 1024,
+    },
+  }
+
+  const payloads = [
+    { ...basePayload, tools: [{ google_search: {} }] },
+    basePayload,
+  ]
+
+  let lastError = ''
+
+  for (const payload of payloads) {
+    const geminiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      },
+    )
+
+    if (geminiResponse.ok) {
+      return await geminiResponse.json()
+    }
+
+    lastError = await geminiResponse.text()
+    console.error('Erro Gemini:', geminiResponse.status, lastError)
+  }
+
+  throw new Error(lastError || 'Falha ao consultar o Gemini.')
+}
+
 async function readRequestBody(req: Request): Promise<ChatRequestBody> {
   try {
     return (await req.json()) as ChatRequestBody
@@ -675,7 +1028,16 @@ Deno.serve(async (req) => {
     const detectedTicker = detectTicker(message)
     const wantsCurrentPrice = isPriceQuestion(message)
     const wantsDividends = isDividendQuestion(message)
+    const wantsGeneralKnowledge = isGeneralKnowledgeQuestion(message)
+    const wantsMarketRanking = isMarketRankingQuestion(message)
     const requestedDividendCount = extractRequestedDividendCount(message)
+    const needsTickerResolution = (wantsCurrentPrice || wantsDividends) && !detectedTicker
+    const resolvedTickerInfo = needsTickerResolution
+      ? await resolveTickerFromMessage(supabase, message)
+      : detectedTicker
+        ? { ticker: detectedTicker, company_name: null, source: 'message' }
+        : null
+    const resolvedTicker = resolvedTickerInfo?.ticker ?? null
 
     if (!message) {
       return jsonResponse({ error: 'Envie uma mensagem para continuar.' }, 400)
@@ -785,13 +1147,18 @@ Deno.serve(async (req) => {
 
     let marketQuote: MarketQuote | null = null
     let dividendSnapshot: DividendSnapshot | null = null
+    let marketRanking: MarketRankingSnapshot | null = null
 
-    if (wantsCurrentPrice && detectedTicker) {
-      marketQuote = await fetchCurrentQuote(detectedTicker)
+    if (wantsCurrentPrice && resolvedTicker) {
+      marketQuote = await fetchCurrentQuote(resolvedTicker)
     }
 
-    if (wantsDividends && detectedTicker) {
-      dividendSnapshot = await fetchDividendHistory(detectedTicker, requestedDividendCount)
+    if (wantsDividends && resolvedTicker) {
+      dividendSnapshot = await fetchDividendHistory(resolvedTicker, requestedDividendCount)
+    }
+
+    if (wantsMarketRanking) {
+      marketRanking = await fetchTopStocksByPrice(10)
     }
 
     const conversationHistory = history
@@ -807,109 +1174,30 @@ Deno.serve(async (req) => {
       conversationHistory || 'Sem histórico anterior.',
       'MENSAGEM ATUAL',
       message,
+      'TICKER IDENTIFICADO',
+      resolvedTickerInfo
+        ? JSON.stringify(resolvedTickerInfo, null, 2)
+        : 'Nenhum ticker identificado na mensagem.',
       'COTAÇÃO ATUAL CONSULTADA',
       marketQuote ? JSON.stringify(marketQuote, null, 2) : 'Nenhuma cotação consultada.',
       'DIVIDENDOS CONSULTADOS',
       dividendSnapshot ? JSON.stringify(dividendSnapshot, null, 2) : 'Nenhum dividendo consultado.',
+      'RANKING DE AÇÕES CONSULTADO',
+      marketRanking ? JSON.stringify(marketRanking, null, 2) : 'Nenhum ranking consultado.',
       'REGRAS ADICIONAIS',
-      'Use apenas o contexto fornecido. Se houver cotações ou dividendos consultados, reporte os números com exatidão. Não invente cotações, dividendos ou outros dados de mercado em tempo real. Se a pergunta pedir preço atual ou dividendos e o ticker não puder ser detectado ou a consulta falhar, diga isso claramente.',
+      [
+        'Para navegação do FinTracker, carteira, transações, watchlist, grupos e configurações: use apenas o contexto fornecido.',
+        'Para cotações, dividendos e rankings consultados acima: reporte os números com exatidão.',
+        'Para conceitos financeiros, indicadores (P/L, P/VP, P/S, Dividend Yield, etc.), funcionamento da B3 e educação financeira: use seu conhecimento e responda mesmo sem dados no contexto.',
+        'Para perguntas gerais de mercado sem dados consultados: responda com seu conhecimento e indique quando os valores podem estar desatualizados.',
+        'Não invente cotações ou dividendos específicos quando não houver consulta no contexto.',
+        wantsGeneralKnowledge
+          ? 'A mensagem atual é uma pergunta de conhecimento geral sobre finanças ou mercado — responda usando seu conhecimento.'
+          : null,
+      ].filter(Boolean).join(' '),
     ].join('\n\n')
 
-    if (wantsCurrentPrice && detectedTicker && marketQuote?.error) {
-      return jsonResponse(
-        {
-          error: `Não consegui consultar a cotação de ${detectedTicker} no momento. Tente novamente em alguns instantes.`,
-          details: {
-            ticker: detectedTicker,
-            source: 'brapi',
-            provider_error: marketQuote.error,
-          },
-        },
-        502
-      )
-    }
-
-    if (wantsCurrentPrice && detectedTicker && marketQuote && marketQuote.current_price === null) {
-      return jsonResponse(
-        {
-          error: `Não consegui obter um preço válido para ${detectedTicker}.`,
-          details: {
-            ticker: detectedTicker,
-            source: 'brapi',
-          },
-        },
-        502
-      )
-    }
-
-    if (wantsDividends && detectedTicker && dividendSnapshot?.error) {
-      return jsonResponse(
-        {
-          error: `Não consegui consultar os dividendos de ${detectedTicker} no momento. Tente novamente em alguns instantes.`,
-          details: {
-            ticker: detectedTicker,
-            source: 'yahoo_finance',
-            provider_error: dividendSnapshot.error,
-          },
-        },
-        502
-      )
-    }
-
-    if (wantsDividends && detectedTicker && dividendSnapshot && dividendSnapshot.dividends.length === 0) {
-      return jsonResponse(
-        {
-          error: `Não encontrei dividendos recentes para ${detectedTicker}.`,
-          details: {
-            ticker: detectedTicker,
-            source: 'yahoo_finance',
-          },
-        },
-        502
-      )
-    }
-
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: SYSTEM_PROMPT }],
-          },
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: prompt }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 1024,
-          },
-        }),
-      }
-    )
-
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text()
-      console.error('Erro Gemini:', geminiResponse.status, errorText)
-      return jsonResponse(
-        {
-          error: 'Não foi possível gerar a resposta agora. Tente novamente em instantes.',
-          details: {
-            provider: 'gemini',
-            status: geminiResponse.status,
-          },
-        },
-        502
-      )
-    }
-
-    const geminiData = await geminiResponse.json()
+    const geminiData = await callGemini(prompt)
     const answer = extractGeminiText(geminiData)
 
     if (!answer) {
@@ -926,17 +1214,18 @@ Deno.serve(async (req) => {
     return jsonResponse({
       answer,
       data: {
-        ticker: marketQuote?.ticker ?? null,
+        ticker: marketQuote?.ticker ?? resolvedTicker ?? null,
         current_price: marketQuote?.current_price ?? null,
-        company_name: marketQuote?.company_name ?? null,
+        company_name: marketQuote?.company_name ?? resolvedTickerInfo?.company_name ?? null,
         currency: marketQuote?.currency ?? 'BRL',
-        source: marketQuote?.source ?? null,
+        source: marketQuote?.source ?? resolvedTickerInfo?.source ?? null,
         updated_at: marketQuote?.updated_at ?? null,
         dividend_ticker: dividendSnapshot?.ticker ?? null,
         dividend_company_name: dividendSnapshot?.company_name ?? null,
         dividend_source: dividendSnapshot?.source ?? null,
         dividend_requested_count: dividendSnapshot?.requested_count ?? null,
         dividends: dividendSnapshot?.dividends ?? null,
+        market_ranking: marketRanking?.stocks ?? null,
       },
     })
   } catch (error) {
