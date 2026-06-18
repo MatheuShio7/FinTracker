@@ -8,7 +8,7 @@
 .transaction-history-title {
   margin: 0 0 14px;
   color: var(--color-text-primary);
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: 0.5px;
 }
@@ -46,7 +46,7 @@
   text-align: center;
   color: var(--color-text-muted);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 1px;
   background-color: var(--color-bg-surface);
@@ -83,7 +83,7 @@
 .transaction-history-table tbody td {
   padding: 20px 18px;
   color: var(--color-text-primary);
-  font-size: 15px;
+  font-size: 0.9375rem;
   border-bottom: 1px solid var(--color-border-row);
   transition: all 0.2s ease;
   text-align: center;
@@ -128,7 +128,7 @@
 }
 
 .transaction-history-icon-button i {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .transaction-history-icon-button:hover {
@@ -181,13 +181,13 @@
 
 .transaction-history-loading {
   color: var(--color-text-muted);
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .transaction-history-error p {
   color: #ff6b6b;
   margin-bottom: 20px;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .transaction-history-readonly-stock {
@@ -223,7 +223,7 @@
 .transaction-history-confirm-content p {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
 }
 
@@ -240,7 +240,7 @@
   border-radius: 10px;
   border: 1px solid var(--color-border);
   padding: 0 16px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -282,7 +282,7 @@
   border: none;
   border-radius: 10px;
   padding: 14px 28px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -299,17 +299,17 @@
   }
 
   .transaction-history-title {
-    font-size: 18px;
+    font-size: 1.125rem;
   }
 
   .transaction-history-table thead th,
   .transaction-history-table tbody td {
     padding: 12px 8px;
-    font-size: 13px;
+    font-size: 0.8125rem;
   }
 
   .transaction-history-table thead th {
-    font-size: 11px;
+    font-size: 0.6875rem;
     letter-spacing: 0.6px;
   }
 

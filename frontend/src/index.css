@@ -8,6 +8,21 @@
   font-family: 'Poppins', sans-serif;
 }
 
+html {
+  font-size: 16px;
+  --font-size-scale: 1;
+}
+
+html[data-font-size="small"] {
+  font-size: 14px;
+  --font-size-scale: 0.875;
+}
+
+html[data-font-size="large"] {
+  font-size: 18px;
+  --font-size-scale: 1.125;
+}
+
 body {
   background-color: var(--color-bg-base);
   color: var(--color-text-primary);

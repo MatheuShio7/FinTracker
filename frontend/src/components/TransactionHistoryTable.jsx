@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { authFetch } from '../lib/authFetch'
 import './TransactionButton.css'
 import './TransactionHistoryTable.css'
@@ -293,7 +294,7 @@ function TransactionHistoryTable({
         </tbody>
       </table>
 
-      {!readOnly && editTransaction && (
+      {!readOnly && editTransaction && createPortal(
         <div className={modalOverlayClassName} onClick={closeEditModal} role="presentation">
           <div
             className="transaction-modal-card"
@@ -391,10 +392,11 @@ function TransactionHistoryTable({
               )}
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {!readOnly && deleteTransaction && (
+      {!readOnly && deleteTransaction && createPortal(
         <div className={modalOverlayClassName} onClick={closeDeleteModal} role="presentation">
           <div
             className="transaction-modal-card transaction-history-confirm-modal"
@@ -446,7 +448,8 @@ function TransactionHistoryTable({
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {hasModalOpen ? <div className="transaction-history-modal-open-spacer" aria-hidden="true" /> : null}

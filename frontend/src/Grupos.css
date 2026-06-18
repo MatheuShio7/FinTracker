@@ -863,7 +863,7 @@
 
 .grupos-invite-feedback {
   margin: 0;
-  padding: 24px 8px;
+  padding: 14px 8px 0px 8px;
   color: var(--color-text-secondary);
   font-family: 'Poppins', sans-serif;
   font-size: 14px;

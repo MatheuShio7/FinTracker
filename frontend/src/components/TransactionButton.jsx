@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { authFetch } from '../lib/authFetch'
 import './TransactionButton.css'
@@ -259,7 +260,7 @@ const TransactionButton = forwardRef(function TransactionButton(
         </button>
       )}
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div className={modalOverlayClassName} onClick={handleClose} role="presentation">
           <div
             className="transaction-modal-card"
@@ -424,7 +425,8 @@ const TransactionButton = forwardRef(function TransactionButton(
               )}
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )

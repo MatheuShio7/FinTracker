@@ -1,7 +1,9 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+import { useTheme } from '../contexts/ThemeContext'
 import './PortfolioPieChart.css'
 
 function PortfolioPieChart({ portfolio, compact = false }) {
+  const { isDark } = useTheme()
   if (!portfolio || portfolio.length === 0) {
     return null
   }
@@ -26,20 +28,23 @@ function PortfolioPieChart({ portfolio, compact = false }) {
     hover: '#f65308'
   }
 
-  // Tooltip customizado
+  const tooltipThemeClass = isDark
+    ? 'portfolio-pie-tooltip--dark'
+    : 'portfolio-pie-tooltip--light'
+
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (
-        <div className="custom-tooltip">
-          <p className="tooltip-ticker">{data.ticker}</p>
-          <p className="tooltip-value">
+        <div className={`portfolio-pie-tooltip ${tooltipThemeClass}`}>
+          <p className="portfolio-pie-tooltip__ticker">{data.ticker}</p>
+          <p className="portfolio-pie-tooltip__value">
             {new Intl.NumberFormat('pt-BR', {
               style: 'currency',
               currency: 'BRL',
             }).format(data.value)}
           </p>
-          <p className="tooltip-percentage">{data.percentage}%</p>
+          <p className="portfolio-pie-tooltip__percentage">{data.percentage}%</p>
         </div>
       )
     }
@@ -91,7 +96,17 @@ function PortfolioPieChart({ portfolio, compact = false }) {
               />
             ))}
           </Pie>
-          <Tooltip content={<CustomTooltip />} isAnimationActive={false} />
+          <Tooltip
+            content={<CustomTooltip />}
+            isAnimationActive={false}
+            contentStyle={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              padding: 0,
+              boxShadow: 'none',
+            }}
+            wrapperStyle={{ outline: 'none', zIndex: 10 }}
+          />
         </PieChart>
       </ResponsiveContainer>
       <div className="portfolio-total-info">

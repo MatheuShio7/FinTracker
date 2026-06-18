@@ -16,7 +16,7 @@ function Configuracoes() {
     disableMfa,
   } = useAuth()
   
-  const { isDark, setTheme } = useTheme()
+  const { isDark, setTheme, fontSize, setFontSize } = useTheme()
   const [selectedLanguage, setSelectedLanguage] = useState('pt-BR') // Idioma padrão português
   const [isTwoFactorEnabled, setIsTwoFactorEnabled] = useState(false)
   const [mfaLoading, setMfaLoading] = useState(false)
@@ -335,7 +335,51 @@ function Configuracoes() {
           </label>
         </div>
 
-        <h3 className="configuracoes-section-title" style={{ marginTop: '30px' }}>Selecionar Idioma</h3>
+        <h3 className="configuracoes-section-title configuracoes-section-spaced">Tamanho da Fonte</h3>
+
+        <div className="font-size-selector-container">
+          <div
+            className={`font-size-option ${fontSize === 'small' ? 'selected' : ''}`}
+            onClick={() => setFontSize('small')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setFontSize('small')}
+          >
+            <span className="font-size-preview font-size-preview--small">A</span>
+            <span className="font-size-label">Pequeno</span>
+            <div className="font-size-underline"></div>
+          </div>
+
+          <div className="font-size-divider"></div>
+
+          <div
+            className={`font-size-option ${fontSize === 'medium' ? 'selected' : ''}`}
+            onClick={() => setFontSize('medium')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setFontSize('medium')}
+          >
+            <span className="font-size-preview font-size-preview--medium">A</span>
+            <span className="font-size-label">Médio</span>
+            <div className="font-size-underline"></div>
+          </div>
+
+          <div className="font-size-divider"></div>
+
+          <div
+            className={`font-size-option ${fontSize === 'large' ? 'selected' : ''}`}
+            onClick={() => setFontSize('large')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setFontSize('large')}
+          >
+            <span className="font-size-preview font-size-preview--large">A</span>
+            <span className="font-size-label">Grande</span>
+            <div className="font-size-underline"></div>
+          </div>
+        </div>
+
+        <h3 className="configuracoes-section-title configuracoes-section-spaced">Selecionar Idioma</h3>
         
         <div className="language-selector-container">
           <div 

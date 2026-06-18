@@ -17,6 +17,10 @@
   margin-bottom: 15px;
 }
 
+.configuracoes-section-spaced {
+  margin-top: 30px;
+}
+
 .configuracoes-group-title {
   color: var(--color-section-title);
   font-size: 1.55rem;
@@ -133,6 +137,70 @@
   opacity: 0.9;
 }
 
+/* Font Size Selector Styles */
+.font-size-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.font-size-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  min-width: 57px;
+}
+
+.font-size-option:hover {
+  opacity: 0.8;
+}
+
+.font-size-preview {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1;
+}
+
+.font-size-preview--small {
+  font-size: 0.85rem;
+}
+
+.font-size-preview--medium {
+  font-size: 1rem;
+}
+
+.font-size-preview--large {
+  font-size: 1.15rem;
+}
+
+.font-size-label {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 6px;
+}
+
+.font-size-underline {
+  width: 57px;
+  height: 3px;
+  background-color: transparent;
+  margin-top: 8px;
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.font-size-option.selected .font-size-underline {
+  background-color: #f65308;
+}
+
+.font-size-divider {
+  width: 3px;
+  height: 40px;
+  background-color: var(--color-language-divider);
+  margin: 0 5px;
+}
+
 /* Language Selector Styles */
 .language-selector-container {
   display: flex;
@@ -235,7 +303,7 @@
 }
 
 .two-factor-card-button-danger {
-  background-color: #d92d2d;
+  background-color: #cf0a0a;
   color: var(--color-text-primary);
 }
 

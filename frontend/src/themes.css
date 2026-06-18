@@ -75,6 +75,23 @@
 
   --color-grupos-scrollbar-track: #111216;
   --color-grupos-scrollbar-thumb: #2a2b30;
+
+  --color-notification-unread-bg: #1f2028;
+  --color-notification-unread-bg-hover: #25262f;
+  --color-notification-unread-shadow: rgba(246, 83, 8, 0.12);
+  --color-notification-item-bg: var(--color-bg-surface-hover);
+  --color-notification-item-hover-bg: #21222a;
+  --color-notification-read-opacity: 0.72;
+  --color-notification-read-border: #3a3b42;
+  --color-notification-read-border-hover: #5a5b62;
+  --color-notification-read-title: #d0d0d0;
+  --color-notification-read-text: #9a9a9a;
+  --color-notification-read-icon: #8a8a8a;
+  --color-notification-delete: #7a7a7a;
+  --color-notification-default-border: #666666;
+  --color-notification-warning-read-border: #8a4a2a;
+  --color-notification-error-read-border: #7a3a3a;
+  --color-notification-info-read-border: #2a5a8a;
 }
 
 [data-theme="light"] {
@@ -98,7 +115,7 @@
   --color-border-focus: rgba(246, 83, 8, 0.4);
   --color-border-row: #eef0f4;
 
-  --color-page-title: #d94a06;
+  --color-page-title: #e2e5eb;
   --color-section-title: #1a1d26;
 
   --color-sidebar-text: #1a1d26;
@@ -147,4 +164,21 @@
 
   --color-grupos-scrollbar-track: #f0f2f5;
   --color-grupos-scrollbar-thumb: #c5cad3;
+
+  --color-notification-unread-bg: var(--color-accent-bg-soft);
+  --color-notification-unread-bg-hover: var(--color-accent-bg);
+  --color-notification-unread-shadow: rgba(246, 83, 8, 0.18);
+  --color-notification-item-bg: var(--color-bg-elevated);
+  --color-notification-item-hover-bg: var(--color-bg-surface-hover);
+  --color-notification-read-opacity: 1;
+  --color-notification-read-border: #c5cad3;
+  --color-notification-read-border-hover: #8b929e;
+  --color-notification-read-title: #4b5563;
+  --color-notification-read-text: #6b7280;
+  --color-notification-read-icon: #6b7280;
+  --color-notification-delete: #8b929e;
+  --color-notification-default-border: #c5cad3;
+  --color-notification-warning-read-border: #e8a87c;
+  --color-notification-error-read-border: #e8a0a0;
+  --color-notification-info-read-border: #7eb8e8;
 }
