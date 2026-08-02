@@ -64,7 +64,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #f65308;
+  background-color: var(--color-accent);
   transition: 0.4s;
   border-radius: 34px;
 }
@@ -93,7 +93,7 @@
 }
 
 .sun-icon {
-  color: #f65308;
+  color: var(--color-accent);
   left: 10px;
   opacity: 1;
 }
@@ -191,7 +191,7 @@
 }
 
 .font-size-option.selected .font-size-underline {
-  background-color: #f65308;
+  background-color: var(--color-accent);
 }
 
 .font-size-divider {
@@ -238,7 +238,7 @@
 }
 
 .language-option.selected .language-underline {
-  background-color: #f65308;
+  background-color: var(--color-accent);
 }
 
 .language-divider {
@@ -251,7 +251,7 @@
 .two-factor-card {
   max-width: 780px;
   background-color: var(--color-two-factor-bg);
-  border: 2px solid #f65308;
+  border: 2px solid var(--color-accent);
   border-radius: 14px;
   padding: 22px;
   color: var(--color-text-primary);
@@ -298,7 +298,7 @@
 }
 
 .two-factor-card-button-primary {
-  background-color: #f65308;
+  background-color: var(--color-accent);
   color: var(--color-text-primary);
 }
 
@@ -447,15 +447,15 @@
 }
 
 .profile-input:focus {
-  border-color: #f65308;
+  border-color: var(--color-accent);
 }
 
 .profile-input:focus + .profile-input-icon {
-  color: #f65308;
+  color: var(--color-accent);
 }
 
 .profile-input-wrapper:focus-within .profile-input-icon {
-  color: #f65308;
+  color: var(--color-accent);
 }
 
 .profile-input:disabled {
@@ -484,7 +484,7 @@
 }
 
 .password-eye-icon:active {
-  color: #f65308;
+  color: var(--color-accent);
 }
 
 /* Profile Save Button */
@@ -510,13 +510,13 @@
   /* Estado ativo (com mudanças) */
   background-color: var(--color-bg-surface);
   color: var(--color-text-primary);
-  border: 1px solid #f65308;
+  border: 1px solid var(--color-accent);
   animation: glow-border 2s ease-in-out infinite alternate;
 }
 
 @keyframes glow-border {
   0% {
-    border-color: #f65308;
+    border-color: var(--color-accent);
     box-shadow: 0 0 3px rgba(246, 83, 8, 0.3);
   }
   100% {

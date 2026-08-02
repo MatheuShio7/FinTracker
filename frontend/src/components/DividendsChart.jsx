@@ -63,6 +63,11 @@ function DividendsChart({ dividends }) {
   // Calcular total e média dos dividendos
   const totalDividends = dividend_values.reduce((sum, val) => sum + val, 0)
   const avgDividends = totalDividends / dividend_values.length
+
+  const themeStyles = getComputedStyle(document.documentElement)
+  const gridColor = themeStyles.getPropertyValue('--color-chart-grid').trim()
+  const axisColor = themeStyles.getPropertyValue('--color-chart-axis').trim()
+  const accentColor = themeStyles.getPropertyValue('--color-accent').trim()
   
   return (
     <div className="dividends-chart-container">
@@ -75,7 +80,7 @@ function DividendsChart({ dividends }) {
           data={chartData}
           margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
+          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
           
           <XAxis 
             dataKey="date" 
@@ -95,7 +100,7 @@ function DividendsChart({ dividends }) {
               
               return date
             }}
-            stroke="#9ca3af"
+            stroke={axisColor}
             style={{ fontSize: '12px' }}
             angle={-45}
             textAnchor="end"
@@ -105,7 +110,7 @@ function DividendsChart({ dividends }) {
           <YAxis 
             domain={[0, maxValue + padding]}
             tickFormatter={(value) => `R$ ${value.toFixed(2)}`}
-            stroke="#9ca3af"
+            stroke={axisColor}
             style={{ fontSize: '12px' }}
             width={80}
           />
@@ -114,7 +119,7 @@ function DividendsChart({ dividends }) {
           
           <Bar 
             dataKey="value" 
-            fill="#f65308"
+            fill={accentColor}
             radius={[8, 8, 0, 0]}
           />
         </BarChart>

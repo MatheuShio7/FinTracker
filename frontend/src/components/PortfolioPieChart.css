@@ -33,7 +33,7 @@
 }
 
 .total-label {
-  color: #f65308;
+  color: var(--color-accent);
   font-size: 40px;
   font-weight: 400;
   letter-spacing: 1px;
@@ -53,7 +53,7 @@
   justify-content: center;
   align-items: center;
   height: 200px;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   font-size: 1.1rem;
 }
 
@@ -95,7 +95,7 @@
 }
 
 .pie-cell:hover {
-  fill: #f65308 !important;
+  fill: var(--color-accent) !important;
   transform: scale(1.008);
 }
 
@@ -120,15 +120,15 @@
 }
 
 .portfolio-pie-tooltip--light {
-  background: #ffffff;
+  background: var(--color-bg-surface);
   border: 1px solid var(--color-accent);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 16px var(--color-shadow);
 }
 
 .portfolio-pie-tooltip--dark {
-  background: rgba(32, 33, 40, 0.97);
+  background: var(--color-bg-elevated);
   border: 1px solid var(--color-accent);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 15px var(--color-shadow-lg);
 }
 
 .portfolio-pie-tooltip__ticker {
@@ -138,28 +138,17 @@
   margin: 0 0 6px 0;
 }
 
-.portfolio-pie-tooltip--light .portfolio-pie-tooltip__value {
-  color: #1a1d26;
-  font-size: 15px;
-  font-weight: 700;
-  margin: 0 0 4px 0;
-}
-
+.portfolio-pie-tooltip--light .portfolio-pie-tooltip__value,
 .portfolio-pie-tooltip--dark .portfolio-pie-tooltip__value {
-  color: #ffffff;
-  font-size: 13px;
+  color: var(--color-text-primary);
+  font-size: 14px;
   font-weight: 600;
   margin: 0 0 4px 0;
 }
 
-.portfolio-pie-tooltip--light .portfolio-pie-tooltip__percentage {
-  color: #5c6370;
-  font-size: 12px;
-  margin: 0;
-}
-
+.portfolio-pie-tooltip--light .portfolio-pie-tooltip__percentage,
 .portfolio-pie-tooltip--dark .portfolio-pie-tooltip__percentage {
-  color: #9f9f9f;
+  color: var(--color-text-secondary);
   font-size: 12px;
   margin: 0;
 }

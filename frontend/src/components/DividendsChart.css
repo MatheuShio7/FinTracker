@@ -23,7 +23,7 @@
 .chart-empty {
   text-align: center;
   padding: 3rem 1rem;
-  color: #9ca3af;
+  color: var(--color-text-muted);
 }
 
 .chart-empty p {
@@ -58,7 +58,7 @@
 .chart-footer {
   margin-top: 0.5rem;
   padding-top: 1rem;
-  border-top: 1px solid #333333;
+  border-top: 1px solid var(--color-border);
 }
 
 .chart-stats {
@@ -76,7 +76,7 @@
 
 .stat-label {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   text-transform: uppercase;
   font-weight: 600;
   letter-spacing: 0.5px;

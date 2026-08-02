@@ -82,7 +82,12 @@ function PriceChart({ prices, onRangeChange, loading }) {
   // Determinar cor da linha baseado na variação (primeiro vs último preço)
   const firstPrice = prices_values[0]
   const lastPrice = prices_values[prices_values.length - 1]
-  const lineColor = lastPrice >= firstPrice ? '#24b224' : '#e60111' // Verde se subiu, vermelho se caiu
+  const themeStyles = getComputedStyle(document.documentElement)
+  const lineColor = lastPrice >= firstPrice
+    ? themeStyles.getPropertyValue('--color-success').trim()
+    : themeStyles.getPropertyValue('--color-danger').trim()
+  const gridColor = themeStyles.getPropertyValue('--color-chart-grid').trim()
+  const axisColor = themeStyles.getPropertyValue('--color-chart-axis').trim()
   
   return (
     <div className="price-chart-container">
@@ -112,7 +117,7 @@ function PriceChart({ prices, onRangeChange, loading }) {
           data={chartData}
           margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
+          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
           
           <XAxis 
             dataKey="date" 
@@ -120,7 +125,7 @@ function PriceChart({ prices, onRangeChange, loading }) {
               const [, month, day] = date.split('-')
               return `${day}/${month}`
             }}
-            stroke="#9ca3af"
+            stroke={axisColor}
             style={{ fontSize: '12px' }}
             angle={-45}
             textAnchor="end"
@@ -130,7 +135,7 @@ function PriceChart({ prices, onRangeChange, loading }) {
           <YAxis 
             domain={[minPrice - padding, maxPrice + padding]}
             tickFormatter={(value) => `R$ ${value.toFixed(2)}`}
-            stroke="#9ca3af"
+            stroke={axisColor}
             style={{ fontSize: '12px' }}
             width={80}
           />

@@ -22,10 +22,10 @@ function PortfolioPieChart({ portfolio, compact = false }) {
     percentage: totalValue > 0 ? ((stock.total_value || 0) / totalValue * 100).toFixed(1) : 0
   }))
 
-  // Cores para as fatias
+  const themeStyles = getComputedStyle(document.documentElement)
   const COLORS = {
-    default: '#202128',
-    hover: '#f65308'
+    default: themeStyles.getPropertyValue('--color-pie-fill').trim() || '#2a2a2a',
+    hover: themeStyles.getPropertyValue('--color-accent').trim() || '#f65308'
   }
 
   const tooltipThemeClass = isDark
@@ -62,7 +62,8 @@ function PortfolioPieChart({ portfolio, compact = false }) {
       <text
         x={x}
         y={y}
-        fill="white"
+        fill="currentColor"
+        style={{ color: 'var(--color-text-primary)' }}
         textAnchor={x > cx ? 'start' : 'end'}
         dominantBaseline="central"
         className="recharts-pie-label-text"

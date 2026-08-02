@@ -63,7 +63,7 @@
   top: 0;
   height: 100%;
   width: 4px;
-  background: #f65308;
+  background: var(--color-accent);
   border-radius: 5px;
 }
 
