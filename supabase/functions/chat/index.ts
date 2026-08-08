@@ -8,10 +8,13 @@ type ChatHistoryItem = {
   text?: string
 }
 
+type ChatLanguage = 'pt-BR' | 'en'
+
 type ChatRequestBody = {
   message?: string
   userId?: string
   history?: ChatHistoryItem[]
+  language?: string
 }
 
 type MarketQuote = {
@@ -58,8 +61,44 @@ type MarketRankingSnapshot = {
   error?: string
 }
 
-const SYSTEM_PROMPT =
-  'Você é o assistente virtual do FinTracker, um sistema de controle de carteira de ações. Responda sempre em português brasileiro. Seja objetivo e use linguagem simples e acessível. Quando a pergunta for sobre o FinTracker, use o knowledge base e os dados fornecidos no contexto. Quando a pergunta for sobre o usuário logado, use os dados do Supabase fornecidos no contexto. Quando a pergunta for sobre preço atual de ações, use a cotação consultada na BRAPI fornecida no contexto. Quando a pergunta for sobre dividendos de uma ação específica, use os dividendos consultados no contexto. Para conceitos e indicadores financeiros (P/VP, P/L, P/S, P/EBITDA, Dividend Yield, ROE, etc.), estratégias de investimento, funcionamento da B3, educação financeira e outras perguntas gerais sobre o mercado, use seu próprio conhecimento e responda de forma educativa — mesmo que não haja dados no contexto. Para perguntas sobre rankings ou dados de mercado em tempo real que não estejam no contexto, responda com base no seu conhecimento e deixe claro quando os valores podem estar desatualizados. Priorize os dados fornecidos no contexto quando forem relevantes; depois use seu conhecimento. Não invente cotações ou dividendos específicos quando não houver consulta no contexto. Não recomende compra ou venda de ações específicas. Quando analisar dados numéricos do usuário ou cotações, seja preciso com os números.'
+const SYSTEM_PROMPT_BASE =
+  'Você é o assistente virtual do FinTracker, um sistema de controle de carteira de ações. Seja objetivo e use linguagem simples e acessível. Quando a pergunta for sobre o FinTracker, use o knowledge base e os dados fornecidos no contexto. Quando a pergunta for sobre o usuário logado, use os dados do Supabase fornecidos no contexto. Quando a pergunta for sobre preço atual de ações, use a cotação consultada na BRAPI fornecida no contexto. Quando a pergunta for sobre dividendos de uma ação específica, use os dividendos consultados no contexto. Para conceitos e indicadores financeiros (P/VP, P/L, P/S, P/EBITDA, Dividend Yield, ROE, etc.), estratégias de investimento, funcionamento da B3, educação financeira e outras perguntas gerais sobre o mercado, use seu próprio conhecimento e responda de forma educativa — mesmo que não haja dados no contexto. Para perguntas sobre rankings ou dados de mercado em tempo real que não estejam no contexto, responda com base no seu conhecimento e deixe claro quando os valores podem estar desatualizados. Priorize os dados fornecidos no contexto quando forem relevantes; depois use seu conhecimento. Não invente cotações ou dividendos específicos quando não houver consulta no contexto. Não recomende compra ou venda de ações específicas. Quando analisar dados numéricos do usuário ou cotações, seja preciso com os números.'
+
+function normalizeChatLanguage(language: unknown): ChatLanguage {
+  if (typeof language !== 'string') {
+    return 'pt-BR'
+  }
+
+  const normalized = language.trim().toLowerCase()
+
+  if (normalized === 'en' || normalized.startsWith('en-') || normalized.startsWith('en_')) {
+    return 'en'
+  }
+
+  return 'pt-BR'
+}
+
+function buildSystemPrompt(language: ChatLanguage) {
+  const languageRule = language === 'en'
+    ? 'Always reply in English. Keep tickers, route paths (/configuracoes, /carteira, /explorar, /grupos, etc.) and product proper nouns as they appear in FinTracker.'
+    : 'Responda sempre em português brasileiro.'
+
+  return `${SYSTEM_PROMPT_BASE} ${languageRule}`
+}
+
+function getLanguageResponseRule(language: ChatLanguage) {
+  return language === 'en'
+    ? 'Response language: English.'
+    : 'Idioma da resposta: português brasileiro.'
+}
+
+function formatHistoryRole(role: string | undefined, language: ChatLanguage) {
+  if (role === 'assistant') {
+    return language === 'en' ? 'Assistant' : 'Assistente'
+  }
+
+  return language === 'en' ? 'User' : 'Usuário'
+}
 
 const SYSTEM_CONTEXT = String.raw`# FinTracker - Knowledge Base do Assistente IA
 
@@ -484,6 +523,11 @@ function isGeneralKnowledgeQuestion(message: string) {
     normalizedMessage.includes('como funciona') ||
     normalizedMessage.includes('diferença entre') ||
     normalizedMessage.includes('diferenca entre') ||
+    normalizedMessage.includes('what is') ||
+    normalizedMessage.includes('what does') ||
+    normalizedMessage.includes('explain') ||
+    normalizedMessage.includes('how does') ||
+    normalizedMessage.includes('difference between') ||
     /\bp\/(?:l|vp|sr|ebitda|atr)\b/i.test(message) ||
     normalizedMessage.includes('dividend yield') ||
     normalizedMessage.includes('mercado financeiro') ||
@@ -501,6 +545,9 @@ function isMarketRankingQuestion(message: string) {
       normalizedMessage.includes('maior preco') ||
       normalizedMessage.includes('maior valor') ||
       normalizedMessage.includes('mais caras') ||
+      normalizedMessage.includes('most expensive') ||
+      normalizedMessage.includes('highest price') ||
+      normalizedMessage.includes('top stocks') ||
       normalizedMessage.includes('top ') ||
       normalizedMessage.includes('ranking')) &&
     (normalizedMessage.includes('b3') ||
@@ -508,7 +555,10 @@ function isMarketRankingQuestion(message: string) {
       normalizedMessage.includes('ação') ||
       normalizedMessage.includes('acao') ||
       normalizedMessage.includes('ações') ||
-      normalizedMessage.includes('acoes'))
+      normalizedMessage.includes('acoes') ||
+      normalizedMessage.includes('stock') ||
+      normalizedMessage.includes('stocks') ||
+      normalizedMessage.includes('exchange'))
   )
 }
 
@@ -727,7 +777,12 @@ function isPriceQuestion(message: string) {
     normalizedMessage.includes('valor atual') ||
     normalizedMessage.includes('quanto custa') ||
     normalizedMessage.includes('preco atual') ||
-    normalizedMessage.includes('preço atual')
+    normalizedMessage.includes('preço atual') ||
+    normalizedMessage.includes('price') ||
+    normalizedMessage.includes('quote') ||
+    normalizedMessage.includes('current value') ||
+    normalizedMessage.includes('how much') ||
+    normalizedMessage.includes('stock price')
   )
 }
 
@@ -739,6 +794,9 @@ function isDividendQuestion(message: string) {
     normalizedMessage.includes('dividendos') ||
     normalizedMessage.includes('provento') ||
     normalizedMessage.includes('proventos') ||
+    normalizedMessage.includes('dividend') ||
+    normalizedMessage.includes('dividends') ||
+    normalizedMessage.includes('payout') ||
     normalizedMessage.includes('yield') ||
     normalizedMessage.includes('dy')
   )
@@ -747,6 +805,7 @@ function isDividendQuestion(message: string) {
 function extractRequestedDividendCount(message: string) {
   const patterns = [
     /\b(?:ultimos?|últimos?|ultimas?|últimas?)\s+(\d+)\b/i,
+    /\b(?:last|latest)\s+(\d+)\b/i,
     /\btop\s+(\d+)\b/i,
   ]
 
@@ -942,10 +1001,10 @@ async function fetchDividendHistory(ticker: string, requestedCount: number): Pro
   }
 }
 
-async function callGemini(prompt: string) {
+async function callGemini(prompt: string, systemPrompt: string) {
   const basePayload = {
     systemInstruction: {
-      parts: [{ text: SYSTEM_PROMPT }],
+      parts: [{ text: systemPrompt }],
     },
     contents: [
       {
@@ -1025,6 +1084,8 @@ Deno.serve(async (req) => {
     const message = typeof body.message === 'string' ? body.message.trim() : ''
     const userId = typeof body.userId === 'string' ? body.userId.trim() : ''
     const history = normalizeHistory(body.history)
+    const language = normalizeChatLanguage(body.language)
+    const systemPrompt = buildSystemPrompt(language)
     const detectedTicker = detectTicker(message)
     const wantsCurrentPrice = isPriceQuestion(message)
     const wantsDividends = isDividendQuestion(message)
@@ -1162,7 +1223,7 @@ Deno.serve(async (req) => {
     }
 
     const conversationHistory = history
-      .map((item) => `${item.role === 'assistant' ? 'Assistente' : 'Usuário'}: ${item.text}`)
+      .map((item) => `${formatHistoryRole(item.role, language)}: ${item.text}`)
       .join('\n')
 
     const prompt = [
@@ -1186,6 +1247,7 @@ Deno.serve(async (req) => {
       marketRanking ? JSON.stringify(marketRanking, null, 2) : 'Nenhum ranking consultado.',
       'REGRAS ADICIONAIS',
       [
+        getLanguageResponseRule(language),
         'Para navegação do FinTracker, carteira, transações, watchlist, grupos e configurações: use apenas o contexto fornecido.',
         'Para cotações, dividendos e rankings consultados acima: reporte os números com exatidão.',
         'Para conceitos financeiros, indicadores (P/L, P/VP, P/S, Dividend Yield, etc.), funcionamento da B3 e educação financeira: use seu conhecimento e responda mesmo sem dados no contexto.',
@@ -1197,7 +1259,7 @@ Deno.serve(async (req) => {
       ].filter(Boolean).join(' '),
     ].join('\n\n')
 
-    const geminiData = await callGemini(prompt)
+    const geminiData = await callGemini(prompt, systemPrompt)
     const answer = extractGeminiText(geminiData)
 
     if (!answer) {

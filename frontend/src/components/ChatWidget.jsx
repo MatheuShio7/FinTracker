@@ -169,6 +169,7 @@ function ChatWidget({ enabled = false }) {
           message: trimmedMessage,
           userId: user.id,
           history: nextHistory,
+          language: i18n.language?.startsWith('en') ? 'en' : 'pt-BR',
         },
       })
 
