@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from './contexts/AuthContext'
 import { usePortfolio } from './contexts/PortfolioContext'
 import { authFetch } from './lib/authFetch'
@@ -13,6 +14,7 @@ import PortfolioPieChart from './components/PortfolioPieChart'
 import TransactionHistoryTable from './components/TransactionHistoryTable'
 
 function Carteira() {
+  const { t } = useTranslation(['portfolio', 'nav', 'common'])
   const { user } = useAuth()
   const { cache } = usePortfolio()
   const [portfolioData, setPortfolioData] = useState([])
@@ -40,11 +42,11 @@ function Carteira() {
       if (response.ok && data.status === 'success') {
         setTransactions(data.data || [])
       } else {
-        setTransactionsError(data.message || 'Erro ao buscar histórico de transações')
+        setTransactionsError(data.message || t('portfolio:transactionsFetchError'))
       }
     } catch (err) {
       console.error('Erro ao buscar histórico de transações:', err)
-      setTransactionsError('Erro ao conectar com o servidor')
+      setTransactionsError(t('common:serverError'))
     } finally {
       setTransactionsLoading(false)
     }
@@ -120,11 +122,11 @@ function Carteira() {
         console.log('💾 Dados completos da carteira salvos em cache')
         
       } else {
-        setError(data.message || 'Erro ao buscar carteira')
+        setError(data.message || t('portfolio:fetchError'))
       }
     } catch (err) {
       console.error('Erro ao buscar carteira completa:', err)
-      setError('Erro ao conectar com o servidor')
+      setError(t('common:serverError'))
     } finally {
       setLoading(false)
     }
@@ -179,11 +181,11 @@ function Carteira() {
         await fetchPortfolioData(true)
       } else {
         console.error('❌ Erro ao atualizar preços:', data.message)
-        setError(data.message || 'Erro ao atualizar preços')
+        setError(data.message || t('portfolio:updatePricesError'))
       }
     } catch (err) {
       console.error('❌ Erro ao conectar com backend:', err)
-      setError('Erro ao atualizar preços')
+      setError(t('portfolio:updatePricesError'))
     } finally {
       setIsRefreshing(false)
     }
@@ -195,7 +197,7 @@ function Carteira() {
       <TransactionButton className="carteira-transaction-button" onTransactionSaved={handleTransactionSaved} />
       <NotificationsButton className="carteira-notifications-button" />
       <ReloadButton onClick={handleRefresh} isLoading={isRefreshing} />
-      <PageTitle title="Carteira" />
+      <PageTitle title={t('portfolio:title')} />
       <PortfolioTable 
         portfolioData={portfolioData}
         loading={loading}
@@ -214,4 +216,4 @@ function Carteira() {
   )
 }
 
-export default Carteira 
+export default Carteira

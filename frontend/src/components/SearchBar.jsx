@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { usePortfolio } from '../contexts/PortfolioContext';
 import { supabase } from '../lib/supabase';
@@ -7,6 +8,7 @@ import { authFetch } from '../lib/authFetch';
 import './SearchBar.css';
 
 function SearchBar({ onRequestAddToPortfolio }) {
+  const { t } = useTranslation(['explore', 'common', 'portfolio']);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { loadPortfolioData, checkStocksStatus, addToPortfolio, addToWatchlist, removeFromWatchlist } = usePortfolio();
@@ -96,14 +98,14 @@ function SearchBar({ onRequestAddToPortfolio }) {
   const handleResultClick = (stock) => {
     setShowDropdown(false);
     setSearchTerm('');
-    navigate(`/${stock.ticker}`, { state: { from: 'Explorar' } });
+    navigate(`/${stock.ticker}`, { state: { from: 'explore' } });
   };
 
   const handleTogglePortfolio = async (stock, e) => {
     e.stopPropagation();
 
     if (!user) {
-      alert('Você precisa estar logado para gerenciar sua carteira!');
+      alert(t('explore:search.loginPortfolio'));
       return;
     }
 
@@ -142,7 +144,7 @@ function SearchBar({ onRequestAddToPortfolio }) {
       }
     } catch (error) {
       console.error('Erro ao gerenciar carteira:', error);
-      alert('Erro ao gerenciar carteira. Tente novamente.');
+      alert(t('explore:search.portfolioError'));
     } finally {
       setAddingToPortfolio(null);
     }
@@ -152,7 +154,7 @@ function SearchBar({ onRequestAddToPortfolio }) {
     e.stopPropagation();
 
     if (!user) {
-      alert('Você precisa estar logado para gerenciar sua watchlist!');
+      alert(t('explore:search.loginWatchlist'));
       return;
     }
 
@@ -209,7 +211,7 @@ function SearchBar({ onRequestAddToPortfolio }) {
       }
     } catch (error) {
       console.error('Erro ao gerenciar watchlist:', error);
-      alert('Erro ao gerenciar watchlist. Tente novamente.');
+      alert(t('explore:search.watchlistError'));
     } finally {
       setAddingToWatchlist(null);
     }
@@ -222,7 +224,7 @@ function SearchBar({ onRequestAddToPortfolio }) {
         <input
           type="text"
           className="search-input"
-          placeholder="Pesquisar"
+          placeholder={t('explore:search.placeholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onFocus={() => searchTerm && setShowDropdown(true)}
@@ -233,7 +235,7 @@ function SearchBar({ onRequestAddToPortfolio }) {
         <div className="search-dropdown">
           {isLoading ? (
             <div className="search-result-item loading">
-              Carregando...
+              {t('explore:search.loading')}
             </div>
           ) : results.length > 0 ? (
             results.map((stock) => (
@@ -249,8 +251,8 @@ function SearchBar({ onRequestAddToPortfolio }) {
                 <div className="result-actions">
                   <button
                     className="action-button"
-                    title="Adicionar transação"
-                    aria-label="Adicionar transação"
+                    title={t('explore:search.addTransactionAria')}
+                    aria-label={t('explore:search.addTransactionAria')}
                     onClick={(e) => handleTogglePortfolio(stock, e)}
                     disabled={addingToPortfolio === stock.ticker}
                   >
@@ -276,7 +278,7 @@ function SearchBar({ onRequestAddToPortfolio }) {
             ))
           ) : (
             <div className="search-result-item no-results">
-              Nenhuma ação encontrada
+              {t('explore:search.noResults')}
             </div>
           )}
         </div>
@@ -286,4 +288,3 @@ function SearchBar({ onRequestAddToPortfolio }) {
 }
 
 export default SearchBar;
-

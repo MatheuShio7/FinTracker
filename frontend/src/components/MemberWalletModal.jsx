@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import { authFetch } from '../lib/authFetch'
 import ReloadButton from './ReloadButton'
 import TransactionButton from './TransactionButton'
@@ -9,6 +10,7 @@ import TransactionHistoryTable from './TransactionHistoryTable'
 import './MemberWalletModal.css'
 
 function MemberWalletModal({ groupId, member, currentUserId, isOpen, onClose }) {
+  const { t } = useTranslation(['groups', 'common'])
   const [portfolioData, setPortfolioData] = useState([])
   const [transactions, setTransactions] = useState([])
   const [canManage, setCanManage] = useState(false)
@@ -55,13 +57,13 @@ function MemberWalletModal({ groupId, member, currentUserId, isOpen, onClose }) 
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        throw new Error(data.message || 'Erro ao carregar carteira do membro')
+        throw new Error(data.message || t('groups:wallet.loadError'))
       }
 
       applyWalletData(data.data)
     } catch (walletErr) {
       console.error('Erro ao carregar carteira do membro:', walletErr)
-      setError(walletErr.message || 'Erro ao conectar com o servidor')
+      setError(walletErr.message || t('common:serverError'))
       setPortfolioData([])
       setTransactions([])
       setCanManage(false)
@@ -69,7 +71,7 @@ function MemberWalletModal({ groupId, member, currentUserId, isOpen, onClose }) 
       setLoading(false)
       setIsRefreshing(false)
     }
-  }, [groupId, member?.user_id, applyWalletData])
+  }, [groupId, member?.user_id, applyWalletData, t])
 
   const handleWalletUpdated = useCallback((walletData) => {
     if (walletData?.portfolio || walletData?.transactions) {
@@ -108,7 +110,7 @@ function MemberWalletModal({ groupId, member, currentUserId, isOpen, onClose }) 
   }
 
   const memberLabel = member.user_id === currentUserId
-    ? `${member.name} (Você)`
+    ? `${member.name} ${t('common:you')}`
     : member.name
 
   const elevatedModalOverlayClassName = 'transaction-modal-overlay transaction-modal-overlay-elevated'
@@ -120,17 +122,17 @@ function MemberWalletModal({ groupId, member, currentUserId, isOpen, onClose }) 
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label={`Carteira de ${member.name}`}
+        aria-label={t('groups:wallet.aria', { name: member.name })}
       >
         <div className="grupos-details-header grupos-wallet-header">
           <div className="grupos-wallet-title-row">
-            <h3>Carteira de {memberLabel}</h3>
+            <h3>{t('groups:wallet.title', { name: memberLabel })}</h3>
             <span
               className={`grupos-wallet-mode-badge ${
                 canManage ? 'grupos-wallet-mode-badge-manage' : 'grupos-wallet-mode-badge-readonly'
               }`}
             >
-              {canManage ? 'Gerenciável' : 'Somente leitura'}
+              {canManage ? t('groups:wallet.manageable') : t('groups:wallet.readonly')}
             </span>
           </div>
           <div className="grupos-wallet-header-actions">
@@ -151,7 +153,7 @@ function MemberWalletModal({ groupId, member, currentUserId, isOpen, onClose }) 
               type="button"
               className="grupos-close-button"
               onClick={onClose}
-              aria-label="Fechar carteira do membro"
+              aria-label={t('groups:wallet.closeAria')}
             >
               <i className="bi bi-x-lg"></i>
             </button>

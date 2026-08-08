@@ -1,11 +1,14 @@
 import './Configuracoes.css'
 import Logo from './components/Logo'
 import PageTitle from './components/PageTitle'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from './contexts/AuthContext'
 import { useTheme } from './contexts/ThemeContext'
+import { normalizeLanguage } from './i18n'
 
 function Configuracoes() {
+  const { t, i18n } = useTranslation(['settings', 'common', 'auth'])
   const {
     user,
     updateProfile,
@@ -17,7 +20,7 @@ function Configuracoes() {
   } = useAuth()
   
   const { isDark, setTheme, fontSize, setFontSize } = useTheme()
-  const [selectedLanguage, setSelectedLanguage] = useState('pt-BR') // Idioma padrão português
+  const selectedLanguage = normalizeLanguage(i18n.language)
   const [isTwoFactorEnabled, setIsTwoFactorEnabled] = useState(false)
   const [mfaLoading, setMfaLoading] = useState(false)
   const [mfaMessage, setMfaMessage] = useState('')
@@ -56,25 +59,25 @@ function Configuracoes() {
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
 
-  const normalizeMfaUiMessage = (message = '', fallback = 'Não foi possível concluir a operação de MFA.') => {
+  const normalizeMfaUiMessage = useCallback((message = '', fallback = t('settings:mfa.fallbackGeneric')) => {
     const lower = (message || '').toLowerCase()
 
     if (!lower) return fallback
     if (lower.includes('invalid') || lower.includes('otp') || lower.includes('code')) {
-      return 'Código inválido. Confira o app autenticador e tente novamente.'
+      return t('settings:mfa.invalidCode')
     }
     if (lower.includes('expired')) {
-      return 'Código expirado. Gere um novo código no app autenticador.'
+      return t('settings:mfa.expired')
     }
     if (lower.includes('rate') || lower.includes('too many')) {
-      return 'Muitas tentativas em sequência. Aguarde alguns segundos e tente novamente.'
+      return t('settings:mfa.rateLimit')
     }
     if (lower.includes('factor') && lower.includes('not found')) {
-      return 'Fator MFA não encontrado. Recarregue a página e tente novamente.'
+      return t('settings:mfa.factorNotFound')
     }
 
     return message || fallback
-  }
+  }, [t])
   
   // Carregar dados do usuário ao montar o componente
   useEffect(() => {
@@ -102,14 +105,14 @@ function Configuracoes() {
         setIsTwoFactorEnabled(status.enabled)
         setMfaFactorId(status.primaryFactorId)
       } else {
-        setMfaError(normalizeMfaUiMessage(status.message, 'Erro ao consultar status do MFA.'))
+        setMfaError(normalizeMfaUiMessage(status.message, t('settings:mfa.statusError')))
       }
 
       setMfaLoading(false)
     }
 
     loadMfa()
-  }, [user, getMfaStatus])
+  }, [user, getMfaStatus, normalizeMfaUiMessage, t])
   
   // Detectar se houve mudanças
   const hasChanges = 
@@ -134,17 +137,17 @@ function Configuracoes() {
         setOriginalLastName(result.user.last_name)
         setOriginalEmail(result.user.email)
         
-        setSuccessMessage('Dados atualizados com sucesso!')
+        setSuccessMessage(t('settings:profile.success'))
         
         // Limpar mensagem de sucesso após 3 segundos
         setTimeout(() => {
           setSuccessMessage('')
         }, 3000)
       } else {
-        setError(result.message || 'Erro ao atualizar dados')
+        setError(result.message || t('settings:profile.error'))
       }
     } catch {
-      setError('Erro ao atualizar dados')
+      setError(t('settings:profile.error'))
     } finally {
       setSaving(false)
     }
@@ -182,7 +185,7 @@ function Configuracoes() {
       const result = await updatePassword(currentPassword, newPassword)
       
       if (result.success) {
-        setPasswordSuccess('Senha atualizada com sucesso!')
+        setPasswordSuccess(t('settings:password.success'))
         
         // Limpar campos
         setCurrentPassword('')
@@ -194,10 +197,10 @@ function Configuracoes() {
           setPasswordSuccess('')
         }, 3000)
       } else {
-        setPasswordError(result.message || 'Erro ao atualizar senha')
+        setPasswordError(result.message || t('settings:password.error'))
       }
     } catch {
-      setPasswordError('Erro ao atualizar senha')
+      setPasswordError(t('settings:password.error'))
     } finally {
       setSavingPassword(false)
     }
@@ -220,7 +223,7 @@ function Configuracoes() {
     const result = await startMfaEnrollment()
 
     if (!result.success) {
-      setMfaError(normalizeMfaUiMessage(result.message, 'Não foi possível iniciar MFA.'))
+      setMfaError(normalizeMfaUiMessage(result.message, t('settings:mfa.startError')))
       setMfaLoading(false)
       return
     }
@@ -232,7 +235,7 @@ function Configuracoes() {
       uri: result.uri,
     })
     setMfaCode('')
-    setMfaMessage('Escaneie o QR code e confirme com o código de 6 dígitos.')
+    setMfaMessage(t('settings:mfa.scanHint'))
     setMfaLoading(false)
   }
 
@@ -246,7 +249,7 @@ function Configuracoes() {
     const result = await confirmMfaEnrollment(mfaSetup.factorId, mfaCode)
 
     if (!result.success) {
-      setMfaError(normalizeMfaUiMessage(result.message, 'Código inválido.'))
+      setMfaError(normalizeMfaUiMessage(result.message, t('settings:mfa.invalidCodeShort')))
       setMfaLoading(false)
       return
     }
@@ -256,17 +259,17 @@ function Configuracoes() {
     setMfaFactorId(status.primaryFactorId || mfaSetup.factorId)
     setMfaSetup(null)
     setMfaCode('')
-    setMfaMessage('MFA ativado com sucesso!')
+    setMfaMessage(t('settings:mfa.enabledSuccess'))
     setMfaLoading(false)
   }
 
   const handleDisableMfa = async () => {
     if (!mfaFactorId) {
-      setMfaError('Não foi possível identificar o fator MFA para desativar.')
+      setMfaError(t('settings:mfa.factorIdentifyError'))
       return
     }
 
-    const confirmed = window.confirm('Tem certeza que deseja desativar a autenticação em duas etapas?')
+    const confirmed = window.confirm(t('settings:mfa.disableConfirm'))
     if (!confirmed) return
 
     setMfaLoading(true)
@@ -276,7 +279,7 @@ function Configuracoes() {
     const result = await disableMfa(mfaFactorId)
 
     if (!result.success) {
-      setMfaError(normalizeMfaUiMessage(result.message, 'Não foi possível desativar o MFA.'))
+      setMfaError(normalizeMfaUiMessage(result.message, t('settings:mfa.disableError')))
       setMfaLoading(false)
       return
     }
@@ -285,7 +288,7 @@ function Configuracoes() {
     setMfaFactorId(null)
     setMfaSetup(null)
     setMfaCode('')
-    setMfaMessage('MFA desativado com sucesso.')
+    setMfaMessage(t('settings:mfa.disabledSuccess'))
     setMfaLoading(false)
   }
 
@@ -315,11 +318,11 @@ function Configuracoes() {
   return (
     <div className="configuracoes-container">
       <Logo />
-      <PageTitle title="Configurações" />
+      <PageTitle title={t('settings:title')} />
       
       <div className="configuracoes-content">
-        <h2 className="configuracoes-group-title">Preferências</h2>
-        <h3 className="configuracoes-section-title">Definir Tema</h3>
+        <h2 className="configuracoes-group-title">{t('settings:preferences')}</h2>
+        <h3 className="configuracoes-section-title">{t('settings:theme')}</h3>
         
         <div className="theme-toggle-container">
           <label className="theme-toggle-switch">
@@ -335,7 +338,7 @@ function Configuracoes() {
           </label>
         </div>
 
-        <h3 className="configuracoes-section-title configuracoes-section-spaced">Tamanho da Fonte</h3>
+        <h3 className="configuracoes-section-title configuracoes-section-spaced">{t('settings:fontSize')}</h3>
 
         <div className="font-size-selector-container">
           <div
@@ -346,7 +349,7 @@ function Configuracoes() {
             onKeyDown={(e) => e.key === 'Enter' && setFontSize('small')}
           >
             <span className="font-size-preview font-size-preview--small">A</span>
-            <span className="font-size-label">Pequeno</span>
+            <span className="font-size-label">{t('settings:font.small')}</span>
             <div className="font-size-underline"></div>
           </div>
 
@@ -360,7 +363,7 @@ function Configuracoes() {
             onKeyDown={(e) => e.key === 'Enter' && setFontSize('medium')}
           >
             <span className="font-size-preview font-size-preview--medium">A</span>
-            <span className="font-size-label">Médio</span>
+            <span className="font-size-label">{t('settings:font.medium')}</span>
             <div className="font-size-underline"></div>
           </div>
 
@@ -374,50 +377,50 @@ function Configuracoes() {
             onKeyDown={(e) => e.key === 'Enter' && setFontSize('large')}
           >
             <span className="font-size-preview font-size-preview--large">A</span>
-            <span className="font-size-label">Grande</span>
+            <span className="font-size-label">{t('settings:font.large')}</span>
             <div className="font-size-underline"></div>
           </div>
         </div>
 
-        <h3 className="configuracoes-section-title configuracoes-section-spaced">Selecionar Idioma</h3>
+        <h3 className="configuracoes-section-title configuracoes-section-spaced">{t('settings:language')}</h3>
         
         <div className="language-selector-container">
           <div 
             className={`language-option ${selectedLanguage === 'pt-BR' ? 'selected' : ''}`}
-            onClick={() => setSelectedLanguage('pt-BR')}
+            onClick={() => i18n.changeLanguage('pt-BR')}
           >
-            <img src="/Flag_of_Brazil.svg.webp" alt="Português" className="flag-image" />
+            <img src="/Flag_of_Brazil.svg.webp" alt={t('settings:lang.ptAlt')} className="flag-image" />
             <div className="language-underline"></div>
           </div>
           
           <div className="language-divider"></div>
           
           <div 
-            className={`language-option ${selectedLanguage === 'en-US' ? 'selected' : ''}`}
-            onClick={() => setSelectedLanguage('en-US')}
+            className={`language-option ${selectedLanguage === 'en' ? 'selected' : ''}`}
+            onClick={() => i18n.changeLanguage('en')}
           >
-            <img src="/Flag_of_the_United_States.svg.png" alt="English" className="flag-image" />
+            <img src="/Flag_of_the_United_States.svg.png" alt={t('settings:lang.enAlt')} className="flag-image" />
             <div className="language-underline"></div>
           </div>
         </div>
 
-        <h2 className="configuracoes-group-title">Segurança</h2>
+        <h2 className="configuracoes-group-title">{t('settings:security')}</h2>
 
         <div className={`two-factor-card ${isTwoFactorEnabled ? 'two-factor-card-active' : ''}`}>
           <h3 className="two-factor-card-title">
-            {isTwoFactorEnabled ? '✅ Verificação em 2 Etapas Ativa' : '🔒 Autenticação em Duas Etapas'}
+            {isTwoFactorEnabled ? `✅ ${t('settings:mfa.titleOn')}` : `🔒 ${t('settings:mfa.titleOff')}`}
           </h3>
           <p className="two-factor-card-text">
             {isTwoFactorEnabled
-              ? 'Sua conta está protegida com autenticação em duas etapas. Você precisará de um código do seu app autenticador toda vez que fizer login.'
-              : 'Aumente a segurança exigindo um código do seu celular além da senha para fazer login.'}
+              ? t('settings:mfa.descOn')
+              : t('settings:mfa.descOff')}
           </p>
           <button
             className={`two-factor-card-button ${isTwoFactorEnabled ? 'two-factor-card-button-danger' : 'two-factor-card-button-primary'}`}
             onClick={isTwoFactorEnabled ? handleDisableMfa : handleStartMfa}
             disabled={mfaLoading}
           >
-            {mfaLoading ? 'Processando...' : isTwoFactorEnabled ? 'Desativar' : 'Ativar'}
+            {mfaLoading ? t('common:processing') : isTwoFactorEnabled ? t('settings:mfa.disable') : t('settings:mfa.enable')}
           </button>
 
           {mfaError && <div className="profile-error" style={{ marginTop: '14px' }}>{mfaError}</div>}
@@ -425,7 +428,7 @@ function Configuracoes() {
 
           {mfaSetup && !isTwoFactorEnabled && (
             <div className="mfa-setup-container">
-              <h4 className="mfa-setup-title">Configurar App Autenticador</h4>
+              <h4 className="mfa-setup-title">{t('settings:mfa.setupTitle')}</h4>
 
               {qrDisplay.type === 'svg' && (
                 <div className="mfa-qr-wrapper" dangerouslySetInnerHTML={{ __html: qrDisplay.value }} />
@@ -433,17 +436,17 @@ function Configuracoes() {
 
               {qrDisplay.type === 'img' && (
                 <div className="mfa-qr-wrapper">
-                  <img src={qrDisplay.value} alt="QR Code MFA" className="mfa-qr-image" />
+                  <img src={qrDisplay.value} alt={t('settings:mfa.qrAlt')} className="mfa-qr-image" />
                 </div>
               )}
 
               {qrDisplay.type === 'none' && (
-                <p className="mfa-secret-text">Se o QR não aparecer, use o código manual abaixo.</p>
+                <p className="mfa-secret-text">{t('settings:mfa.qrFallback')}</p>
               )}
 
               {mfaSetup.secret && (
                 <p className="mfa-secret-text">
-                  Código manual: <strong>{mfaSetup.secret}</strong>
+                  {t('settings:mfa.manualCode')} <strong>{mfaSetup.secret}</strong>
                 </p>
               )}
 
@@ -452,7 +455,7 @@ function Configuracoes() {
                 <input
                   type="text"
                   className="profile-input"
-                  placeholder="Digite o código de 6 dígitos"
+                  placeholder={t('settings:mfa.codePlaceholder')}
                   value={mfaCode}
                   onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   disabled={mfaLoading}
@@ -464,18 +467,18 @@ function Configuracoes() {
                 onClick={handleConfirmMfa}
                 disabled={mfaLoading || mfaCode.length !== 6}
               >
-                Confirmar ativação
+                {t('settings:mfa.confirmActivation')}
               </button>
             </div>
           )}
         </div>
 
-        <h2 className="configuracoes-group-title">Conta</h2>
+        <h2 className="configuracoes-group-title">{t('settings:account')}</h2>
 
         <div className="profile-sections-container">
           {/* Seção Alterar Dados Pessoais */}
           <div className="profile-section">
-            <h3 className="configuracoes-section-title">Alterar Dados Pessoais</h3>
+            <h3 className="configuracoes-section-title">{t('settings:profile.title')}</h3>
             
             {error && (
               <div className="profile-error">
@@ -500,7 +503,7 @@ function Configuracoes() {
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       disabled={saving}
-                      placeholder="Primeiro nome"
+                      placeholder={t('settings:profile.firstName')}
                     />
                   </div>
                 </div>
@@ -514,7 +517,7 @@ function Configuracoes() {
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       disabled={saving}
-                      placeholder="Último nome"
+                      placeholder={t('settings:profile.lastName')}
                     />
                   </div>
                 </div>
@@ -529,7 +532,7 @@ function Configuracoes() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={saving}
-                    placeholder="Email"
+                    placeholder={t('common:email')}
                   />
                 </div>
               </div>
@@ -540,13 +543,13 @@ function Configuracoes() {
               onClick={handleSaveProfile}
               disabled={!hasChanges || saving}
             >
-              {saving ? 'Salvando...' : 'Confirmar'}
+              {saving ? t('common:saving') : t('common:confirm')}
             </button>
           </div>
 
           {/* Seção Alterar Senha */}
           <div className="profile-section">
-            <h3 className="configuracoes-section-title">Alterar Senha</h3>
+            <h3 className="configuracoes-section-title">{t('settings:password.title')}</h3>
             
             {passwordError && (
               <div className="profile-error">
@@ -570,7 +573,7 @@ function Configuracoes() {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     disabled={savingPassword}
-                    placeholder="Senha Atual"
+                    placeholder={t('settings:password.current')}
                   />
                   <i 
                     className={`bi ${showCurrentPassword ? 'bi-eye-fill' : 'bi-eye'} password-eye-icon`}
@@ -592,7 +595,7 @@ function Configuracoes() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     disabled={savingPassword}
-                    placeholder="Nova Senha"
+                    placeholder={t('settings:password.new')}
                   />
                   <i 
                     className={`bi ${showNewPassword ? 'bi-eye-fill' : 'bi-eye'} password-eye-icon`}
@@ -614,7 +617,7 @@ function Configuracoes() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={savingPassword}
-                    placeholder="Confirmar Nova Senha"
+                    placeholder={t('settings:password.confirm')}
                   />
                   <i 
                     className={`bi ${showConfirmPassword ? 'bi-eye-fill' : 'bi-eye'} password-eye-icon`}
@@ -634,7 +637,7 @@ function Configuracoes() {
                 onClick={handleSavePassword}
                 disabled={!isPasswordValid() || savingPassword}
               >
-                {savingPassword ? 'Salvando...' : 'Confirmar'}
+                {savingPassword ? t('common:saving') : t('common:confirm')}
               </button>
               
               <button
@@ -642,7 +645,7 @@ function Configuracoes() {
                 onClick={handleClearPassword}
                 disabled={!hasPasswordInput || savingPassword}
               >
-                Limpar
+                {t('common:clear')}
               </button>
             </div>
           </div>
@@ -652,4 +655,4 @@ function Configuracoes() {
   )
 }
 
-export default Configuracoes 
+export default Configuracoes

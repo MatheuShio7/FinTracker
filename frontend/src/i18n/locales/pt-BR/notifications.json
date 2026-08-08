@@ -1,0 +1,13 @@
+{
+  "triggerTitle": "Ver notificações",
+  "triggerAria": "Ver notificações",
+  "modalAria": "Notificações",
+  "title": "Notificações",
+  "unreadOne": "{{count}} nova",
+  "unreadMany": "{{count}} novas",
+  "markAllRead": "Marcar todas como lidas",
+  "closeAria": "Fechar notificações",
+  "empty": "Nenhuma notificação no momento.",
+  "deleteTitle": "Excluir notificação",
+  "deleteAria": "Excluir notificação"
+}

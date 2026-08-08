@@ -1,0 +1,61 @@
+{
+  "title": "Configurações",
+  "preferences": "Preferências",
+  "theme": "Definir Tema",
+  "fontSize": "Tamanho da Fonte",
+  "font": {
+    "small": "Pequeno",
+    "medium": "Médio",
+    "large": "Grande"
+  },
+  "language": "Selecionar Idioma",
+  "lang": {
+    "ptAlt": "Português",
+    "enAlt": "English"
+  },
+  "security": "Segurança",
+  "mfa": {
+    "titleOff": "Autenticação em Duas Etapas",
+    "titleOn": "Verificação em 2 Etapas Ativa",
+    "descOff": "Aumente a segurança exigindo um código do seu celular além da senha para fazer login.",
+    "descOn": "Sua conta está protegida com autenticação em duas etapas. Você precisará de um código do seu app autenticador toda vez que fizer login.",
+    "enable": "Ativar",
+    "disable": "Desativar",
+    "setupTitle": "Configurar App Autenticador",
+    "qrAlt": "QR Code MFA",
+    "qrFallback": "Se o QR não aparecer, use o código manual abaixo.",
+    "manualCode": "Código manual:",
+    "codePlaceholder": "Digite o código de 6 dígitos",
+    "confirmActivation": "Confirmar ativação",
+    "scanHint": "Escaneie o QR code e confirme com o código de 6 dígitos.",
+    "enabledSuccess": "MFA ativado com sucesso!",
+    "disabledSuccess": "MFA desativado com sucesso.",
+    "disableConfirm": "Tem certeza que deseja desativar a autenticação em duas etapas?",
+    "fallbackGeneric": "Não foi possível concluir a operação de MFA.",
+    "statusError": "Erro ao consultar status do MFA.",
+    "startError": "Não foi possível iniciar MFA.",
+    "invalidCode": "Código inválido. Confira o app autenticador e tente novamente.",
+    "invalidCodeShort": "Código inválido.",
+    "expired": "Código expirado. Gere um novo código no app autenticador.",
+    "rateLimit": "Muitas tentativas em sequência. Aguarde alguns segundos e tente novamente.",
+    "factorNotFound": "Fator MFA não encontrado. Recarregue a página e tente novamente.",
+    "factorIdentifyError": "Não foi possível identificar o fator MFA para desativar.",
+    "disableError": "Não foi possível desativar o MFA."
+  },
+  "account": "Conta",
+  "profile": {
+    "title": "Alterar Dados Pessoais",
+    "firstName": "Primeiro nome",
+    "lastName": "Último nome",
+    "success": "Dados atualizados com sucesso!",
+    "error": "Erro ao atualizar dados"
+  },
+  "password": {
+    "title": "Alterar Senha",
+    "current": "Senha Atual",
+    "new": "Nova Senha",
+    "confirm": "Confirmar Nova Senha",
+    "success": "Senha atualizada com sucesso!",
+    "error": "Erro ao atualizar senha"
+  }
+}

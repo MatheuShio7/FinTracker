@@ -1,0 +1,17 @@
+{
+  "initialMessage": "Olá! Como posso te ajudar hoje?",
+  "windowAria": "Janela do chat IA",
+  "title": "Assistente IA",
+  "closeAria": "Fechar chat",
+  "typingAria": "Assistente digitando",
+  "typing": "digitando",
+  "placeholderLoggedIn": "Digite sua mensagem...",
+  "placeholderLoggedOut": "Faça login para conversar",
+  "inputAria": "Campo de mensagem",
+  "sendAria": "Enviar mensagem",
+  "openAria": "Abrir chat IA",
+  "closeTriggerAria": "Fechar chat IA",
+  "loginRequired": "Você precisa estar logado para usar o assistente.",
+  "emptyAnswer": "Resposta vazia do assistente.",
+  "error": "Não consegui responder agora. Tente novamente em alguns instantes."
+}

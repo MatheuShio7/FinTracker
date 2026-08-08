@@ -1,9 +1,12 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '../contexts/ThemeContext'
+import { formatCurrency } from '../lib/format'
 import './PortfolioPieChart.css'
 
 function PortfolioPieChart({ portfolio, compact = false }) {
   const { isDark } = useTheme()
+  const { t } = useTranslation('common')
   if (!portfolio || portfolio.length === 0) {
     return null
   }
@@ -39,10 +42,7 @@ function PortfolioPieChart({ portfolio, compact = false }) {
         <div className={`portfolio-pie-tooltip ${tooltipThemeClass}`}>
           <p className="portfolio-pie-tooltip__ticker">{data.ticker}</p>
           <p className="portfolio-pie-tooltip__value">
-            {new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-            }).format(data.value)}
+            {formatCurrency(data.value)}
           </p>
           <p className="portfolio-pie-tooltip__percentage">{data.percentage}%</p>
         </div>
@@ -111,12 +111,9 @@ function PortfolioPieChart({ portfolio, compact = false }) {
         </PieChart>
       </ResponsiveContainer>
       <div className="portfolio-total-info">
-        <div className="total-label">Total</div>
+        <div className="total-label">{t('total')}</div>
         <div className="total-value">
-          {new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-          }).format(totalValue)}
+          {formatCurrency(totalValue)}
         </div>
       </div>
     </div>

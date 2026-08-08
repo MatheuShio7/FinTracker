@@ -1,0 +1,189 @@
+{
+  "title": "Grupos",
+  "newButton": "Grupo",
+  "newButtonTitle": "Novo grupo",
+  "newButtonAria": "Novo grupo",
+  "section": {
+    "mine": "Grupos que você pertence",
+    "public": "Grupos públicos"
+  },
+  "loading": "Carregando grupos...",
+  "empty": {
+    "mine": "Você ainda não participa de nenhum grupo.",
+    "public": "Nenhum grupo público disponível no momento."
+  },
+  "card": {
+    "members": "{{count}} membros",
+    "membersCapped": "{{count}}/{{max}} membros",
+    "full": "Lotado",
+    "noDescription": "Sem descrição.",
+    "reconsentTitle": "Re-consentimento pendente",
+    "reconsentAria": "Re-consentimento pendente"
+  },
+  "visibility": {
+    "publico": "Público",
+    "restrito": "Público | Aprovação",
+    "privado": "Privado"
+  },
+  "permission": {
+    "todos": "Todos os membros",
+    "lideres": "Apenas líderes",
+    "ninguem": "Ninguém"
+  },
+  "role": {
+    "founder": "Fundador",
+    "leader": "Líder"
+  },
+  "errors": {
+    "loadMine": "Erro ao carregar seus grupos",
+    "loadPublic": "Erro ao carregar grupos públicos",
+    "invalidInvite": "Convite inválido ou expirado",
+    "acceptInvite": "Erro ao aceitar convite",
+    "loadInvite": "Erro ao carregar convite",
+    "loadGroup": "Erro ao carregar grupo",
+    "permissionOrder": "Gerenciar não pode ser mais permissivo que visualizar.",
+    "nameRequired": "Nome do grupo é obrigatório",
+    "save": "Erro ao salvar grupo",
+    "loadDetails": "Erro ao carregar detalhes do grupo",
+    "updateMember": "Erro ao atualizar membro",
+    "delete": "Erro ao excluir grupo",
+    "transferSelect": "Selecione um membro para transferir a fundação",
+    "transfer": "Erro ao transferir fundação",
+    "join": "Erro ao entrar no grupo",
+    "reconsentAccept": "Erro ao confirmar re-consentimento",
+    "reconsentDecline": "Erro ao recusar re-consentimento",
+    "sendInvite": "Erro ao enviar convite",
+    "inviteLink": "Erro ao gerar link de convite",
+    "inviteLinkCopy": "Erro ao gerar ou copiar o link de convite",
+    "leave": "Erro ao sair do grupo",
+    "joinRequest": "Erro ao processar solicitação",
+    "searchUsers": "Não foi possível buscar usuários. Tente novamente."
+  },
+  "form": {
+    "ariaNew": "Novo grupo",
+    "ariaEdit": "Editar grupo",
+    "titleNew": "Novo Grupo",
+    "titleEdit": "Editar Grupo",
+    "closeAria": "Fechar modal de grupo",
+    "name": "Nome",
+    "namePlaceholder": "Nome do grupo",
+    "description": "Descrição",
+    "descriptionPlaceholder": "Descreva o propósito do grupo",
+    "visibility": "Visibilidade e Acesso",
+    "vis": {
+      "restrito": "Público | Aprovação necessária",
+      "publico": "Público | Acesso imediato",
+      "privado": "Privado | Acesso mediante convite"
+    },
+    "maxMembers": "Número máximo de membros",
+    "maxMembersToggle": "Ativar limite de membros",
+    "maxMembersPlaceholder": "Ex.: 25",
+    "permissionsTitle": "Permissões",
+    "permissionsDesc": "Defina quem pode visualizar e gerenciar a carteira e as transações do grupo.",
+    "viewLabel": "Visualizar carteira e transações",
+    "manageLabel": "Gerenciar carteira e transações",
+    "opt": {
+      "all": "Todos",
+      "leaders": "Apenas líderes",
+      "nobody": "Ninguém"
+    },
+    "create": "Criar Grupo",
+    "save": "Salvar alterações"
+  },
+  "details": {
+    "aria": "Detalhes do grupo {{name}}",
+    "menuAria": "Opções do grupo",
+    "closeAria": "Fechar detalhes do grupo",
+    "loading": "Carregando detalhes...",
+    "members": "{{count}} Membros",
+    "membersCapped": "{{count}}/{{max}} Membros",
+    "viewChip": "Visualizar: {{label}}",
+    "manageChip": "Gerenciar: {{label}}",
+    "reviewPermissions": "Revisar permissões",
+    "join": "Entrar",
+    "joining": "Entrando...",
+    "pendingApproval": "Aguardando aprovação",
+    "groupFull": "Grupo lotado",
+    "leave": "Sair do grupo",
+    "leaving": "Saindo...",
+    "menu": {
+      "edit": "Editar configurações",
+      "invite": "Convidar membros",
+      "transfer": "Transferir fundação",
+      "delete": "Excluir grupo"
+    },
+    "pendingRequests": "Solicitações pendentes",
+    "approve": "Aprovar",
+    "reject": "Rejeitar",
+    "noMembers": "Nenhum membro listado neste grupo.",
+    "memberYou": "{{name}} (Você)",
+    "reconsentMemberAria": "Aguardando re-consentimento",
+    "viewWalletTitle": "Ver carteira",
+    "viewWalletAria": "Ver carteira de {{name}}",
+    "promote": "Promover",
+    "demote": "Rebaixar",
+    "expel": "Expulsar"
+  },
+  "invite": {
+    "aria": "Convidar membros",
+    "title": "Convidar membros",
+    "closeAria": "Fechar convite de membros",
+    "copyLink": "Criar e copiar link de convite",
+    "generating": "Gerando link...",
+    "copied": "Link de convite copiado para a área de transferência.",
+    "sent": "Convite enviado com sucesso.",
+    "searchPlaceholder": "Pesquisar por nome ou email",
+    "searching": "Buscando usuários...",
+    "searchHint": "Digite um nome ou email para buscar usuários.",
+    "noUsers": "Nenhum usuário encontrado.",
+    "sendTitle": "Enviar convite",
+    "sendAria": "Enviar convite para {{name}}"
+  },
+  "delete": {
+    "aria": "Confirmar exclusão do grupo",
+    "title": "Excluir grupo",
+    "closeAria": "Fechar confirmação de exclusão",
+    "message": "Tem certeza de que deseja excluir o grupo <strong>{{name}}</strong>? Essa ação não pode ser revertida.",
+    "confirm": "Excluir grupo"
+  },
+  "transfer": {
+    "aria": "Transferir fundação do grupo",
+    "title": "Transferir fundação",
+    "closeAria": "Fechar transferência de fundação",
+    "message": "Escolha o membro que passará a ser o fundador do grupo. Você continuará como membro comum.",
+    "label": "Novo fundador",
+    "placeholder": "Selecione um membro",
+    "noCandidates": "É necessário ter pelo menos outro membro ativo no grupo.",
+    "confirm": "Transferir fundação",
+    "transferring": "Transferindo..."
+  },
+  "consent": {
+    "aria": "Consentimento de permissões",
+    "title": "Consentimento de permissões",
+    "titleReconsent": "Re-consentimento de permissões",
+    "closeAria": "Fechar consentimento",
+    "joinBody": "Ao entrar em <strong>{{name}}</strong>, você concorda com as permissões abaixo sobre sua carteira e transações:",
+    "inviteBody": "Ao aceitar o convite para <strong>{{name}}</strong>, você concorda com as permissões abaixo sobre sua carteira e transações:",
+    "reconsentBody": "O grupo <strong>{{name}}</strong> atualizou as permissões sobre carteiras e transações. Você concordou anteriormente com:",
+    "viewPrevious": "Visualizar (anterior):",
+    "managePrevious": "Gerenciar (anterior):",
+    "newPermissionsNote": "Novas permissões propostas:",
+    "view": "Visualizar:",
+    "manage": "Gerenciar:",
+    "viewNew": "Visualizar (nova):",
+    "manageNew": "Gerenciar (nova):",
+    "declineNote": "Se recusar, você sairá do grupo imediatamente.",
+    "approvalNote": "Este grupo exige aprovação de um líder após o consentimento.",
+    "decline": "Recusar e sair",
+    "agree": "Concordo e continuar",
+    "confirming": "Confirmando..."
+  },
+  "wallet": {
+    "aria": "Carteira de {{name}}",
+    "title": "Carteira de {{name}}",
+    "manageable": "Gerenciável",
+    "readonly": "Somente leitura",
+    "closeAria": "Fechar carteira do membro",
+    "loadError": "Erro ao carregar carteira do membro"
+  }
+}

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import './NotificationsButton.css'
 import { useNotifications } from '../contexts/NotificationsContext'
 import { useNavigate } from 'react-router-dom'
 
 function NotificationsButton({ className = '' }) {
+  const { t } = useTranslation('notifications')
   const [isOpen, setIsOpen] = useState(false)
   const {
     notifications,
@@ -112,8 +114,8 @@ function NotificationsButton({ className = '' }) {
           hasNotifications ? ' has-notifications' : ''
         }`}
         onClick={() => setIsOpen(true)}
-        title="Ver notificações"
-        aria-label="Ver notificações"
+        title={t('triggerTitle')}
+        aria-label={t('triggerAria')}
       >
         <i className="bi bi-bell-fill"></i>
         {hasNotifications && (
@@ -132,14 +134,16 @@ function NotificationsButton({ className = '' }) {
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label="Notificações"
+            aria-label={t('modalAria')}
           >
             <div className="notifications-modal-header">
               <div className="notifications-modal-header-title">
-                <h3>Notificações</h3>
+                <h3>{t('title')}</h3>
                 {unreadCount > 0 && (
                   <span className="notifications-unread-summary">
-                    {unreadCount} {unreadCount === 1 ? 'nova' : 'novas'}
+                    {unreadCount === 1
+                      ? t('unreadOne', { count: unreadCount })
+                      : t('unreadMany', { count: unreadCount })}
                   </span>
                 )}
               </div>
@@ -150,14 +154,14 @@ function NotificationsButton({ className = '' }) {
                     className="notifications-mark-all-button"
                     onClick={() => markAllNotificationsAsSeen()}
                   >
-                    Marcar todas como lidas
+                    {t('markAllRead')}
                   </button>
                 )}
                 <button
                   type="button"
                   className="notifications-close-button"
                   onClick={() => setIsOpen(false)}
-                  aria-label="Fechar notificações"
+                  aria-label={t('closeAria')}
                 >
                   <i className="bi bi-x-lg"></i>
                 </button>
@@ -168,7 +172,7 @@ function NotificationsButton({ className = '' }) {
               {notifications.length === 0 ? (
                 <div className="notifications-empty-state">
                   <i className="bi bi-bell-slash-fill"></i>
-                  <p>Nenhuma notificação no momento.</p>
+                  <p>{t('empty')}</p>
                 </div>
               ) : (
                 <div className="notifications-list">
@@ -206,8 +210,8 @@ function NotificationsButton({ className = '' }) {
                           type="button"
                           className="notification-delete-button"
                           onClick={(event) => handleDeleteNotification(event, notification.id)}
-                          aria-label="Excluir notificação"
-                          title="Excluir notificação"
+                          aria-label={t('deleteAria')}
+                          title={t('deleteTitle')}
                         >
                           <i className="bi bi-trash3"></i>
                         </button>

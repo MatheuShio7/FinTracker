@@ -1,18 +1,17 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import './ChatWidget.css'
 
-const INITIAL_ASSISTANT_MESSAGE = {
-  role: 'assistant',
-  text: 'Olá! Como posso te ajudar hoje?',
-}
-
 function ChatWidget({ enabled = false }) {
+  const { t, i18n } = useTranslation('chat')
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
-  const [messages, setMessages] = useState([INITIAL_ASSISTANT_MESSAGE])
+  const [messages, setMessages] = useState(() => [
+    { role: 'assistant', text: t('initialMessage') },
+  ])
   const [inputValue, setInputValue] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -79,11 +78,21 @@ function ChatWidget({ enabled = false }) {
   }, [isOpen, isMounted])
 
   useEffect(() => {
-    setMessages([INITIAL_ASSISTANT_MESSAGE])
+    setMessages([{ role: 'assistant', text: t('initialMessage') }])
     setInputValue('')
     setLoading(false)
     setError('')
-  }, [user?.id])
+  }, [user?.id, t])
+
+  // Atualiza a mensagem inicial ao trocar idioma, sem apagar a conversa
+  useEffect(() => {
+    setMessages((currentMessages) => {
+      if (currentMessages.length === 1 && currentMessages[0].role === 'assistant') {
+        return [{ role: 'assistant', text: t('initialMessage') }]
+      }
+      return currentMessages
+    })
+  }, [i18n.language, t])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
@@ -141,7 +150,7 @@ function ChatWidget({ enabled = false }) {
     }
 
     if (!user?.id) {
-      setError('Você precisa estar logado para usar o assistente.')
+      setError(t('loginRequired'))
       return
     }
 
@@ -170,7 +179,7 @@ function ChatWidget({ enabled = false }) {
       const answer = (data?.answer || '').trim()
 
       if (!answer) {
-        throw new Error('Resposta vazia do assistente.')
+        throw new Error(t('emptyAnswer'))
       }
 
       setMessages((currentMessages) => [
@@ -180,7 +189,7 @@ function ChatWidget({ enabled = false }) {
     } catch (chatError) {
       console.error('Erro ao enviar mensagem ao chat:', chatError)
 
-      const friendlyMessage = 'Não consegui responder agora. Tente novamente em alguns instantes.'
+      const friendlyMessage = t('error')
 
       setError(friendlyMessage)
       setMessages((currentMessages) => [
@@ -208,19 +217,19 @@ function ChatWidget({ enabled = false }) {
       {isMounted && (
         <section
           className={`chat-widget-card ${isOpen ? 'is-open' : 'is-closing'}`}
-          aria-label="Janela do chat IA"
+          aria-label={t('windowAria')}
           aria-hidden={!isOpen}
         >
           <header className="chat-widget-header">
             <div>
-              <h3>Assistente IA</h3>
+              <h3>{t('title')}</h3>
             </div>
 
             <button
               type="button"
               className="chat-widget-close"
               onClick={() => setIsOpen(false)}
-              aria-label="Fechar chat"
+              aria-label={t('closeAria')}
             >
               <i className="bi bi-x-lg"></i>
             </button>
@@ -238,8 +247,8 @@ function ChatWidget({ enabled = false }) {
               ))}
 
               {loading && (
-                <div className="chat-widget-message is-assistant is-typing" aria-label="Assistente digitando">
-                  <span className="chat-widget-typing-text">digitando</span>
+                <div className="chat-widget-message is-assistant is-typing" aria-label={t('typingAria')}>
+                  <span className="chat-widget-typing-text">{t('typing')}</span>
                   <span className="chat-widget-typing-dots" aria-hidden="true">
                     <span></span>
                     <span></span>
@@ -263,8 +272,8 @@ function ChatWidget({ enabled = false }) {
               <textarea
                 ref={inputRef}
                 rows={1}
-                placeholder={user ? 'Digite sua mensagem...' : 'Faça login para conversar'}
-                aria-label="Campo de mensagem"
+                placeholder={user ? t('placeholderLoggedIn') : t('placeholderLoggedOut')}
+                aria-label={t('inputAria')}
                 value={inputValue}
                 onChange={handleInputChange}
                 onFocus={handleInputFocus}
@@ -274,7 +283,7 @@ function ChatWidget({ enabled = false }) {
               <button
                 type="submit"
                 disabled={loading || !inputValue.trim() || !user}
-                aria-label="Enviar mensagem"
+                aria-label={t('sendAria')}
               >
                 {loading ? (
                   <i className="bi bi-hourglass-split"></i>
@@ -291,7 +300,7 @@ function ChatWidget({ enabled = false }) {
         type="button"
         className={`chat-widget-trigger ${isOpen ? 'is-hidden' : ''}`}
         onClick={() => setIsOpen((prev) => !prev)}
-        aria-label={isOpen ? 'Fechar chat IA' : 'Abrir chat IA'}
+        aria-label={isOpen ? t('closeTriggerAria') : t('openAria')}
         aria-expanded={isOpen}
       >
         <i className="bi bi-robot"></i>

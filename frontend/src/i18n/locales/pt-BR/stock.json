@@ -1,0 +1,32 @@
+{
+  "companyNotFound": "Empresa não encontrada",
+  "loadError": "Erro ao carregar",
+  "notFoundBackend": "Ação não encontrada no backend",
+  "fetchError": "Erro ao buscar dados",
+  "connectError": "Erro ao conectar com backend",
+  "loading": "Carregando dados de {{ticker}}...",
+  "txButton": "Transação",
+  "txTitle": "Nova transação",
+  "txAria": "Nova transação",
+  "price": {
+    "title": "Histórico de Preços",
+    "range": {
+      "7d": "7 dias",
+      "1m": "1 mês",
+      "3m": "3 meses"
+    },
+    "empty": "Sem dados de preços disponíveis",
+    "loading": "Carregando dados...",
+    "min": "Mínimo",
+    "max": "Máximo",
+    "last": "Último"
+  },
+  "dividends": {
+    "empty": "Sem dados de dividendos disponíveis",
+    "title": "Histórico de Proventos",
+    "dateUnavailable": "Data indisponível",
+    "avg": "Média",
+    "max": "Máximo",
+    "total": "Total"
+  }
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from './contexts/AuthContext'
 import { usePortfolio } from './contexts/PortfolioContext'
 import { authFetch } from './lib/authFetch'
@@ -12,6 +13,7 @@ import NotificationsButton from './components/NotificationsButton'
 import TransactionButton from './components/TransactionButton'
 
 function Explorar() {
+  const { t } = useTranslation(['explore', 'common'])
   const { user } = useAuth()
   const { cache, addToPortfolio } = usePortfolio()
   const [watchlistData, setWatchlistData] = useState([])
@@ -80,11 +82,11 @@ function Explorar() {
         console.log('💾 Dados completos da watchlist salvos em cache')
         
       } else {
-        setError(data.message || 'Erro ao buscar watchlist')
+        setError(data.message || t('explore:fetchError'))
       }
     } catch (err) {
       console.error('Erro ao buscar watchlist completa:', err)
-      setError('Erro ao conectar com o servidor')
+      setError(t('common:serverError'))
     } finally {
       setLoading(false)
     }
@@ -138,11 +140,11 @@ function Explorar() {
         await fetchWatchlistData(true)
       } else {
         console.error('❌ Erro ao atualizar preços:', data.message)
-        setError(data.message || 'Erro ao atualizar preços')
+        setError(data.message || t('explore:updatePricesError'))
       }
     } catch (err) {
       console.error('❌ Erro ao conectar com backend:', err)
-      setError('Erro ao atualizar preços')
+      setError(t('explore:updatePricesError'))
     } finally {
       setIsRefreshing(false)
     }
@@ -183,7 +185,7 @@ function Explorar() {
   return (
     <div className="explorar-page">
       <Logo />
-      <PageTitle title="Explorar" />
+      <PageTitle title={t('explore:title')} />
       <NotificationsButton className="explorar-notifications-button" />
       <ReloadButton 
         onClick={handleRefresh} 
@@ -206,4 +208,4 @@ function Explorar() {
   )
 }
 
-export default Explorar 
+export default Explorar

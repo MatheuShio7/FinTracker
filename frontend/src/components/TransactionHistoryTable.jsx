@@ -1,6 +1,12 @@
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { Trans, useTranslation } from 'react-i18next'
 import { authFetch } from '../lib/authFetch'
+import {
+  formatCurrency as formatCurrencyValue,
+  formatQuantity as formatQuantityValue,
+  formatDate as formatDateValue,
+} from '../lib/format'
 import './TransactionButton.css'
 import './TransactionHistoryTable.css'
 
@@ -14,6 +20,7 @@ function TransactionHistoryTable({
   transactionsApiBase = null,
   modalOverlayClassName = 'transaction-modal-overlay',
 }) {
+  const { t } = useTranslation(['portfolio', 'common'])
   const [editTransaction, setEditTransaction] = useState(null)
   const [editType, setEditType] = useState('compra')
   const [editPrice, setEditPrice] = useState('')
@@ -30,43 +37,21 @@ function TransactionHistoryTable({
   }, [editTransaction, deleteTransaction])
 
   const formatCurrency = (value) => {
-    if (value === null || value === undefined) {
-      return 'N/A'
-    }
-
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value)
+    return formatCurrencyValue(value) ?? t('common:na')
   }
 
   const formatQuantity = (value) => {
-    if (value === null || value === undefined) {
-      return 'N/A'
-    }
-
-    return new Intl.NumberFormat('pt-BR').format(value)
+    return formatQuantityValue(value) ?? t('common:na')
   }
 
   const formatDate = (value) => {
-    if (!value) {
-      return 'N/A'
-    }
-
-    const parsed = new Date(value)
-    if (Number.isNaN(parsed.getTime())) {
-      return 'N/A'
-    }
-
-    return new Intl.DateTimeFormat('pt-BR', {
-      dateStyle: 'short',
-    }).format(parsed)
+    return formatDateValue(value) ?? t('common:na')
   }
 
   const formatType = (value) => {
-    if (value === 'buy') return 'Compra'
-    if (value === 'sell') return 'Venda'
-    return 'N/A'
+    if (value === 'buy') return t('common:buy')
+    if (value === 'sell') return t('common:sell')
+    return t('common:na')
   }
 
   const formatDateForInput = (value) => {
@@ -129,7 +114,7 @@ function TransactionHistoryTable({
     event.preventDefault()
 
     if (!editTransaction?.id) {
-      setEditError('Transação inválida.')
+      setEditError(t('history.err.invalid'))
       return
     }
 
@@ -137,18 +122,18 @@ function TransactionHistoryTable({
 
     const parsedPrice = Number(editPrice)
     if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
-      setEditError('Informe um preço válido maior que zero.')
+      setEditError(t('tx.err.price'))
       return
     }
 
     const parsedQuantity = Number(editQuantity)
     if (!Number.isInteger(parsedQuantity) || parsedQuantity <= 0) {
-      setEditError('Informe uma quantidade inteira maior que zero.')
+      setEditError(t('tx.err.quantity'))
       return
     }
 
     if (!editDate) {
-      setEditError('Informe a data da transação.')
+      setEditError(t('tx.err.date'))
       return
     }
 
@@ -172,13 +157,13 @@ function TransactionHistoryTable({
 
       const data = await response.json()
       if (!response.ok || data.status !== 'success') {
-        throw new Error(data.message || 'Não foi possível editar a transação.')
+        throw new Error(data.message || t('history.err.edit'))
       }
 
       await triggerRefresh()
       closeEditModal()
     } catch (error) {
-      setEditError(error.message || 'Erro ao editar transação.')
+      setEditError(error.message || t('history.err.editGeneric'))
     } finally {
       setIsEditing(false)
     }
@@ -186,7 +171,7 @@ function TransactionHistoryTable({
 
   const handleConfirmDelete = async () => {
     if (!deleteTransaction?.id) {
-      setDeleteError('Transação inválida.')
+      setDeleteError(t('history.err.invalid'))
       return
     }
 
@@ -200,13 +185,13 @@ function TransactionHistoryTable({
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        throw new Error(data.message || 'Não foi possível excluir a transação.')
+        throw new Error(data.message || t('history.err.delete'))
       }
 
       await triggerRefresh()
       closeDeleteModal()
     } catch (error) {
-      setDeleteError(error.message || 'Erro ao excluir transação.')
+      setDeleteError(error.message || t('history.err.deleteGeneric'))
     } finally {
       setIsDeleting(false)
     }
@@ -215,8 +200,8 @@ function TransactionHistoryTable({
   if (loading) {
     return (
       <div className="transaction-history-container">
-        <h2 className="transaction-history-title">Histórico de Transações</h2>
-        <div className="transaction-history-loading">Carregando transações...</div>
+        <h2 className="transaction-history-title">{t('history.title')}</h2>
+        <div className="transaction-history-loading">{t('history.loading')}</div>
       </div>
     )
   }
@@ -224,11 +209,11 @@ function TransactionHistoryTable({
   if (error) {
     return (
       <div className="transaction-history-container">
-        <h2 className="transaction-history-title">Histórico de Transações</h2>
+        <h2 className="transaction-history-title">{t('history.title')}</h2>
         <div className="transaction-history-error">
           <p>{error}</p>
           <button onClick={onRetry} className="transaction-history-retry-button">
-            Tentar novamente
+            {t('common:retry')}
           </button>
         </div>
       </div>
@@ -237,28 +222,28 @@ function TransactionHistoryTable({
 
   return (
     <div className="transaction-history-container">
-      <h2 className="transaction-history-title">Histórico de Transações</h2>
+      <h2 className="transaction-history-title">{t('history.title')}</h2>
       <table className="transaction-history-table">
         <thead>
           <tr>
-            <th>Ticker</th>
-            <th>Tipo</th>
-            <th>Quantidade</th>
-            <th>Preço</th>
-            <th>Total</th>
-            <th>Data</th>
-            {!readOnly && <th>Ações</th>}
+            <th>{t('common:ticker')}</th>
+            <th>{t('tx.typeLabel')}</th>
+            <th>{t('common:quantity')}</th>
+            <th>{t('common:price')}</th>
+            <th>{t('common:total')}</th>
+            <th>{t('common:date')}</th>
+            {!readOnly && <th>{t('common:actions')}</th>}
           </tr>
         </thead>
         <tbody>
           {transactions.length === 0 ? (
             <tr className="transaction-history-empty-row">
-              <td colSpan={readOnly ? 6 : 7}>Nenhuma transação encontrada</td>
+              <td colSpan={readOnly ? 6 : 7}>{t('history.empty')}</td>
             </tr>
           ) : (
             transactions.map((transaction) => (
               <tr key={transaction.id} className="transaction-history-row">
-                <td className="transaction-history-action-cell">{transaction.ticker || 'N/A'}</td>
+                <td className="transaction-history-action-cell">{transaction.ticker || t('common:na')}</td>
                 <td className={`transaction-history-type-cell ${transaction.type === 'buy' ? 'is-buy' : 'is-sell'}`}>
                   {formatType(transaction.type)}
                 </td>
@@ -272,8 +257,8 @@ function TransactionHistoryTable({
                       type="button"
                       className="transaction-history-icon-button transaction-history-edit-button"
                       onClick={() => openEditModal(transaction)}
-                      title="Editar transação"
-                      aria-label="Editar transação"
+                      title={t('history.editTitle')}
+                      aria-label={t('history.editAria')}
                     >
                       <i className="bi bi-pencil-square"></i>
                     </button>
@@ -281,8 +266,8 @@ function TransactionHistoryTable({
                       type="button"
                       className="transaction-history-icon-button transaction-history-delete-button"
                       onClick={() => openDeleteModal(transaction)}
-                      title="Excluir transação"
-                      aria-label="Excluir transação"
+                      title={t('history.deleteTitle')}
+                      aria-label={t('history.deleteAria')}
                     >
                       <i className="bi bi-trash3-fill"></i>
                     </button>
@@ -301,15 +286,15 @@ function TransactionHistoryTable({
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label="Editar transação"
+            aria-label={t('history.editModalAria')}
           >
             <div className="transaction-modal-header">
-              <h3>Editar Transação</h3>
+              <h3>{t('history.editModalTitle')}</h3>
               <button
                 type="button"
                 className="transaction-close-button"
                 onClick={closeEditModal}
-                aria-label="Fechar modal de edição"
+                aria-label={t('history.closeEditAria')}
               >
                 <i className="bi bi-x-lg"></i>
               </button>
@@ -317,24 +302,24 @@ function TransactionHistoryTable({
 
             <form className="transaction-form" onSubmit={handleEditSubmit}>
               <div className="transaction-field">
-                <label htmlFor="edit-transaction-ticker">Ação</label>
+                <label htmlFor="edit-transaction-ticker">{t('tx.stockLabel')}</label>
                 <div className="transaction-history-readonly-stock" id="edit-transaction-ticker">
-                  <strong>{editTransaction.ticker || 'N/A'}</strong>
+                  <strong>{editTransaction.ticker || t('common:na')}</strong>
                   <span>{editTransaction.company_name || ''}</span>
                 </div>
               </div>
 
               <div className="transaction-grid">
                 <div className="transaction-field">
-                  <label htmlFor="edit-transaction-type">Tipo de Transação</label>
+                  <label htmlFor="edit-transaction-type">{t('tx.typeLabel')}</label>
                   <div className="transaction-select-wrapper">
                     <select
                       id="edit-transaction-type"
                       value={editType}
                       onChange={(event) => setEditType(event.target.value)}
                     >
-                      <option value="compra">Compra</option>
-                      <option value="venda">Venda</option>
+                      <option value="compra">{t('common:buy')}</option>
+                      <option value="venda">{t('common:sell')}</option>
                     </select>
                     <i className="bi bi-chevron-down transaction-select-arrow"></i>
                   </div>
@@ -342,7 +327,7 @@ function TransactionHistoryTable({
 
                 <div className="transaction-field">
                   <label htmlFor="edit-transaction-price">
-                    {editType === 'venda' ? 'Preço de Venda (1 un)' : 'Preço de Compra (1 un)'}
+                    {editType === 'venda' ? t('tx.priceSell') : t('tx.priceBuy')}
                   </label>
                   <input
                     id="edit-transaction-price"
@@ -350,28 +335,28 @@ function TransactionHistoryTable({
                     className="transaction-number-input"
                     step="0.01"
                     min="0"
-                    placeholder="0.00"
+                    placeholder={t('tx.pricePlaceholder')}
                     value={editPrice}
                     onChange={(event) => setEditPrice(event.target.value)}
                   />
                 </div>
 
                 <div className="transaction-field">
-                  <label htmlFor="edit-transaction-quantity">Quantidade</label>
+                  <label htmlFor="edit-transaction-quantity">{t('common:quantity')}</label>
                   <input
                     id="edit-transaction-quantity"
                     type="number"
                     className="transaction-number-input"
                     min="1"
                     step="1"
-                    placeholder="0"
+                    placeholder={t('tx.qtyPlaceholder')}
                     value={editQuantity}
                     onChange={(event) => setEditQuantity(event.target.value)}
                   />
                 </div>
 
                 <div className="transaction-field">
-                  <label htmlFor="edit-transaction-date">Data da Transação</label>
+                  <label htmlFor="edit-transaction-date">{t('tx.dateLabel')}</label>
                   <input
                     id="edit-transaction-date"
                     type="date"
@@ -382,7 +367,7 @@ function TransactionHistoryTable({
               </div>
 
               <button type="submit" className="transaction-submit-button" disabled={isEditing}>
-                {isEditing ? 'Salvando...' : 'Salvar Alterações'}
+                {isEditing ? t('common:saving') : t('history.saveChanges')}
               </button>
 
               {editError && (
@@ -403,15 +388,15 @@ function TransactionHistoryTable({
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label="Confirmar exclusão"
+            aria-label={t('history.deleteModalAria')}
           >
             <div className="transaction-modal-header">
-              <h3>Excluir Transação</h3>
+              <h3>{t('history.deleteModalTitle')}</h3>
               <button
                 type="button"
                 className="transaction-close-button"
                 onClick={closeDeleteModal}
-                aria-label="Fechar modal de exclusão"
+                aria-label={t('history.closeDeleteAria')}
               >
                 <i className="bi bi-x-lg"></i>
               </button>
@@ -419,7 +404,11 @@ function TransactionHistoryTable({
 
             <div className="transaction-history-confirm-content">
               <p>
-                Você tem certeza que deseja excluir a transação de <strong>{deleteTransaction.ticker || 'N/A'}</strong>?
+                <Trans
+                  i18nKey="history.deleteConfirm"
+                  values={{ ticker: deleteTransaction.ticker || t('common:na') }}
+                  components={{ strong: <strong /> }}
+                />
               </p>
 
               {deleteError && (
@@ -435,7 +424,7 @@ function TransactionHistoryTable({
                   onClick={closeDeleteModal}
                   disabled={isDeleting}
                 >
-                  Cancelar
+                  {t('common:cancel')}
                 </button>
                 <button
                   type="button"
@@ -443,7 +432,7 @@ function TransactionHistoryTable({
                   onClick={handleConfirmDelete}
                   disabled={isDeleting}
                 >
-                  {isDeleting ? 'Excluindo...' : 'Excluir'}
+                  {isDeleting ? t('common:deleting') : t('common:delete')}
                 </button>
               </div>
             </div>

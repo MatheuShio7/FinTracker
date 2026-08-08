@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation, Trans } from 'react-i18next'
 import './Grupos.css'
 import Logo from './components/Logo'
 import PageTitle from './components/PageTitle'
@@ -29,30 +30,24 @@ const formatUserDisplayName = (user) => `${user.name} ${user.last_name}`.trim()
 
 const sanitizeSearchTerm = (term) => term.trim().replace(/[,()]/g, '')
 
-const visibilityLabels = {
-  publico: 'Público',
-  restrito: 'Público | Aprovação',
-  privado: 'Privado',
-}
-
-const permissionLabels = {
-  todos: 'Todos os membros',
-  lideres: 'Apenas líderes',
-  ninguem: 'Ninguém',
-}
-
 const PERMISSION_LEVELS = {
   ninguem: 0,
   lideres: 1,
   todos: 2,
 }
 
-const validateGroupPermissions = (view, manage) => {
-  if (PERMISSION_LEVELS[manage] > PERMISSION_LEVELS[view]) {
-    return 'Gerenciar não pode ser mais permissivo que visualizar.'
-  }
+const validateGroupPermissions = (view, manage) => (
+  PERMISSION_LEVELS[manage] <= PERMISSION_LEVELS[view]
+)
 
-  return ''
+const translateMemberRole = (role, t) => {
+  if (role === 'Fundador' || role === 'founder') {
+    return t('role.founder')
+  }
+  if (role === 'Líder' || role === 'leader') {
+    return t('role.leader')
+  }
+  return role
 }
 
 const isGroupAtCapacity = (group) => (
@@ -69,9 +64,13 @@ const groupRequiresConsent = (group) => {
 }
 
 function Grupos() {
+  const { t } = useTranslation(['groups', 'common'])
   const { user } = useAuth()
   const { loadNotifications } = useNotifications()
   const [searchParams, setSearchParams] = useSearchParams()
+
+  const getVisibilityLabel = (key) => (key ? t(`visibility.${key}`, { defaultValue: key }) : key)
+  const getPermissionLabel = (key) => (key ? t(`permission.${key}`, { defaultValue: key }) : key)
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false)
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
@@ -145,23 +144,23 @@ function Grupos() {
       const publicData = await publicResponse.json()
 
       if (!mineResponse.ok || mineData.status !== 'success') {
-        throw new Error(mineData.message || 'Erro ao carregar seus grupos')
+        throw new Error(mineData.message || t('errors.loadMine'))
       }
 
       if (!publicResponse.ok || publicData.status !== 'success') {
-        throw new Error(publicData.message || 'Erro ao carregar grupos públicos')
+        throw new Error(publicData.message || t('errors.loadPublic'))
       }
 
       setOwnedGroups(mineData.data || [])
       setPublicGroups(publicData.data || [])
     } catch (fetchError) {
       console.error('Erro ao carregar grupos:', fetchError)
-      setError(fetchError.message || 'Erro ao conectar com o servidor')
+      setError(fetchError.message || t('common:serverError'))
     } finally {
       setIsLoading(false)
       setIsRefreshing(false)
     }
-  }, [user])
+  }, [user, t])
 
   useEffect(() => {
     fetchGroups()
@@ -180,7 +179,7 @@ function Grupos() {
         const data = await response.json()
 
         if (!response.ok || data.status !== 'success') {
-          setError(data.message || 'Convite inválido ou expirado')
+          setError(data.message || t('errors.invalidInvite'))
           setSearchParams({}, { replace: true })
           return
         }
@@ -205,7 +204,7 @@ function Grupos() {
             setSelectedGroup(acceptData.data)
             setIsDetailsModalOpen(true)
           } else {
-            setError(acceptData.message || 'Erro ao aceitar convite')
+            setError(acceptData.message || t('errors.acceptInvite'))
           }
 
           setInviteToken('')
@@ -216,13 +215,13 @@ function Grupos() {
         setSearchParams({}, { replace: true })
       } catch (inviteErr) {
         console.error('Erro ao carregar convite:', inviteErr)
-        setError('Erro ao carregar convite')
+        setError(t('errors.loadInvite'))
         setSearchParams({}, { replace: true })
       }
     }
 
     loadInvitePreview()
-  }, [searchParams, user, fetchGroups, loadNotifications, setSearchParams])
+  }, [searchParams, user, fetchGroups, loadNotifications, setSearchParams, t])
 
   useEffect(() => {
     const groupId = searchParams.get('grupo')
@@ -241,7 +240,7 @@ function Grupos() {
         const data = await response.json()
 
         if (!response.ok || data.status !== 'success') {
-          setError(data.message || 'Erro ao carregar grupo')
+          setError(data.message || t('errors.loadGroup'))
           return
         }
 
@@ -253,7 +252,7 @@ function Grupos() {
         }
       } catch (groupErr) {
         console.error('Erro ao abrir grupo:', groupErr)
-        setError('Erro ao carregar grupo')
+        setError(t('errors.loadGroup'))
       } finally {
         setIsDetailsLoading(false)
         setSearchParams({}, { replace: true })
@@ -261,7 +260,7 @@ function Grupos() {
     }
 
     openGroupFromNotification()
-  }, [searchParams, user, setSearchParams])
+  }, [searchParams, user, setSearchParams, t])
 
   const resetGroupForm = () => {
     setGroupName('')
@@ -435,13 +434,12 @@ function Grupos() {
     const payload = buildGroupPayload()
 
     if (!payload.name) {
-      setSubmitError('Nome do grupo é obrigatório')
+      setSubmitError(t('errors.nameRequired'))
       return
     }
 
-    const permissionError = validateGroupPermissions(viewPermission, managePermission)
-    if (permissionError) {
-      setSubmitError(permissionError)
+    if (!validateGroupPermissions(viewPermission, managePermission)) {
+      setSubmitError(t('errors.permissionOrder'))
       return
     }
 
@@ -461,7 +459,7 @@ function Grupos() {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        setSubmitError(data.message || 'Erro ao salvar grupo')
+        setSubmitError(data.message || t('errors.save'))
         return
       }
 
@@ -486,7 +484,7 @@ function Grupos() {
       resetGroupForm()
     } catch (submitErr) {
       console.error('Erro ao salvar grupo:', submitErr)
-      setSubmitError('Erro ao conectar com o servidor')
+      setSubmitError(t('common:serverError'))
     } finally {
       setIsSubmitting(false)
     }
@@ -501,7 +499,7 @@ function Grupos() {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        throw new Error(data.message || 'Erro ao carregar detalhes do grupo')
+        throw new Error(data.message || t('errors.loadDetails'))
       }
 
       setSelectedGroup(data.data)
@@ -512,7 +510,7 @@ function Grupos() {
       }
     } catch (detailsErr) {
       console.error('Erro ao carregar detalhes do grupo:', detailsErr)
-      setDetailsError(detailsErr.message || 'Erro ao carregar detalhes do grupo')
+      setDetailsError(detailsErr.message || t('errors.loadDetails'))
     } finally {
       setIsDetailsLoading(false)
     }
@@ -592,7 +590,7 @@ function Grupos() {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        setActionError(data.message || 'Erro ao atualizar membro')
+        setActionError(data.message || t('errors.updateMember'))
         return
       }
 
@@ -600,7 +598,7 @@ function Grupos() {
       await fetchGroups(true)
     } catch (actionErr) {
       console.error('Erro na ação de membro:', actionErr)
-      setActionError('Erro ao conectar com o servidor')
+      setActionError(t('common:serverError'))
     } finally {
       setMemberActionLoadingId(null)
     }
@@ -619,7 +617,7 @@ function Grupos() {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        setActionError(data.message || 'Erro ao excluir grupo')
+        setActionError(data.message || t('errors.delete'))
         return
       }
 
@@ -627,7 +625,7 @@ function Grupos() {
       await fetchGroups(true)
     } catch (deleteErr) {
       console.error('Erro ao excluir grupo:', deleteErr)
-      setActionError('Erro ao conectar com o servidor')
+      setActionError(t('common:serverError'))
     } finally {
       setIsDeletingGroup(false)
     }
@@ -652,7 +650,7 @@ function Grupos() {
 
   const handleConfirmTransferFounder = async () => {
     if (!selectedGroup?.id || !selectedTransferUserId || isTransferringFounder) {
-      setTransferError('Selecione um membro para transferir a fundação')
+      setTransferError(t('errors.transferSelect'))
       return
     }
 
@@ -669,7 +667,7 @@ function Grupos() {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        setTransferError(data.message || 'Erro ao transferir fundação')
+        setTransferError(data.message || t('errors.transfer'))
         return
       }
 
@@ -678,7 +676,7 @@ function Grupos() {
       handleCloseTransferModal()
     } catch (transferErr) {
       console.error('Erro ao transferir fundação:', transferErr)
-      setTransferError('Erro ao conectar com o servidor')
+      setTransferError(t('common:serverError'))
     } finally {
       setIsTransferringFounder(false)
     }
@@ -712,7 +710,7 @@ function Grupos() {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        setActionError(data.message || 'Erro ao entrar no grupo')
+        setActionError(data.message || t('errors.join'))
         return
       }
 
@@ -723,7 +721,7 @@ function Grupos() {
       setConsentMode('join')
     } catch (joinErr) {
       console.error('Erro ao entrar no grupo:', joinErr)
-      setActionError('Erro ao conectar com o servidor')
+      setActionError(t('common:serverError'))
     } finally {
       setIsJoining(false)
     }
@@ -760,7 +758,7 @@ function Grupos() {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        setActionError(data.message || 'Erro ao aceitar convite')
+        setActionError(data.message || t('errors.acceptInvite'))
         return
       }
 
@@ -774,7 +772,7 @@ function Grupos() {
       await loadNotifications()
     } catch (inviteErr) {
       console.error('Erro ao aceitar convite:', inviteErr)
-      setActionError('Erro ao conectar com o servidor')
+      setActionError(t('common:serverError'))
     } finally {
       setIsJoining(false)
     }
@@ -796,7 +794,7 @@ function Grupos() {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        setActionError(data.message || 'Erro ao confirmar re-consentimento')
+        setActionError(data.message || t('errors.reconsentAccept'))
         return
       }
 
@@ -807,7 +805,7 @@ function Grupos() {
       setConsentMode('join')
     } catch (reconsentErr) {
       console.error('Erro ao confirmar re-consentimento:', reconsentErr)
-      setActionError('Erro ao conectar com o servidor')
+      setActionError(t('common:serverError'))
     } finally {
       setIsJoining(false)
     }
@@ -829,7 +827,7 @@ function Grupos() {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        setActionError(data.message || 'Erro ao recusar re-consentimento')
+        setActionError(data.message || t('errors.reconsentDecline'))
         return
       }
 
@@ -838,7 +836,7 @@ function Grupos() {
       await loadNotifications()
     } catch (reconsentErr) {
       console.error('Erro ao recusar re-consentimento:', reconsentErr)
-      setActionError('Erro ao conectar com o servidor')
+      setActionError(t('common:serverError'))
     } finally {
       setIsJoining(false)
     }
@@ -908,15 +906,15 @@ function Grupos() {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        setInviteSearchError(data.message || 'Erro ao enviar convite')
+        setInviteSearchError(data.message || t('errors.sendInvite'))
         return
       }
 
       setInviteSearchError('')
-      setInviteLinkFeedback(data.message || 'Convite enviado com sucesso.')
+      setInviteLinkFeedback(data.message || t('invite.sent'))
     } catch (inviteErr) {
       console.error('Erro ao enviar convite:', inviteErr)
-      setInviteSearchError('Erro ao conectar com o servidor')
+      setInviteSearchError(t('common:serverError'))
     } finally {
       setInviteSendingUserId(null)
     }
@@ -941,7 +939,7 @@ function Grupos() {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        setInviteLinkError(data.message || 'Erro ao gerar link de convite')
+        setInviteLinkError(data.message || t('errors.inviteLink'))
         return
       }
 
@@ -949,10 +947,10 @@ function Grupos() {
       const inviteUrl = `${window.location.origin}/grupos?convite=${encodeURIComponent(token)}`
 
       await navigator.clipboard.writeText(inviteUrl)
-      setInviteLinkFeedback('Link de convite copiado para a área de transferência.')
+      setInviteLinkFeedback(t('invite.copied'))
     } catch (linkErr) {
       console.error('Erro ao gerar link de convite:', linkErr)
-      setInviteLinkError('Erro ao gerar ou copiar o link de convite')
+      setInviteLinkError(t('errors.inviteLinkCopy'))
     } finally {
       setIsCreatingInviteLink(false)
     }
@@ -974,7 +972,7 @@ function Grupos() {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        setActionError(data.message || 'Erro ao sair do grupo')
+        setActionError(data.message || t('errors.leave'))
         return
       }
 
@@ -982,7 +980,7 @@ function Grupos() {
       await fetchGroups(true)
     } catch (leaveErr) {
       console.error('Erro ao sair do grupo:', leaveErr)
-      setActionError('Erro ao conectar com o servidor')
+      setActionError(t('common:serverError'))
     } finally {
       setIsLeaving(false)
     }
@@ -1005,7 +1003,7 @@ function Grupos() {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        setActionError(data.message || 'Erro ao processar solicitação')
+        setActionError(data.message || t('errors.joinRequest'))
         return
       }
 
@@ -1017,7 +1015,7 @@ function Grupos() {
       await loadNotifications()
     } catch (requestErr) {
       console.error('Erro ao processar solicitação:', requestErr)
-      setActionError('Erro ao conectar com o servidor')
+      setActionError(t('common:serverError'))
     } finally {
       setJoinRequestLoadingId(null)
     }
@@ -1068,7 +1066,7 @@ function Grupos() {
       } catch (searchErr) {
         console.error('Erro ao buscar usuários:', searchErr)
         setInviteSearchResults([])
-        setInviteSearchError('Não foi possível buscar usuários. Tente novamente.')
+        setInviteSearchError(t('errors.searchUsers'))
       } finally {
         setIsSearchingUsers(false)
       }
@@ -1079,7 +1077,7 @@ function Grupos() {
     }, 300)
 
     return () => clearTimeout(timeoutId)
-  }, [inviteSearchTerm, isInviteModalOpen, selectedGroup, user?.id])
+  }, [inviteSearchTerm, isInviteModalOpen, selectedGroup, user?.id, t])
 
   const renderSectionFeedback = (message, isError = false) => (
     <p className={`grupos-section-feedback${isError ? ' grupos-section-feedback-error' : ''}`}>
@@ -1089,8 +1087,8 @@ function Grupos() {
 
   const renderGroupCard = (group) => {
     const memberLabel = group.maxMembers
-      ? `${group.membersCount}/${group.maxMembers} membros`
-      : `${group.membersCount} membros`
+      ? t('card.membersCapped', { count: group.membersCount, max: group.maxMembers })
+      : t('card.members', { count: group.membersCount })
     const needsReconsentOnCard = group.currentUserMembership?.status === 'pending_reconsent'
     const groupIsFull = isGroupAtCapacity(group)
 
@@ -1108,21 +1106,21 @@ function Grupos() {
               {needsReconsentOnCard && (
                 <i
                   className="bi bi-clock-history grupos-card-reconsent-icon"
-                  title="Re-consentimento pendente"
-                  aria-label="Re-consentimento pendente"
+                  title={t('card.reconsentTitle')}
+                  aria-label={t('card.reconsentAria')}
                 ></i>
               )}
             </h3>
-            <p className="grupos-card-visibility">{visibilityLabels[group.visibility] || group.visibility}</p>
+            <p className="grupos-card-visibility">{getVisibilityLabel(group.visibility)}</p>
           </div>
           <div className="grupos-card-badges">
             {groupIsFull && (
-              <span className="grupos-card-badge grupos-card-badge-full">Lotado</span>
+              <span className="grupos-card-badge grupos-card-badge-full">{t('card.full')}</span>
             )}
             <span className="grupos-card-badge">{memberLabel}</span>
           </div>
         </div>
-        <p className="grupos-card-description">{group.description || 'Sem descrição.'}</p>
+        <p className="grupos-card-description">{group.description || t('card.noDescription')}</p>
       </button>
     )
   }
@@ -1231,7 +1229,7 @@ function Grupos() {
             disabled={isLoading}
             onClick={() => handleMemberAction(member.user_id, 'demote')}
           >
-            {isLoading ? '...' : 'Rebaixar'}
+            {isLoading ? t('common:ellipsis') : t('details.demote')}
           </button>
           <button
             type="button"
@@ -1239,7 +1237,7 @@ function Grupos() {
             disabled={isLoading}
             onClick={() => handleMemberAction(member.user_id, 'remove')}
           >
-            {isLoading ? '...' : 'Expulsar'}
+            {isLoading ? t('common:ellipsis') : t('details.expel')}
           </button>
         </div>
       )
@@ -1254,7 +1252,7 @@ function Grupos() {
             disabled={isLoading}
             onClick={() => handleMemberAction(member.user_id, 'promote')}
           >
-            {isLoading ? '...' : 'Promover'}
+            {isLoading ? t('common:ellipsis') : t('details.promote')}
           </button>
         )}
         <button
@@ -1263,7 +1261,7 @@ function Grupos() {
           disabled={isLoading}
           onClick={() => handleMemberAction(member.user_id, 'remove')}
         >
-          {isLoading ? '...' : 'Expulsar'}
+          {isLoading ? t('common:ellipsis') : t('details.expel')}
         </button>
       </div>
     )
@@ -1280,15 +1278,15 @@ function Grupos() {
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label={isEditingGroup ? 'Editar grupo' : 'Novo grupo'}
+        aria-label={isEditingGroup ? t('form.ariaEdit') : t('form.ariaNew')}
       >
         <div className="grupos-modal-header">
-          <h3>{isEditingGroup ? 'Editar Grupo' : 'Novo Grupo'}</h3>
+          <h3>{isEditingGroup ? t('form.titleEdit') : t('form.titleNew')}</h3>
           <button
             type="button"
             className="grupos-close-button"
             onClick={handleCloseGroupModal}
-            aria-label="Fechar modal de grupo"
+            aria-label={t('form.closeAria')}
           >
             <i className="bi bi-x-lg"></i>
           </button>
@@ -1296,11 +1294,11 @@ function Grupos() {
 
         <form className="grupos-form" onSubmit={handleSubmitGroup}>
           <div className="grupos-field">
-            <label htmlFor="group-name">Nome</label>
+            <label htmlFor="group-name">{t('form.name')}</label>
             <input
               id="group-name"
               type="text"
-              placeholder="Nome do grupo"
+              placeholder={t('form.namePlaceholder')}
               value={groupName}
               onChange={(event) => setGroupName(event.target.value)}
               required
@@ -1308,11 +1306,11 @@ function Grupos() {
           </div>
 
           <div className="grupos-field">
-            <label htmlFor="group-description">Descrição</label>
+            <label htmlFor="group-description">{t('form.description')}</label>
             <textarea
               id="group-description"
               rows="4"
-              placeholder="Descreva o propósito do grupo"
+              placeholder={t('form.descriptionPlaceholder')}
               value={groupDescription}
               onChange={(event) => setGroupDescription(event.target.value)}
             />
@@ -1320,23 +1318,23 @@ function Grupos() {
 
           <div className="grupos-main-grid">
             <div className="grupos-field">
-              <label htmlFor="group-visibility">Visibilidade e Acesso</label>
+              <label htmlFor="group-visibility">{t('form.visibility')}</label>
               <div className="grupos-select-wrapper">
                 <select
                   id="group-visibility"
                   value={visibility}
                   onChange={(event) => setVisibility(event.target.value)}
                 >
-                  <option value="restrito">Público | Aprovação necessária</option>
-                  <option value="publico">Público | Acesso imediato</option>
-                  <option value="privado">Privado | Acesso mediante convite</option>
+                  <option value="restrito">{t('form.vis.restrito')}</option>
+                  <option value="publico">{t('form.vis.publico')}</option>
+                  <option value="privado">{t('form.vis.privado')}</option>
                 </select>
                 <i className="bi bi-chevron-down grupos-select-arrow"></i>
               </div>
             </div>
 
             <div className="grupos-field">
-              <label htmlFor="group-max-members-toggle">Número máximo de membros</label>
+              <label htmlFor="group-max-members-toggle">{t('form.maxMembers')}</label>
               <label className="grupos-toggle-row" htmlFor="group-max-members-toggle">
                 <input
                   id="group-max-members-toggle"
@@ -1350,7 +1348,7 @@ function Grupos() {
                     }
                   }}
                 />
-                <span>Ativar limite de membros</span>
+                <span>{t('form.maxMembersToggle')}</span>
               </label>
               {hasMaxMembers && (
                 <input
@@ -1358,7 +1356,7 @@ function Grupos() {
                   type="number"
                   min="1"
                   step="1"
-                  placeholder="Ex.: 25"
+                  placeholder={t('form.maxMembersPlaceholder')}
                   value={maxMembers}
                   onChange={(event) => setMaxMembers(event.target.value)}
                 />
@@ -1368,13 +1366,13 @@ function Grupos() {
 
           <div className="grupos-permissions-card">
             <div className="grupos-permissions-header">
-              <h4>Permissões</h4>
-              <p>Defina quem pode visualizar e gerenciar a carteira e as transações do grupo.</p>
+              <h4>{t('form.permissionsTitle')}</h4>
+              <p>{t('form.permissionsDesc')}</p>
             </div>
 
             <div className="grupos-permissions-grid">
               <div className="grupos-field">
-                <label htmlFor="group-view-permission">Visualizar carteira e transações</label>
+                <label htmlFor="group-view-permission">{t('form.viewLabel')}</label>
                 <div className="grupos-select-wrapper">
                   <select
                     id="group-view-permission"
@@ -1388,25 +1386,25 @@ function Grupos() {
                       }
                     }}
                   >
-                    <option value="todos">Todos</option>
-                    <option value="lideres">Apenas líderes</option>
-                    <option value="ninguem">Ninguém</option>
+                    <option value="todos">{t('form.opt.all')}</option>
+                    <option value="lideres">{t('form.opt.leaders')}</option>
+                    <option value="ninguem">{t('form.opt.nobody')}</option>
                   </select>
                   <i className="bi bi-chevron-down grupos-select-arrow"></i>
                 </div>
               </div>
 
               <div className="grupos-field">
-                <label htmlFor="group-manage-permission">Gerenciar carteira e transações</label>
+                <label htmlFor="group-manage-permission">{t('form.manageLabel')}</label>
                 <div className="grupos-select-wrapper">
                   <select
                     id="group-manage-permission"
                     value={managePermission}
                     onChange={(event) => setManagePermission(event.target.value)}
                   >
-                    <option value="todos">Todos</option>
-                    <option value="lideres">Apenas líderes</option>
-                    <option value="ninguem">Ninguém</option>
+                    <option value="todos">{t('form.opt.all')}</option>
+                    <option value="lideres">{t('form.opt.leaders')}</option>
+                    <option value="ninguem">{t('form.opt.nobody')}</option>
                   </select>
                   <i className="bi bi-chevron-down grupos-select-arrow"></i>
                 </div>
@@ -1419,7 +1417,7 @@ function Grupos() {
           )}
 
           <button type="submit" className="grupos-submit-button" disabled={isSubmitting}>
-            {isSubmitting ? 'Salvando...' : (isEditingGroup ? 'Salvar alterações' : 'Criar Grupo')}
+            {isSubmitting ? t('common:saving') : (isEditingGroup ? t('form.save') : t('form.create'))}
           </button>
         </form>
       </div>
@@ -1429,16 +1427,16 @@ function Grupos() {
   return (
     <div className="grupos-page">
       <Logo />
-      <PageTitle title="Grupos" />
+      <PageTitle title={t('title')} />
       <button
         type="button"
         className="reload-button transaction-button grupos-group-button"
         onClick={handleOpenGroupModal}
-        title="Novo grupo"
-        aria-label="Novo grupo"
+        title={t('newButtonTitle')}
+        aria-label={t('newButtonAria')}
       >
         <i className="bi bi-plus-lg"></i>
-        <span>Grupo</span>
+        <span>{t('newButton')}</span>
       </button>
       <NotificationsButton className="grupos-notifications-button" />
       <ReloadButton
@@ -1449,21 +1447,21 @@ function Grupos() {
 
       <div className="grupos-content">
         <section className="grupos-section">
-          <h2 className="grupos-section-title">Grupos que você pertence</h2>
+          <h2 className="grupos-section-title">{t('section.mine')}</h2>
           <div className="grupos-card-grid">
-            {isLoading && renderSectionFeedback('Carregando grupos...')}
+            {isLoading && renderSectionFeedback(t('loading'))}
             {!isLoading && error && renderSectionFeedback(error, true)}
-            {!isLoading && !error && ownedGroups.length === 0 && renderSectionFeedback('Você ainda não participa de nenhum grupo.')}
+            {!isLoading && !error && ownedGroups.length === 0 && renderSectionFeedback(t('empty.mine'))}
             {!isLoading && !error && ownedGroups.map(renderGroupCard)}
           </div>
         </section>
 
         <section className="grupos-section">
-          <h2 className="grupos-section-title">Grupos públicos</h2>
+          <h2 className="grupos-section-title">{t('section.public')}</h2>
           <div className="grupos-card-grid">
-            {isLoading && renderSectionFeedback('Carregando grupos...')}
+            {isLoading && renderSectionFeedback(t('loading'))}
             {!isLoading && error && renderSectionFeedback(error, true)}
-            {!isLoading && !error && publicGroups.length === 0 && renderSectionFeedback('Nenhum grupo público disponível no momento.')}
+            {!isLoading && !error && publicGroups.length === 0 && renderSectionFeedback(t('empty.public'))}
             {!isLoading && !error && publicGroups.map(renderGroupCard)}
           </div>
         </section>
@@ -1478,7 +1476,7 @@ function Grupos() {
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label={`Detalhes do grupo ${detailsGroup.name}`}
+            aria-label={t('details.aria', { name: detailsGroup.name })}
           >
             <div className="grupos-details-header">
               <div className="grupos-details-title-row">
@@ -1489,7 +1487,7 @@ function Grupos() {
                       type="button"
                       className="grupos-details-menu-trigger"
                       onClick={() => setIsDetailsMenuOpen((current) => !current)}
-                      aria-label="Opções do grupo"
+                      aria-label={t('details.menuAria')}
                       aria-expanded={isDetailsMenuOpen}
                       aria-haspopup="menu"
                     >
@@ -1504,7 +1502,7 @@ function Grupos() {
                           onClick={() => handleDetailsMenuAction('edit')}
                         >
                           <i className="bi bi-pencil-square"></i>
-                          <span>Editar configurações</span>
+                          <span>{t('details.menu.edit')}</span>
                         </button>
                         <button
                           type="button"
@@ -1514,7 +1512,7 @@ function Grupos() {
                           onClick={() => handleDetailsMenuAction('invite')}
                         >
                           <i className="bi bi-envelope"></i>
-                          <span>Convidar membros</span>
+                          <span>{t('details.menu.invite')}</span>
                         </button>
                         {canDeleteGroup && (
                           <button
@@ -1524,7 +1522,7 @@ function Grupos() {
                             onClick={() => handleDetailsMenuAction('transfer')}
                           >
                             <i className="bi bi-arrow-left-right"></i>
-                            <span>Transferir fundação</span>
+                            <span>{t('details.menu.transfer')}</span>
                           </button>
                         )}
                         {canDeleteGroup && (
@@ -1535,7 +1533,7 @@ function Grupos() {
                             onClick={() => handleDetailsMenuAction('delete')}
                           >
                             <i className="bi bi-trash"></i>
-                            <span>Excluir grupo</span>
+                            <span>{t('details.menu.delete')}</span>
                           </button>
                         )}
                       </div>
@@ -1547,44 +1545,44 @@ function Grupos() {
                 type="button"
                 className="grupos-close-button"
                 onClick={handleCloseDetailsModal}
-                aria-label="Fechar detalhes do grupo"
+                aria-label={t('details.closeAria')}
               >
                 <i className="bi bi-x-lg"></i>
               </button>
             </div>
 
             <div className="grupos-details-body">
-              {isDetailsLoading && renderSectionFeedback('Carregando detalhes...')}
+              {isDetailsLoading && renderSectionFeedback(t('details.loading'))}
               {!isDetailsLoading && detailsError && renderSectionFeedback(detailsError, true)}
 
               {!isDetailsLoading && !detailsError && (
                 <>
                   <div className="grupos-details-summary">
-                    <p className="grupos-details-description">{detailsGroup.description || 'Sem descrição.'}</p>
+                    <p className="grupos-details-description">{detailsGroup.description || t('card.noDescription')}</p>
                     <div className="grupos-details-meta-row">
                       <div className="grupos-details-meta-info">
                         <div className="grupos-details-chip-row">
                           <span className="grupos-details-chip">
-                            {visibilityLabels[detailsGroup.visibility] || detailsGroup.visibility}
+                            {getVisibilityLabel(detailsGroup.visibility)}
                           </span>
                           <span className="grupos-details-chip">
                             {detailsGroup.maxMembers
-                              ? `${detailsGroup.membersCount}/${detailsGroup.maxMembers} Membros`
-                              : `${detailsGroup.membersCount} Membros`}
+                              ? t('details.membersCapped', { count: detailsGroup.membersCount, max: detailsGroup.maxMembers })
+                              : t('details.members', { count: detailsGroup.membersCount })}
                           </span>
                           {isGroupFull && (
                             <span className="grupos-details-chip grupos-details-chip-warning">
-                              Lotado
+                              {t('card.full')}
                             </span>
                           )}
                         </div>
                         {detailsGroup.permissions && (
                           <div className="grupos-details-chip-row">
                             <span className="grupos-details-chip">
-                              Visualizar: {permissionLabels[detailsGroup.permissions.view] || detailsGroup.permissions.view}
+                              {t('details.viewChip', { label: getPermissionLabel(detailsGroup.permissions.view) })}
                             </span>
                             <span className="grupos-details-chip">
-                              Gerenciar: {permissionLabels[detailsGroup.permissions.manage] || detailsGroup.permissions.manage}
+                              {t('details.manageChip', { label: getPermissionLabel(detailsGroup.permissions.manage) })}
                             </span>
                           </div>
                         )}
@@ -1597,7 +1595,7 @@ function Grupos() {
                           disabled={isJoining}
                         >
                           <i className="bi bi-clock-history"></i>
-                          Revisar permissões
+                          {t('details.reviewPermissions')}
                         </button>
                       )}
                       {canJoin && (
@@ -1607,7 +1605,7 @@ function Grupos() {
                           onClick={handleOpenJoinFlow}
                           disabled={isJoining}
                         >
-                          {isJoining ? 'Entrando...' : 'Entrar'}
+                          {isJoining ? t('details.joining') : t('details.join')}
                         </button>
                       )}
                       {hasPendingJoin && (
@@ -1616,7 +1614,7 @@ function Grupos() {
                           className="grupos-member-action grupos-member-action-pending"
                           disabled
                         >
-                          Aguardando aprovação
+                          {t('details.pendingApproval')}
                         </button>
                       )}
                       {isGroupFull && !hasMembership && !hasPendingJoin && detailsGroup?.visibility !== 'privado' && (
@@ -1625,7 +1623,7 @@ function Grupos() {
                           className="grupos-member-action grupos-member-action-pending"
                           disabled
                         >
-                          Grupo lotado
+                          {t('details.groupFull')}
                         </button>
                       )}
                       {canLeave && (
@@ -1635,7 +1633,7 @@ function Grupos() {
                           onClick={handleLeaveGroup}
                           disabled={isLeaving}
                         >
-                          {isLeaving ? 'Saindo...' : 'Sair do grupo'}
+                          {isLeaving ? t('details.leaving') : t('details.leave')}
                         </button>
                       )}
                     </div>
@@ -1647,7 +1645,7 @@ function Grupos() {
 
                   {canManageMembers && (detailsGroup.pendingJoinRequests || []).length > 0 && (
                     <div className="grupos-pending-requests">
-                      <h4 className="grupos-pending-requests-title">Solicitações pendentes</h4>
+                      <h4 className="grupos-pending-requests-title">{t('details.pendingRequests')}</h4>
                       {(detailsGroup.pendingJoinRequests || []).map((request) => (
                         <div key={request.id} className="grupos-pending-request-item">
                           <div className="grupos-pending-request-info">
@@ -1661,7 +1659,7 @@ function Grupos() {
                               disabled={joinRequestLoadingId === request.id}
                               onClick={() => handleJoinRequestAction(request.id, 'approve')}
                             >
-                              {joinRequestLoadingId === request.id ? '...' : 'Aprovar'}
+                              {joinRequestLoadingId === request.id ? t('common:ellipsis') : t('details.approve')}
                             </button>
                             <button
                               type="button"
@@ -1669,7 +1667,7 @@ function Grupos() {
                               disabled={joinRequestLoadingId === request.id}
                               onClick={() => handleJoinRequestAction(request.id, 'reject')}
                             >
-                              {joinRequestLoadingId === request.id ? '...' : 'Rejeitar'}
+                              {joinRequestLoadingId === request.id ? t('common:ellipsis') : t('details.reject')}
                             </button>
                           </div>
                         </div>
@@ -1679,25 +1677,29 @@ function Grupos() {
 
                   <div className="grupos-members-list">
                     {(detailsGroup.members || []).length === 0 && (
-                      <p className="grupos-section-feedback">Nenhum membro listado neste grupo.</p>
+                      <p className="grupos-section-feedback">{t('details.noMembers')}</p>
                     )}
                     {(detailsGroup.members || []).map((member) => (
                       <div key={member.id} className="grupos-member-item">
                         <div className="grupos-member-info">
                           <div className="grupos-member-name-row">
                             <strong>
-                              {member.user_id === user?.id ? `${member.name} (Você)` : member.name}
+                              {member.user_id === user?.id
+                                ? t('details.memberYou', { name: member.name })
+                                : member.name}
                             </strong>
                             <div className="grupos-member-badges">
                               {member.needsReconsent && (
                                 <i
                                   className="bi bi-clock-history grupos-member-reconsent-icon"
-                                  title="Aguardando re-consentimento"
-                                  aria-label="Aguardando re-consentimento"
+                                  title={t('details.reconsentMemberAria')}
+                                  aria-label={t('details.reconsentMemberAria')}
                                 ></i>
                               )}
                               {getMemberRoles(member).map((role) => (
-                                <span key={role} className="grupos-member-badge">{role}</span>
+                                <span key={role} className="grupos-member-badge">
+                                  {translateMemberRole(role, t)}
+                                </span>
                               ))}
                             </div>
                           </div>
@@ -1710,8 +1712,8 @@ function Grupos() {
                             <button
                               type="button"
                               className="grupos-details-icon-button grupos-member-wallet-button"
-                              aria-label={`Ver carteira de ${member.name}`}
-                              title="Ver carteira"
+                              aria-label={t('details.viewWalletAria', { name: member.name })}
+                              title={t('details.viewWalletTitle')}
                               onClick={() => handleOpenMemberWallet(member)}
                             >
                               <i className="bi bi-wallet2"></i>
@@ -1740,15 +1742,15 @@ function Grupos() {
                 onClick={(event) => event.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
-                aria-label="Convidar membros"
+                aria-label={t('invite.aria')}
               >
                 <div className="grupos-details-header grupos-invite-header">
-                  <h3>Convidar membros</h3>
+                  <h3>{t('invite.title')}</h3>
                   <button
                     type="button"
                     className="grupos-close-button"
                     onClick={handleCloseInviteModal}
-                    aria-label="Fechar convite de membros"
+                    aria-label={t('invite.closeAria')}
                   >
                     <i className="bi bi-x-lg"></i>
                   </button>
@@ -1763,7 +1765,7 @@ function Grupos() {
                   >
                     <i className="bi bi-link-45deg"></i>
                     <span>
-                      {isCreatingInviteLink ? 'Gerando link...' : 'Criar e copiar link de convite'}
+                      {isCreatingInviteLink ? t('invite.generating') : t('invite.copyLink')}
                     </span>
                   </button>
 
@@ -1782,7 +1784,7 @@ function Grupos() {
                     <input
                       type="text"
                       className="grupos-invite-search-input"
-                      placeholder="Pesquisar por nome ou email"
+                      placeholder={t('invite.searchPlaceholder')}
                       value={inviteSearchTerm}
                       onChange={(event) => setInviteSearchTerm(event.target.value)}
                       autoFocus
@@ -1791,7 +1793,7 @@ function Grupos() {
 
                   <div className="grupos-invite-results">
                     {isSearchingUsers && (
-                      <p className="grupos-invite-feedback">Buscando usuários...</p>
+                      <p className="grupos-invite-feedback">{t('invite.searching')}</p>
                     )}
 
                     {!isSearchingUsers && inviteSearchError && (
@@ -1799,11 +1801,11 @@ function Grupos() {
                     )}
 
                     {!isSearchingUsers && !inviteSearchError && sanitizeSearchTerm(inviteSearchTerm) === '' && (
-                      <p className="grupos-invite-feedback">Digite um nome ou email para buscar usuários.</p>
+                      <p className="grupos-invite-feedback">{t('invite.searchHint')}</p>
                     )}
 
                     {!isSearchingUsers && !inviteSearchError && sanitizeSearchTerm(inviteSearchTerm) !== '' && inviteSearchResults.length === 0 && (
-                      <p className="grupos-invite-feedback">Nenhum usuário encontrado.</p>
+                      <p className="grupos-invite-feedback">{t('invite.noUsers')}</p>
                     )}
 
                     {!isSearchingUsers && inviteSearchResults.map((foundUser) => (
@@ -1815,8 +1817,8 @@ function Grupos() {
                         <button
                           type="button"
                           className="grupos-details-icon-button"
-                          aria-label={`Enviar convite para ${formatUserDisplayName(foundUser)}`}
-                          title="Enviar convite"
+                          aria-label={t('invite.sendAria', { name: formatUserDisplayName(foundUser) })}
+                          title={t('invite.sendTitle')}
                           disabled={inviteSendingUserId === foundUser.id}
                           onClick={() => handleSendDirectInvite(foundUser.id)}
                         >
@@ -1841,15 +1843,15 @@ function Grupos() {
                 onClick={(event) => event.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
-                aria-label="Confirmar exclusão do grupo"
+                aria-label={t('delete.aria')}
               >
                 <div className="grupos-details-header grupos-delete-header">
-                  <h3>Excluir grupo</h3>
+                  <h3>{t('delete.title')}</h3>
                   <button
                     type="button"
                     className="grupos-close-button"
                     onClick={handleCloseDeleteModal}
-                    aria-label="Fechar confirmação de exclusão"
+                    aria-label={t('delete.closeAria')}
                   >
                     <i className="bi bi-x-lg"></i>
                   </button>
@@ -1857,8 +1859,12 @@ function Grupos() {
 
                 <div className="grupos-delete-body">
                   <p className="grupos-delete-message">
-                    Tem certeza de que deseja excluir o grupo <strong>{detailsGroup.name}</strong>?
-                    Essa ação não pode ser revertida.
+                    <Trans
+                      ns="groups"
+                      i18nKey="delete.message"
+                      values={{ name: detailsGroup.name }}
+                      components={{ strong: <strong /> }}
+                    />
                   </p>
 
                   {actionError && (
@@ -1872,7 +1878,7 @@ function Grupos() {
                       onClick={handleCloseDeleteModal}
                       disabled={isDeletingGroup}
                     >
-                      Cancelar
+                      {t('common:cancel')}
                     </button>
                     <button
                       type="button"
@@ -1880,7 +1886,7 @@ function Grupos() {
                       onClick={handleConfirmDeleteGroup}
                       disabled={isDeletingGroup}
                     >
-                      {isDeletingGroup ? 'Excluindo...' : 'Excluir grupo'}
+                      {isDeletingGroup ? t('common:deleting') : t('delete.confirm')}
                     </button>
                   </div>
                 </div>
@@ -1899,15 +1905,15 @@ function Grupos() {
                 onClick={(event) => event.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
-                aria-label="Transferir fundação do grupo"
+                aria-label={t('transfer.aria')}
               >
                 <div className="grupos-details-header grupos-transfer-header">
-                  <h3>Transferir fundação</h3>
+                  <h3>{t('transfer.title')}</h3>
                   <button
                     type="button"
                     className="grupos-close-button"
                     onClick={handleCloseTransferModal}
-                    aria-label="Fechar transferência de fundação"
+                    aria-label={t('transfer.closeAria')}
                   >
                     <i className="bi bi-x-lg"></i>
                   </button>
@@ -1915,18 +1921,18 @@ function Grupos() {
 
                 <div className="grupos-transfer-body">
                   <p className="grupos-delete-message">
-                    Escolha o membro que passará a ser o fundador do grupo. Você continuará como membro comum.
+                    {t('transfer.message')}
                   </p>
 
                   <div className="grupos-field">
-                    <label htmlFor="transfer-founder-member">Novo fundador</label>
+                    <label htmlFor="transfer-founder-member">{t('transfer.label')}</label>
                     <div className="grupos-select-wrapper">
                       <select
                         id="transfer-founder-member"
                         value={selectedTransferUserId}
                         onChange={(event) => setSelectedTransferUserId(event.target.value)}
                       >
-                        <option value="">Selecione um membro</option>
+                        <option value="">{t('transfer.placeholder')}</option>
                         {transferCandidates.map((member) => (
                           <option key={member.user_id} value={member.user_id}>
                             {member.name}
@@ -1939,7 +1945,7 @@ function Grupos() {
 
                   {transferCandidates.length === 0 && (
                     <p className="grupos-section-feedback">
-                      É necessário ter pelo menos outro membro ativo no grupo.
+                      {t('transfer.noCandidates')}
                     </p>
                   )}
 
@@ -1954,7 +1960,7 @@ function Grupos() {
                       onClick={handleCloseTransferModal}
                       disabled={isTransferringFounder}
                     >
-                      Cancelar
+                      {t('common:cancel')}
                     </button>
                     <button
                       type="button"
@@ -1962,7 +1968,7 @@ function Grupos() {
                       onClick={handleConfirmTransferFounder}
                       disabled={isTransferringFounder || transferCandidates.length === 0}
                     >
-                      {isTransferringFounder ? 'Transferindo...' : 'Transferir fundação'}
+                      {isTransferringFounder ? t('transfer.transferring') : t('transfer.confirm')}
                     </button>
                   </div>
                 </div>
@@ -1993,17 +1999,17 @@ function Grupos() {
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label="Consentimento de permissões"
+            aria-label={t('consent.aria')}
           >
             <div className="grupos-details-header grupos-consent-header">
               <h3>
-                {consentMode === 'reconsent' ? 'Re-consentimento de permissões' : 'Consentimento de permissões'}
+                {consentMode === 'reconsent' ? t('consent.titleReconsent') : t('consent.title')}
               </h3>
               <button
                 type="button"
                 className="grupos-close-button"
                 onClick={handleCloseConsentModal}
-                aria-label="Fechar consentimento"
+                aria-label={t('consent.closeAria')}
               >
                 <i className="bi bi-x-lg"></i>
               </button>
@@ -2012,60 +2018,66 @@ function Grupos() {
             <div className="grupos-consent-body">
               <p className="grupos-delete-message">
                 {consentMode === 'reconsent' ? (
-                  <>
-                    O grupo <strong>{consentGroup.name}</strong> atualizou as permissões sobre carteiras e
-                    transações. Você concordou anteriormente com:
-                  </>
+                  <Trans
+                    ns="groups"
+                    i18nKey="consent.reconsentBody"
+                    values={{ name: consentGroup.name }}
+                    components={{ strong: <strong /> }}
+                  />
                 ) : consentMode === 'invite' ? (
-                  <>
-                    Ao aceitar o convite para <strong>{consentGroup.name}</strong>, você concorda com as
-                    permissões abaixo sobre sua carteira e transações:
-                  </>
+                  <Trans
+                    ns="groups"
+                    i18nKey="consent.inviteBody"
+                    values={{ name: consentGroup.name }}
+                    components={{ strong: <strong /> }}
+                  />
                 ) : (
-                  <>
-                    Ao entrar em <strong>{consentGroup.name}</strong>, você concorda com as permissões abaixo
-                    sobre sua carteira e transações:
-                  </>
+                  <Trans
+                    ns="groups"
+                    i18nKey="consent.joinBody"
+                    values={{ name: consentGroup.name }}
+                    components={{ strong: <strong /> }}
+                  />
                 )}
               </p>
 
               {consentMode === 'reconsent' && (
                 <ul className="grupos-consent-list grupos-consent-list-previous">
                   <li>
-                    <strong>Visualizar (anterior):</strong>{' '}
-                    {permissionLabels[currentUserMembership?.consentedView] || currentUserMembership?.consentedView}
+                    <strong>{t('consent.viewPrevious')}</strong>{' '}
+                    {getPermissionLabel(currentUserMembership?.consentedView) || currentUserMembership?.consentedView}
                   </li>
                   <li>
-                    <strong>Gerenciar (anterior):</strong>{' '}
-                    {permissionLabels[currentUserMembership?.consentedManage] || currentUserMembership?.consentedManage}
+                    <strong>{t('consent.managePrevious')}</strong>{' '}
+                    {getPermissionLabel(currentUserMembership?.consentedManage) || currentUserMembership?.consentedManage}
                   </li>
                 </ul>
               )}
 
               {consentMode === 'reconsent' && (
-                <p className="grupos-consent-note">Novas permissões propostas:</p>
+                <p className="grupos-consent-note">{t('consent.newPermissionsNote')}</p>
               )}
 
               <ul className="grupos-consent-list">
                 <li>
-                  <strong>Visualizar{consentMode === 'reconsent' ? ' (nova)' : ''}:</strong>{' '}
-                  {permissionLabels[consentGroup.permissions.view] || consentGroup.permissions.view}
+                  <strong>{consentMode === 'reconsent' ? t('consent.viewNew') : t('consent.view')}</strong>{' '}
+                  {getPermissionLabel(consentGroup.permissions.view) || consentGroup.permissions.view}
                 </li>
                 <li>
-                  <strong>Gerenciar{consentMode === 'reconsent' ? ' (nova)' : ''}:</strong>{' '}
-                  {permissionLabels[consentGroup.permissions.manage] || consentGroup.permissions.manage}
+                  <strong>{consentMode === 'reconsent' ? t('consent.manageNew') : t('consent.manage')}</strong>{' '}
+                  {getPermissionLabel(consentGroup.permissions.manage) || consentGroup.permissions.manage}
                 </li>
               </ul>
 
               {consentMode === 'reconsent' && (
                 <p className="grupos-consent-note">
-                  Se recusar, você sairá do grupo imediatamente.
+                  {t('consent.declineNote')}
                 </p>
               )}
 
               {consentMode === 'join' && detailsGroup?.visibility === 'restrito' && (
                 <p className="grupos-consent-note">
-                  Este grupo exige aprovação de um líder após o consentimento.
+                  {t('consent.approvalNote')}
                 </p>
               )}
 
@@ -2080,7 +2092,7 @@ function Grupos() {
                   onClick={consentMode === 'reconsent' ? handleDeclineReconsent : handleCloseConsentModal}
                   disabled={isJoining}
                 >
-                  {consentMode === 'reconsent' ? 'Recusar e sair' : 'Cancelar'}
+                  {consentMode === 'reconsent' ? t('consent.decline') : t('common:cancel')}
                 </button>
                 <button
                   type="button"
@@ -2088,7 +2100,7 @@ function Grupos() {
                   onClick={handleConfirmConsent}
                   disabled={isJoining}
                 >
-                  {isJoining ? 'Confirmando...' : 'Concordo e continuar'}
+                  {isJoining ? t('consent.confirming') : t('consent.agree')}
                 </button>
               </div>
             </div>

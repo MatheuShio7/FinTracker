@@ -1,87 +1,76 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
+import { formatCurrency as formatCurrencyValue, formatQuantity as formatQuantityValue } from '../lib/format'
 import './PortfolioTable.css'
 
 function PortfolioTable({ portfolioData, loading, error, onRetry, readOnly = false }) {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { t } = useTranslation(['portfolio', 'common'])
 
-
-  // Formatar valores monetários
   const formatCurrency = (value) => {
-    if (value === null || value === undefined) {
-      return 'N/A'
-    }
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value)
+    return formatCurrencyValue(value) ?? t('common:na')
   }
 
-  // Formatar quantidade
   const formatQuantity = (quantity) => {
-    return new Intl.NumberFormat('pt-BR').format(quantity)
+    return formatQuantityValue(quantity) ?? t('common:na')
   }
 
-  // Navegar para página da ação
   const handleRowClick = (ticker) => {
     if (readOnly) {
       return
     }
 
-    navigate(`/${ticker}`, { state: { from: 'Carteira' } })
+    navigate(`/${ticker}`, { state: { from: 'wallet' } })
   }
 
-  // Loading state
   if (loading) {
     return (
       <div className="portfolio-table-container">
-        <div className="portfolio-loading">Carregando carteira...</div>
+        <div className="portfolio-loading">{t('loading')}</div>
       </div>
     )
   }
 
-  // Error state
   if (error) {
     return (
       <div className="portfolio-table-container">
         <div className="portfolio-error">
           <p>{error}</p>
           <button onClick={onRetry} className="retry-button">
-            Tentar novamente
+            {t('common:retry')}
           </button>
         </div>
       </div>
     )
   }
 
-  // Usuário não logado
   if (!readOnly && !user) {
     return (
       <div className="portfolio-table-container">
         <div className="portfolio-empty">
-          Faça login para ver sua carteira
+          {t('loginRequired')}
         </div>
       </div>
     )
   }
 
-  // Carteira vazia
   if (portfolioData.length === 0) {
     return (
       <div className="portfolio-table-container">
         <table className="portfolio-table">
           <thead>
             <tr>
-              <th>Ticker</th>
-              <th>Valor</th>
-              <th>Quantidade</th>
-              <th>Valor Total</th>
+              <th>{t('common:ticker')}</th>
+              <th>{t('common:value')}</th>
+              <th>{t('common:quantity')}</th>
+              <th>{t('totalValue')}</th>
             </tr>
           </thead>
           <tbody>
             <tr className="empty-row">
-              <td colSpan="4">Nenhuma ação em carteira</td>
+              <td colSpan="4">{t('empty')}</td>
             </tr>
           </tbody>
         </table>
@@ -89,16 +78,15 @@ function PortfolioTable({ portfolioData, loading, error, onRetry, readOnly = fal
     )
   }
 
-  // Tabela com dados
   return (
     <div className="portfolio-table-container">
       <table className="portfolio-table">
         <thead>
           <tr>
-            <th>Ticker</th>
-            <th>Valor</th>
-            <th>Quantidade</th>
-            <th>Valor Total</th>
+            <th>{t('common:ticker')}</th>
+            <th>{t('common:value')}</th>
+            <th>{t('common:quantity')}</th>
+            <th>{t('totalValue')}</th>
           </tr>
         </thead>
         <tbody>
@@ -127,4 +115,3 @@ function PortfolioTable({ portfolioData, loading, error, onRetry, readOnly = fal
 }
 
 export default PortfolioTable
-

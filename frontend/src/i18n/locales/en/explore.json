@@ -1,0 +1,21 @@
+{
+  "title": "Explore",
+  "fetchError": "Error loading watchlist",
+  "updatePricesError": "Error updating prices",
+  "watchlist": {
+    "loading": "Loading watchlist...",
+    "loginRequired": "Sign in to view your watchlist",
+    "empty": "No stocks in watchlist",
+    "lastDividend": "Last Dividend"
+  },
+  "search": {
+    "placeholder": "Search",
+    "loading": "Loading...",
+    "noResults": "No stocks found",
+    "addTransactionAria": "Add transaction",
+    "loginPortfolio": "You need to be signed in to manage your portfolio!",
+    "loginWatchlist": "You need to be signed in to manage your watchlist!",
+    "portfolioError": "Error managing portfolio. Please try again.",
+    "watchlistError": "Error managing watchlist. Please try again."
+  }
+}

@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import { buildApiUrl } from '../config/api'
 import { supabase } from '../lib/supabase'
 import { authFetch, authFetchWithToken } from '../lib/authFetch'
+import i18n from '../i18n'
 
 const AuthContext = createContext()
 
@@ -105,22 +106,22 @@ export function AuthProvider({ children }) {
     const lower = message.toLowerCase()
 
     if (lower.includes('invalid') || lower.includes('otp') || lower.includes('code')) {
-      return 'Código inválido. Confira o código no app autenticador e tente novamente.'
+      return i18n.t('auth:ctx.mfaInvalid')
     }
 
     if (lower.includes('expired')) {
-      return 'Código expirado. Gere um novo código no app autenticador e tente novamente.'
+      return i18n.t('auth:ctx.mfaExpired')
     }
 
     if (lower.includes('rate') || lower.includes('too many')) {
-      return 'Muitas tentativas em sequência. Aguarde alguns segundos e tente novamente.'
+      return i18n.t('auth:ctx.mfaRateLimit')
     }
 
     if (lower.includes('factor')) {
-      return 'Fator MFA não encontrado. Tente fazer login novamente.'
+      return i18n.t('auth:ctx.mfaFactorMissing')
     }
 
-    return 'Não foi possível validar o código MFA. Tente novamente.'
+    return i18n.t('auth:ctx.mfaGeneric')
   }
 
   const runPostLoginUpdates = async (userId) => {
@@ -321,7 +322,7 @@ export function AuthProvider({ children }) {
       })
 
       if (signInError) {
-        return { success: false, message: signInError.message || 'Cadastro feito, mas sem sessão.' }
+        return { success: false, message: signInError.message || i18n.t('auth:ctx.signupNoSession') }
       }
 
       const authUserId = signInData?.user?.id
@@ -337,7 +338,7 @@ export function AuthProvider({ children }) {
       return { success: true, message: data.message, user: resolvedUser }
     } catch (error) {
       console.error('Erro no cadastro:', error)
-      return { success: false, message: 'Erro ao conectar com o servidor' }
+      return { success: false, message: i18n.t('auth:ctx.serverError') }
     }
   }
 
@@ -382,14 +383,14 @@ export function AuthProvider({ children }) {
 
       if (authError) {
         if (authError.message?.toLowerCase().includes('email not confirmed')) {
-          return { success: false, message: 'Confirme seu email antes de fazer login.' }
+          return { success: false, message: i18n.t('auth:ctx.emailNotConfirmed') }
         }
-        return { success: false, message: authError.message || 'Erro ao fazer login' }
+        return { success: false, message: authError.message || i18n.t('auth:ctx.loginFailed') }
       }
 
       const authUserId = authData?.user?.id
       if (!authUserId) {
-        return { success: false, message: 'Não foi possível obter o usuário autenticado.' }
+        return { success: false, message: i18n.t('auth:ctx.noAuthUser') }
       }
 
       const requiresMfa = await isMfaStepRequired()
@@ -410,7 +411,7 @@ export function AuthProvider({ children }) {
           success: false,
           mfaRequired: true,
           factorId: primaryFactorId,
-          message: 'Digite o código do app autenticador para concluir o login.',
+          message: i18n.t('auth:ctx.mfaRequired'),
         }
       }
 
@@ -427,7 +428,7 @@ export function AuthProvider({ children }) {
       return { success: true, user: resolvedUser }
     } catch (error) {
       console.error('Erro no login:', error)
-      return { success: false, message: 'Erro ao conectar com o servidor' }
+      return { success: false, message: i18n.t('auth:ctx.serverError') }
     }
   }
 
@@ -435,7 +436,7 @@ export function AuthProvider({ children }) {
     try {
       const sanitizedCode = (code || '').trim()
       if (!sanitizedCode) {
-        return { success: false, message: 'Informe o código de 6 dígitos.' }
+        return { success: false, message: i18n.t('auth:ctx.mfaCodeRequired') }
       }
 
       const now = Date.now()
@@ -446,7 +447,7 @@ export function AuthProvider({ children }) {
           success: false,
           mfaLocked: true,
           retryAfterSeconds,
-          message: `Muitas tentativas. Tente novamente em ${retryAfterSeconds}s.`,
+          message: i18n.t('auth:ctx.mfaLocked', { seconds: retryAfterSeconds }),
         }
       }
 
@@ -457,7 +458,7 @@ export function AuthProvider({ children }) {
       }
 
       if (!factorId) {
-        return { success: false, message: 'Nenhum fator TOTP encontrado para validação.' }
+        return { success: false, message: i18n.t('auth:ctx.mfaNoFactor') }
       }
 
       const { error } = await supabase.auth.mfa.challengeAndVerify({
@@ -484,7 +485,7 @@ export function AuthProvider({ children }) {
             success: false,
             mfaLocked: true,
             retryAfterSeconds: MFA_LOCK_SECONDS,
-            message: `Muitas tentativas inválidas. Aguarde ${MFA_LOCK_SECONDS}s para tentar novamente.`,
+            message: i18n.t('auth:ctx.mfaLockedInvalid', { seconds: MFA_LOCK_SECONDS }),
           }
         }
 
@@ -498,7 +499,7 @@ export function AuthProvider({ children }) {
       const authUserId = session?.user?.id
 
       if (!authUserId) {
-        return { success: false, message: 'Sessão não encontrada após validação MFA.' }
+        return { success: false, message: i18n.t('auth:ctx.mfaNoSession') }
       }
 
       const resolvedUser = await resolveUserProfile({
@@ -513,7 +514,7 @@ export function AuthProvider({ children }) {
       return { success: true, user: resolvedUser }
     } catch (error) {
       console.error('Erro ao validar MFA no login:', error)
-      return { success: false, message: 'Erro ao validar código MFA.' }
+      return { success: false, message: i18n.t('auth:ctx.mfaVerifyError') }
     }
   }
 
@@ -527,7 +528,7 @@ export function AuthProvider({ children }) {
         primaryFactorId: factors[0]?.id || null,
       }
     } catch (error) {
-      return { success: false, message: error.message || 'Erro ao consultar MFA.' }
+      return { success: false, message: error.message || i18n.t('auth:ctx.mfaStatusError') }
     }
   }
 
@@ -558,7 +559,7 @@ export function AuthProvider({ children }) {
       }
 
       if (error) {
-        return { success: false, message: error.message || 'Não foi possível iniciar o MFA.' }
+        return { success: false, message: error.message || i18n.t('auth:ctx.mfaStartFailed') }
       }
 
       return {
@@ -569,7 +570,7 @@ export function AuthProvider({ children }) {
         uri: data?.totp?.uri || '',
       }
     } catch (error) {
-      return { success: false, message: error.message || 'Erro ao iniciar MFA.' }
+      return { success: false, message: error.message || i18n.t('auth:ctx.mfaStartError') }
     }
   }
 
@@ -577,7 +578,7 @@ export function AuthProvider({ children }) {
     try {
       const sanitizedCode = (code || '').trim()
       if (!factorId || !sanitizedCode) {
-        return { success: false, message: 'Fator e código são obrigatórios.' }
+        return { success: false, message: i18n.t('auth:ctx.mfaFactorCodeRequired') }
       }
 
       const { error } = await supabase.auth.mfa.challengeAndVerify({
@@ -589,16 +590,16 @@ export function AuthProvider({ children }) {
         return { success: false, message: mapMfaErrorMessage(error.message) }
       }
 
-      return { success: true, message: 'MFA ativado com sucesso!' }
+      return { success: true, message: i18n.t('auth:ctx.mfaEnabled') }
     } catch (error) {
-      return { success: false, message: error.message || 'Erro ao confirmar MFA.' }
+      return { success: false, message: error.message || i18n.t('auth:ctx.mfaConfirmError') }
     }
   }
 
   const disableMfa = async (factorId) => {
     try {
       if (!factorId) {
-        return { success: false, message: 'Fator MFA não informado.' }
+        return { success: false, message: i18n.t('auth:ctx.mfaFactorNotProvided') }
       }
 
       const { error } = await supabase.auth.mfa.unenroll({ factorId })
@@ -606,9 +607,9 @@ export function AuthProvider({ children }) {
         return { success: false, message: mapMfaErrorMessage(error.message) }
       }
 
-      return { success: true, message: 'MFA desativado com sucesso.' }
+      return { success: true, message: i18n.t('auth:ctx.mfaDisabled') }
     } catch (error) {
-      return { success: false, message: error.message || 'Erro ao desativar MFA.' }
+      return { success: false, message: error.message || i18n.t('auth:ctx.mfaDisableError') }
     }
   }
 
@@ -631,7 +632,7 @@ export function AuthProvider({ children }) {
 
   const updateProfile = async (name, lastName, email) => {
     if (!user) {
-      return { success: false, message: 'Você precisa estar logado' }
+      return { success: false, message: i18n.t('auth:ctx.mustBeLoggedIn') }
     }
 
     try {
@@ -657,13 +658,13 @@ export function AuthProvider({ children }) {
       return { success: false, message: data.message }
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error)
-      return { success: false, message: 'Erro ao conectar com o servidor' }
+      return { success: false, message: i18n.t('auth:ctx.serverError') }
     }
   }
 
   const updatePassword = async (currentPassword, newPassword) => {
     if (!user) {
-      return { success: false, message: 'Você precisa estar logado' }
+      return { success: false, message: i18n.t('auth:ctx.mustBeLoggedIn') }
     }
 
     try {
@@ -687,7 +688,7 @@ export function AuthProvider({ children }) {
       return { success: false, message: data.message }
     } catch (error) {
       console.error('Erro ao atualizar senha:', error)
-      return { success: false, message: 'Erro ao conectar com o servidor' }
+      return { success: false, message: i18n.t('auth:ctx.serverError') }
     }
   }
 

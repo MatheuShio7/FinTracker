@@ -1,0 +1,61 @@
+{
+  "title": "Settings",
+  "preferences": "Preferences",
+  "theme": "Theme",
+  "fontSize": "Font Size",
+  "font": {
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large"
+  },
+  "language": "Language",
+  "lang": {
+    "ptAlt": "Portuguese",
+    "enAlt": "English"
+  },
+  "security": "Security",
+  "mfa": {
+    "titleOff": "Two-Step Authentication",
+    "titleOn": "Two-Step Verification Active",
+    "descOff": "Increase security by requiring a code from your phone in addition to your password when signing in.",
+    "descOn": "Your account is protected with two-step authentication. You will need a code from your authenticator app every time you sign in.",
+    "enable": "Enable",
+    "disable": "Disable",
+    "setupTitle": "Set Up Authenticator App",
+    "qrAlt": "MFA QR Code",
+    "qrFallback": "If the QR code does not appear, use the manual code below.",
+    "manualCode": "Manual code:",
+    "codePlaceholder": "Enter the 6-digit code",
+    "confirmActivation": "Confirm activation",
+    "scanHint": "Scan the QR code and confirm with the 6-digit code.",
+    "enabledSuccess": "MFA enabled successfully!",
+    "disabledSuccess": "MFA disabled successfully.",
+    "disableConfirm": "Are you sure you want to disable two-step authentication?",
+    "fallbackGeneric": "Could not complete the MFA operation.",
+    "statusError": "Error checking MFA status.",
+    "startError": "Could not start MFA setup.",
+    "invalidCode": "Invalid code. Check your authenticator app and try again.",
+    "invalidCodeShort": "Invalid code.",
+    "expired": "Code expired. Generate a new code in your authenticator app.",
+    "rateLimit": "Too many attempts in a row. Wait a few seconds and try again.",
+    "factorNotFound": "MFA factor not found. Reload the page and try again.",
+    "factorIdentifyError": "Could not identify the MFA factor to disable.",
+    "disableError": "Could not disable MFA."
+  },
+  "account": "Account",
+  "profile": {
+    "title": "Edit Personal Details",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "success": "Profile updated successfully!",
+    "error": "Error updating profile"
+  },
+  "password": {
+    "title": "Change Password",
+    "current": "Current Password",
+    "new": "New Password",
+    "confirm": "Confirm New Password",
+    "success": "Password updated successfully!",
+    "error": "Error updating password"
+  }
+}

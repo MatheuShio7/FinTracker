@@ -1,76 +1,67 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
+import { formatCurrency as formatCurrencyValue } from '../lib/format'
 import './WatchlistTable.css'
 
 function WatchlistTable({ watchlistData, loading, error, onRetry }) {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { t } = useTranslation(['explore', 'common'])
 
-  // Formatar valores monetários
   const formatCurrency = (value) => {
-    if (value === null || value === undefined) {
-      return 'N/A'
-    }
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value)
+    return formatCurrencyValue(value) ?? t('common:na')
   }
 
-  // Navegar para página da ação
   const handleRowClick = (ticker) => {
-    navigate(`/${ticker}`, { state: { from: 'Explorar' } })
+    navigate(`/${ticker}`, { state: { from: 'explore' } })
   }
 
-  // Loading state
   if (loading) {
     return (
       <div className="watchlist-table-container">
-        <div className="watchlist-loading">Carregando lista de observação...</div>
+        <div className="watchlist-loading">{t('watchlist.loading')}</div>
       </div>
     )
   }
 
-  // Error state
   if (error) {
     return (
       <div className="watchlist-table-container">
         <div className="watchlist-error">
           <p>{error}</p>
           <button onClick={onRetry} className="retry-button">
-            Tentar novamente
+            {t('common:retry')}
           </button>
         </div>
       </div>
     )
   }
 
-  // Usuário não logado
   if (!user) {
     return (
       <div className="watchlist-table-container">
         <div className="watchlist-empty">
-          Faça login para ver sua lista de observação
+          {t('watchlist.loginRequired')}
         </div>
       </div>
     )
   }
 
-  // Watchlist vazia
   if (watchlistData.length === 0) {
     return (
       <div className="watchlist-table-container">
         <table className="watchlist-table">
           <thead>
             <tr>
-              <th>Ticker</th>
-              <th>Valor</th>
-              <th>Último Provento</th>
+              <th>{t('common:ticker')}</th>
+              <th>{t('common:value')}</th>
+              <th>{t('watchlist.lastDividend')}</th>
             </tr>
           </thead>
           <tbody>
             <tr className="empty-row">
-              <td colSpan="3">Nenhuma ação na lista de observação</td>
+              <td colSpan="3">{t('watchlist.empty')}</td>
             </tr>
           </tbody>
         </table>
@@ -78,15 +69,14 @@ function WatchlistTable({ watchlistData, loading, error, onRetry }) {
     )
   }
 
-  // Tabela com dados
   return (
     <div className="watchlist-table-container">
       <table className="watchlist-table">
         <thead>
           <tr>
-            <th>Ticker</th>
-            <th>Valor</th>
-            <th>Último Provento</th>
+            <th>{t('common:ticker')}</th>
+            <th>{t('common:value')}</th>
+            <th>{t('watchlist.lastDividend')}</th>
           </tr>
         </thead>
         <tbody>
@@ -101,7 +91,7 @@ function WatchlistTable({ watchlistData, loading, error, onRetry }) {
                 {formatCurrency(stock.current_price)}
               </td>
               <td className="dividend-cell">
-                {stock.last_dividend ? formatCurrency(stock.last_dividend.value) : 'N/A'}
+                {stock.last_dividend ? formatCurrency(stock.last_dividend.value) : t('common:na')}
               </td>
             </tr>
           ))}
@@ -112,4 +102,3 @@ function WatchlistTable({ watchlistData, loading, error, onRetry }) {
 }
 
 export default WatchlistTable
-

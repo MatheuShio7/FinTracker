@@ -1,0 +1,63 @@
+{
+  "title": "Carteira",
+  "loading": "Carregando carteira...",
+  "loginRequired": "Faça login para ver sua carteira",
+  "empty": "Nenhuma ação em carteira",
+  "totalValue": "Valor Total",
+  "fetchError": "Erro ao buscar carteira",
+  "updatePricesError": "Erro ao atualizar preços",
+  "transactionsFetchError": "Erro ao buscar histórico de transações",
+  "tx": {
+    "trigger": "Transação",
+    "triggerTitle": "Nova transação",
+    "triggerAria": "Nova transação",
+    "modalTitle": "Nova Transação",
+    "modalAria": "Nova transação",
+    "closeAria": "Fechar modal de transação",
+    "stockLabel": "Ação",
+    "searchPlaceholder": "Pesquisar ticker ou empresa",
+    "removeStockAria": "Remover ação selecionada",
+    "loading": "Carregando...",
+    "noResults": "Nenhuma ação encontrada",
+    "typeLabel": "Tipo de Transação",
+    "priceBuy": "Preço de Compra (1 un)",
+    "priceSell": "Preço de Venda (1 un)",
+    "pricePlaceholder": "0.00",
+    "qtyPlaceholder": "0",
+    "dateLabel": "Data da Transação",
+    "submit": "Salvar Transação",
+    "success": "Transação salva com sucesso!",
+    "err": {
+      "selectStock": "Selecione uma ação para continuar.",
+      "price": "Informe um preço válido maior que zero.",
+      "quantity": "Informe uma quantidade inteira maior que zero.",
+      "date": "Informe a data da transação.",
+      "save": "Não foi possível salvar a transação.",
+      "saveGeneric": "Erro ao salvar transação."
+    }
+  },
+  "history": {
+    "title": "Histórico de Transações",
+    "loading": "Carregando transações...",
+    "empty": "Nenhuma transação encontrada",
+    "editTitle": "Editar transação",
+    "editAria": "Editar transação",
+    "deleteTitle": "Excluir transação",
+    "deleteAria": "Excluir transação",
+    "editModalTitle": "Editar Transação",
+    "editModalAria": "Editar transação",
+    "closeEditAria": "Fechar modal de edição",
+    "saveChanges": "Salvar Alterações",
+    "deleteModalTitle": "Excluir Transação",
+    "deleteModalAria": "Confirmar exclusão",
+    "closeDeleteAria": "Fechar modal de exclusão",
+    "deleteConfirm": "Você tem certeza que deseja excluir a transação de <strong>{{ticker}}</strong>?",
+    "err": {
+      "invalid": "Transação inválida.",
+      "edit": "Não foi possível editar a transação.",
+      "editGeneric": "Erro ao editar transação.",
+      "delete": "Não foi possível excluir a transação.",
+      "deleteGeneric": "Erro ao excluir transação."
+    }
+  }
+}

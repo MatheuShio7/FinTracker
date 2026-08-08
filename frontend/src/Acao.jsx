@@ -1,5 +1,6 @@
 import { useParams, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { buildApiUrl } from './config/api'
 import { supabase } from './lib/supabase'
 import { usePortfolio } from './contexts/PortfolioContext'
@@ -15,6 +16,7 @@ import PriceChart from './components/PriceChart'
 import DividendsChart from './components/DividendsChart'
 
 function Acao() {
+  const { t } = useTranslation(['stock', 'portfolio'])
   const { ticker } = useParams()
   const location = useLocation()
   const { isInPortfolio, invalidatePortfolioFullCache } = usePortfolio()
@@ -30,8 +32,8 @@ function Acao() {
   // Ref para rastrear o ticker anterior (inicializa com null para detectar primeiro carregamento)
   const previousTickerRef = useRef(null)
   
-  // Captura de onde o usuário veio (padrão: Explorar)
-  const from = location.state?.from || 'Explorar'
+  // Captura de onde o usuário veio (padrão: explore)
+  const from = location.state?.from || 'explore'
 
   useEffect(() => {
     const fetchStockData = async () => {
@@ -60,7 +62,7 @@ function Acao() {
 
           if (error) {
             console.error('Erro ao buscar dados da ação:', error)
-            setCompanyName('Empresa não encontrada')
+            setCompanyName(t('stock:companyNotFound'))
           } else if (data) {
             setCompanyName(data.company_name)
           }
@@ -111,24 +113,24 @@ function Acao() {
             // Erro retornado pela API
             if (response.status === 404) {
               console.error('❌ Ação não encontrada no backend')
-              setBackendError('Ação não encontrada no backend')
+              setBackendError(t('stock:notFoundBackend'))
             } else {
               console.error(`❌ Erro ao buscar dados: ${result.message}`)
-              setBackendError(result.message || 'Erro ao buscar dados')
+              setBackendError(result.message || t('stock:fetchError'))
             }
             setStockData(null)
           }
         } catch (fetchError) {
           // Erro de conexão
           console.error('❌ Erro ao conectar com backend:', fetchError)
-          setBackendError('Erro ao conectar com backend')
+          setBackendError(t('stock:connectError'))
           setStockData(null)
         }
 
       } catch (error) {
         console.error('Erro na busca:', error)
         if (isTickerChange) {
-          setCompanyName('Erro ao carregar')
+          setCompanyName(t('stock:loadError'))
         }
       } finally {
         // Remove loading apropriado
@@ -140,7 +142,7 @@ function Acao() {
     }
 
     fetchStockData()
-  }, [ticker, selectedRange, isInPortfolio, invalidatePortfolioFullCache])
+  }, [ticker, selectedRange, isInPortfolio, invalidatePortfolioFullCache, t])
 
   // Função para mudar o range e recarregar os dados
   const handleRangeChange = async (newRange) => {
@@ -232,9 +234,15 @@ function Acao() {
         <BackNavigation from={from} />
         <NotificationsButton className="acao-notifications-button" />
         <ReloadButton onClick={handleRefresh} isLoading={isRefreshing} />
-        <button type="button" className="reload-button transaction-button acao-transaction-button" onClick={handleOpenTransaction} title="Nova transação" aria-label="Nova transação">
+        <button
+          type="button"
+          className="reload-button transaction-button acao-transaction-button"
+          onClick={handleOpenTransaction}
+          title={t('stock:txTitle')}
+          aria-label={t('stock:txAria')}
+        >
           <i className="bi bi-plus-slash-minus"></i>
-          <span>Transação</span>
+          <span>{t('stock:txButton')}</span>
         </button>
         <PageTitle title={ticker} />
         {companyName && <PageSubtitle subtitle={companyName} />}
@@ -263,7 +271,7 @@ function Acao() {
       {/* Loading do backend */}
       {isLoading && (
         <div className="backend-loading">
-          <p>🔄 Carregando dados de {ticker}...</p>
+          <p>🔄 {t('stock:loading', { ticker })}</p>
         </div>
       )}
       
@@ -277,4 +285,4 @@ function Acao() {
   )
 }
 
-export default Acao 
+export default Acao

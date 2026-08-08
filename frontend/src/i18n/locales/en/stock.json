@@ -1,0 +1,32 @@
+{
+  "companyNotFound": "Company not found",
+  "loadError": "Error loading",
+  "notFoundBackend": "Stock not found on backend",
+  "fetchError": "Error fetching data",
+  "connectError": "Error connecting to backend",
+  "loading": "Loading data for {{ticker}}...",
+  "txButton": "Transaction",
+  "txTitle": "New transaction",
+  "txAria": "New transaction",
+  "price": {
+    "title": "Price History",
+    "range": {
+      "7d": "7 days",
+      "1m": "1 month",
+      "3m": "3 months"
+    },
+    "empty": "No price data available",
+    "loading": "Loading data...",
+    "min": "Minimum",
+    "max": "Maximum",
+    "last": "Latest"
+  },
+  "dividends": {
+    "empty": "No dividend data available",
+    "title": "Dividend History",
+    "dateUnavailable": "Date unavailable",
+    "avg": "Average",
+    "max": "Maximum",
+    "total": "Total"
+  }
+}

@@ -1,66 +1,74 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { useTranslation } from 'react-i18next'
+import { formatCurrency, formatDate } from '../lib/format'
 import './DividendsChart.css'
 
 function DividendsChart({ dividends }) {
+  const { t, i18n } = useTranslation(['stock', 'common'])
+
   if (!dividends || dividends.length === 0) {
     return (
       <div className="dividends-chart-container">
         <div className="chart-empty">
-          <p>📊 Sem dados de dividendos disponíveis</p>
+          <p>{t('dividends.empty')}</p>
         </div>
       </div>
     )
   }
 
-  // Formatar dados para o Recharts (inverte para mostrar do mais antigo ao mais recente)
   const chartData = dividends.map(item => ({
-    date: item.payment_date || item.date || item.ex_date || 'N/A',
+    date: item.payment_date || item.date || item.ex_date || null,
     value: parseFloat(item.value) || 0
   })).reverse()
 
-  // Formatar data no tooltip (dd/mm/yyyy)
-  const formatDate = (dateString) => {
-    if (!dateString || dateString === 'N/A') return 'Data indisponível'
-    
-    // Se já estiver no formato dd/mm/yyyy
+  const formatChartDate = (dateString) => {
+    if (!dateString) return t('dividends.dateUnavailable')
+
     if (dateString.includes('/')) return dateString
-    
-    // Se estiver no formato yyyy-mm-dd
+
     if (dateString.includes('-')) {
-      const [year, month, day] = dateString.split('-')
-      return `${day}/${month}/${year}`
+      const date = new Date(`${dateString}T00:00:00`)
+      if (!Number.isNaN(date.getTime())) {
+        return formatDate(date) ?? dateString
+      }
     }
-    
+
     return dateString
   }
 
-  // Formatar valor no tooltip (R$ xx.xx)
-  const formatValue = (value) => {
-    if (value === null || value === undefined || isNaN(value)) return 'R$ 0.00'
-    return `R$ ${value.toFixed(2)}`
+  const formatAxisDate = (dateString) => {
+    if (!dateString) return t('common:na')
+
+    if (dateString.includes('/')) return dateString
+
+    if (dateString.includes('-')) {
+      const date = new Date(`${dateString}T00:00:00`)
+      if (!Number.isNaN(date.getTime())) {
+        return formatDate(date, { day: '2-digit', month: '2-digit', year: 'numeric' }) ?? dateString
+      }
+    }
+
+    return dateString
   }
 
-  // Tooltip customizado
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length && payload[0].payload) {
       const data = payload[0].payload
       return (
         <div className="custom-tooltip">
-          <p className="tooltip-date">{formatDate(data.date)}</p>
-          <p className="tooltip-value">{formatValue(payload[0].value)}</p>
+          <p className="tooltip-date">{formatChartDate(data.date)}</p>
+          <p className="tooltip-value">{formatCurrency(payload[0].value)}</p>
         </div>
       )
     }
     return null
   }
 
-  // Calcular valores mín e máx para ajustar escala do gráfico
   const dividend_values = chartData.map(d => d.value)
   const minValue = Math.min(...dividend_values)
   const maxValue = Math.max(...dividend_values)
   const padding = (maxValue - minValue) * 0.1
-  
-  // Calcular total e média dos dividendos
+
   const totalDividends = dividend_values.reduce((sum, val) => sum + val, 0)
   const avgDividends = totalDividends / dividend_values.length
 
@@ -68,57 +76,42 @@ function DividendsChart({ dividends }) {
   const gridColor = themeStyles.getPropertyValue('--color-chart-grid').trim()
   const axisColor = themeStyles.getPropertyValue('--color-chart-axis').trim()
   const accentColor = themeStyles.getPropertyValue('--color-accent').trim()
-  
+
   return (
-    <div className="dividends-chart-container">
+    <div className="dividends-chart-container" key={i18n.language}>
       <div className="chart-header">
-        <h3>Histórico de Proventos</h3>
+        <h3>{t('dividends.title')}</h3>
       </div>
-      
+
       <ResponsiveContainer width="100%" height={400}>
         <BarChart
           data={chartData}
           margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-          
-          <XAxis 
-            dataKey="date" 
-            tickFormatter={(date) => {
-              if (!date || date === 'N/A') return 'N/A'
-              
-              // Se já estiver no formato dd/mm/yyyy
-              if (date.includes('/')) {
-                return date
-              }
-              
-              // Se estiver no formato yyyy-mm-dd
-              if (date.includes('-')) {
-                const [year, month, day] = date.split('-')
-                return `${day}/${month}/${year}`
-              }
-              
-              return date
-            }}
+
+          <XAxis
+            dataKey="date"
+            tickFormatter={formatAxisDate}
             stroke={axisColor}
             style={{ fontSize: '12px' }}
             angle={-45}
             textAnchor="end"
             height={70}
           />
-          
-          <YAxis 
+
+          <YAxis
             domain={[0, maxValue + padding]}
-            tickFormatter={(value) => `R$ ${value.toFixed(2)}`}
+            tickFormatter={(value) => formatCurrency(value) ?? ''}
             stroke={axisColor}
             style={{ fontSize: '12px' }}
             width={80}
           />
-          
+
           <Tooltip content={<CustomTooltip />} />
-          
-          <Bar 
-            dataKey="value" 
+
+          <Bar
+            dataKey="value"
             fill={accentColor}
             radius={[8, 8, 0, 0]}
           />
@@ -128,16 +121,16 @@ function DividendsChart({ dividends }) {
       <div className="chart-footer">
         <div className="chart-stats">
           <div className="stat-item">
-            <span className="stat-label">Total</span>
-            <span className="stat-value">{formatValue(totalDividends)}</span>
+            <span className="stat-label">{t('dividends.total')}</span>
+            <span className="stat-value">{formatCurrency(totalDividends)}</span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">Média</span>
-            <span className="stat-value">{formatValue(avgDividends)}</span>
+            <span className="stat-label">{t('dividends.avg')}</span>
+            <span className="stat-value">{formatCurrency(avgDividends)}</span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">Máximo</span>
-            <span className="stat-value">{formatValue(maxValue)}</span>
+            <span className="stat-label">{t('dividends.max')}</span>
+            <span className="stat-value">{formatCurrency(maxValue)}</span>
           </div>
         </div>
       </div>
@@ -146,4 +139,3 @@ function DividendsChart({ dividends }) {
 }
 
 export default DividendsChart
-

@@ -1,0 +1,63 @@
+{
+  "title": "Portfolio",
+  "loading": "Loading portfolio...",
+  "loginRequired": "Sign in to view your portfolio",
+  "empty": "No stocks in portfolio",
+  "totalValue": "Total Value",
+  "fetchError": "Error loading portfolio",
+  "updatePricesError": "Error updating prices",
+  "transactionsFetchError": "Error loading transaction history",
+  "tx": {
+    "trigger": "Transaction",
+    "triggerTitle": "New transaction",
+    "triggerAria": "New transaction",
+    "modalTitle": "New Transaction",
+    "modalAria": "New transaction",
+    "closeAria": "Close transaction modal",
+    "stockLabel": "Stock",
+    "searchPlaceholder": "Search ticker or company",
+    "removeStockAria": "Remove selected stock",
+    "loading": "Loading...",
+    "noResults": "No stocks found",
+    "typeLabel": "Transaction Type",
+    "priceBuy": "Buy Price (1 unit)",
+    "priceSell": "Sell Price (1 unit)",
+    "pricePlaceholder": "0.00",
+    "qtyPlaceholder": "0",
+    "dateLabel": "Transaction Date",
+    "submit": "Save Transaction",
+    "success": "Transaction saved successfully!",
+    "err": {
+      "selectStock": "Select a stock to continue.",
+      "price": "Enter a valid price greater than zero.",
+      "quantity": "Enter a whole quantity greater than zero.",
+      "date": "Enter the transaction date.",
+      "save": "Could not save the transaction.",
+      "saveGeneric": "Error saving transaction."
+    }
+  },
+  "history": {
+    "title": "Transaction History",
+    "loading": "Loading transactions...",
+    "empty": "No transactions found",
+    "editTitle": "Edit transaction",
+    "editAria": "Edit transaction",
+    "deleteTitle": "Delete transaction",
+    "deleteAria": "Delete transaction",
+    "editModalTitle": "Edit Transaction",
+    "editModalAria": "Edit transaction",
+    "closeEditAria": "Close edit modal",
+    "saveChanges": "Save Changes",
+    "deleteModalTitle": "Delete Transaction",
+    "deleteModalAria": "Confirm deletion",
+    "closeDeleteAria": "Close delete modal",
+    "deleteConfirm": "Are you sure you want to delete the <strong>{{ticker}}</strong> transaction?",
+    "err": {
+      "invalid": "Invalid transaction.",
+      "edit": "Could not edit the transaction.",
+      "editGeneric": "Error editing transaction.",
+      "delete": "Could not delete the transaction.",
+      "deleteGeneric": "Error deleting transaction."
+    }
+  }
+}

@@ -1,0 +1,189 @@
+{
+  "title": "Groups",
+  "newButton": "Group",
+  "newButtonTitle": "New group",
+  "newButtonAria": "New group",
+  "section": {
+    "mine": "Groups you belong to",
+    "public": "Public groups"
+  },
+  "loading": "Loading groups...",
+  "empty": {
+    "mine": "You are not in any group yet.",
+    "public": "No public groups available right now."
+  },
+  "card": {
+    "members": "{{count}} members",
+    "membersCapped": "{{count}}/{{max}} members",
+    "full": "Full",
+    "noDescription": "No description.",
+    "reconsentTitle": "Re-consent pending",
+    "reconsentAria": "Re-consent pending"
+  },
+  "visibility": {
+    "publico": "Public",
+    "restrito": "Public | Approval",
+    "privado": "Private"
+  },
+  "permission": {
+    "todos": "All members",
+    "lideres": "Leaders only",
+    "ninguem": "Nobody"
+  },
+  "role": {
+    "founder": "Founder",
+    "leader": "Leader"
+  },
+  "errors": {
+    "loadMine": "Error loading your groups",
+    "loadPublic": "Error loading public groups",
+    "invalidInvite": "Invalid or expired invite",
+    "acceptInvite": "Error accepting invite",
+    "loadInvite": "Error loading invite",
+    "loadGroup": "Error loading group",
+    "permissionOrder": "Manage cannot be more permissive than view.",
+    "nameRequired": "Group name is required",
+    "save": "Error saving group",
+    "loadDetails": "Error loading group details",
+    "updateMember": "Error updating member",
+    "delete": "Error deleting group",
+    "transferSelect": "Select a member to transfer ownership",
+    "transfer": "Error transferring ownership",
+    "join": "Error joining the group",
+    "reconsentAccept": "Error confirming re-consent",
+    "reconsentDecline": "Error declining re-consent",
+    "sendInvite": "Error sending invite",
+    "inviteLink": "Error generating invite link",
+    "inviteLinkCopy": "Error generating or copying the invite link",
+    "leave": "Error leaving the group",
+    "joinRequest": "Error processing request",
+    "searchUsers": "Could not search users. Please try again."
+  },
+  "form": {
+    "ariaNew": "New group",
+    "ariaEdit": "Edit group",
+    "titleNew": "New Group",
+    "titleEdit": "Edit Group",
+    "closeAria": "Close group modal",
+    "name": "Name",
+    "namePlaceholder": "Group name",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe the purpose of the group",
+    "visibility": "Visibility and Access",
+    "vis": {
+      "restrito": "Public | Approval required",
+      "publico": "Public | Immediate access",
+      "privado": "Private | Invite only"
+    },
+    "maxMembers": "Maximum number of members",
+    "maxMembersToggle": "Enable member limit",
+    "maxMembersPlaceholder": "e.g. 25",
+    "permissionsTitle": "Permissions",
+    "permissionsDesc": "Define who can view and manage the group's portfolio and transactions.",
+    "viewLabel": "View portfolio and transactions",
+    "manageLabel": "Manage portfolio and transactions",
+    "opt": {
+      "all": "Everyone",
+      "leaders": "Leaders only",
+      "nobody": "Nobody"
+    },
+    "create": "Create Group",
+    "save": "Save changes"
+  },
+  "details": {
+    "aria": "Details for group {{name}}",
+    "menuAria": "Group options",
+    "closeAria": "Close group details",
+    "loading": "Loading details...",
+    "members": "{{count}} Members",
+    "membersCapped": "{{count}}/{{max}} Members",
+    "viewChip": "View: {{label}}",
+    "manageChip": "Manage: {{label}}",
+    "reviewPermissions": "Review permissions",
+    "join": "Join",
+    "joining": "Joining...",
+    "pendingApproval": "Awaiting approval",
+    "groupFull": "Group full",
+    "leave": "Leave group",
+    "leaving": "Leaving...",
+    "menu": {
+      "edit": "Edit settings",
+      "invite": "Invite members",
+      "transfer": "Transfer ownership",
+      "delete": "Delete group"
+    },
+    "pendingRequests": "Pending requests",
+    "approve": "Approve",
+    "reject": "Reject",
+    "noMembers": "No members listed in this group.",
+    "memberYou": "{{name}} (You)",
+    "reconsentMemberAria": "Awaiting re-consent",
+    "viewWalletTitle": "View portfolio",
+    "viewWalletAria": "View {{name}}'s portfolio",
+    "promote": "Promote",
+    "demote": "Demote",
+    "expel": "Remove"
+  },
+  "invite": {
+    "aria": "Invite members",
+    "title": "Invite members",
+    "closeAria": "Close member invite",
+    "copyLink": "Create and copy invite link",
+    "generating": "Generating link...",
+    "copied": "Invite link copied to clipboard.",
+    "sent": "Invite sent successfully.",
+    "searchPlaceholder": "Search by name or email",
+    "searching": "Searching users...",
+    "searchHint": "Type a name or email to search users.",
+    "noUsers": "No users found.",
+    "sendTitle": "Send invite",
+    "sendAria": "Send invite to {{name}}"
+  },
+  "delete": {
+    "aria": "Confirm group deletion",
+    "title": "Delete group",
+    "closeAria": "Close deletion confirmation",
+    "message": "Are you sure you want to delete the group <strong>{{name}}</strong>? This action cannot be undone.",
+    "confirm": "Delete group"
+  },
+  "transfer": {
+    "aria": "Transfer group ownership",
+    "title": "Transfer ownership",
+    "closeAria": "Close ownership transfer",
+    "message": "Choose the member who will become the group founder. You will remain as a regular member.",
+    "label": "New founder",
+    "placeholder": "Select a member",
+    "noCandidates": "There must be at least one other active member in the group.",
+    "confirm": "Transfer ownership",
+    "transferring": "Transferring..."
+  },
+  "consent": {
+    "aria": "Permissions consent",
+    "title": "Permissions consent",
+    "titleReconsent": "Permissions re-consent",
+    "closeAria": "Close consent",
+    "joinBody": "By joining <strong>{{name}}</strong>, you agree to the permissions below regarding your portfolio and transactions:",
+    "inviteBody": "By accepting the invite to <strong>{{name}}</strong>, you agree to the permissions below regarding your portfolio and transactions:",
+    "reconsentBody": "The group <strong>{{name}}</strong> updated permissions for portfolios and transactions. You previously agreed to:",
+    "viewPrevious": "View (previous):",
+    "managePrevious": "Manage (previous):",
+    "newPermissionsNote": "Proposed new permissions:",
+    "view": "View:",
+    "manage": "Manage:",
+    "viewNew": "View (new):",
+    "manageNew": "Manage (new):",
+    "declineNote": "If you decline, you will leave the group immediately.",
+    "approvalNote": "This group requires leader approval after consent.",
+    "decline": "Decline and leave",
+    "agree": "Agree and continue",
+    "confirming": "Confirming..."
+  },
+  "wallet": {
+    "aria": "{{name}}'s portfolio",
+    "title": "{{name}}'s portfolio",
+    "manageable": "Manageable",
+    "readonly": "Read only",
+    "closeAria": "Close member portfolio",
+    "loadError": "Error loading member portfolio"
+  }
+}

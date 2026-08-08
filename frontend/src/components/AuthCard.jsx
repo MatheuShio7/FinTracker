@@ -1,11 +1,13 @@
 import './AuthCard.css'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { buildApiUrl } from '../config/api'
 
 function AuthCard({ title, type }) {
+  const { t } = useTranslation(['auth', 'common'])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [firstName, setFirstName] = useState('')
@@ -112,10 +114,10 @@ function AuthCard({ title, type }) {
         setMfaFactorId(result.factorId || pendingMfa?.factorId || null)
         setMfaError('')
       } else {
-        setError(result.message || 'Erro ao fazer login')
+        setError(result.message || t('auth:errors.loginFailed'))
       }
     } catch {
-      setError('Erro ao conectar com o servidor')
+      setError(t('auth:errors.server'))
     } finally {
       setLoading(false)
     }
@@ -144,9 +146,9 @@ function AuthCard({ title, type }) {
         setMfaRetrySeconds(result.retryAfterSeconds || 0)
       }
 
-      setMfaError(result.message || 'Não foi possível validar o código MFA.')
+      setMfaError(result.message || t('auth:errors.mfaValidate'))
     } catch {
-      setMfaError('Erro ao validar código MFA. Tente novamente.')
+      setMfaError(t('auth:errors.mfaValidateRetry'))
     } finally {
       setMfaLoading(false)
     }
@@ -168,12 +170,12 @@ function AuthCard({ title, type }) {
     
     // Validações adicionais
     if (password.length < 8) {
-      setError('A senha deve ter pelo menos 8 caracteres')
+      setError(t('auth:errors.passwordMin'))
       return
     }
     
     if (password !== confirmPassword) {
-      setError('As senhas não coincidem')
+      setError(t('auth:errors.passwordMismatch'))
       return
     }
     
@@ -186,10 +188,10 @@ function AuthCard({ title, type }) {
         // Cadastro bem-sucedido, redireciona para carteira
         navigate('/carteira')
       } else {
-        setError(result.message || 'Erro ao fazer cadastro')
+        setError(result.message || t('auth:errors.signupFailed'))
       }
     } catch {
-      setError('Erro ao conectar com o servidor')
+      setError(t('auth:errors.server'))
     } finally {
       setLoading(false)
     }
@@ -197,7 +199,7 @@ function AuthCard({ title, type }) {
 
   const handleForgotPassword = async () => {
     if (!forgotEmail.trim()) {
-      setForgotError('Informe um email válido')
+      setForgotError(t('auth:errors.forgotEmailRequired'))
       return
     }
 
@@ -212,13 +214,13 @@ function AuthCard({ title, type }) {
       })
 
       if (resetErrorResult) {
-        setForgotError('Não foi possível enviar o email agora. Verifique a configuração do Supabase.')
+        setForgotError(t('auth:errors.forgotSendConfig'))
         return
       }
 
-      setForgotSuccessMessage('Se esse email existir, enviamos o link')
+      setForgotSuccessMessage(t('auth:forgot.success'))
     } catch {
-      setForgotError('Não foi possível enviar o email agora. Tente novamente em instantes.')
+      setForgotError(t('auth:errors.forgotSendRetry'))
     } finally {
       setForgotLoading(false)
     }
@@ -230,12 +232,12 @@ function AuthCard({ title, type }) {
     setResetError('')
 
     if (newPassword.length < 8) {
-      setResetError('A nova senha deve ter pelo menos 8 caracteres')
+      setResetError(t('auth:errors.resetPasswordMin'))
       return
     }
 
     if (newPassword !== confirmNewPassword) {
-      setResetError('As senhas não coincidem')
+      setResetError(t('auth:errors.passwordMismatch'))
       return
     }
 
@@ -243,7 +245,7 @@ function AuthCard({ title, type }) {
 
     try {
       if (!recoveryAccessToken) {
-        setResetError('Link de redefinição inválido ou expirado')
+        setResetError(t('auth:errors.resetInvalidLink'))
         return
       }
 
@@ -261,11 +263,11 @@ function AuthCard({ title, type }) {
       const data = await response.json()
 
       if (!response.ok || data.status !== 'success') {
-        setResetError(data.message || 'Não foi possível redefinir a senha')
+        setResetError(data.message || t('auth:errors.resetFailed'))
         return
       }
 
-      setResetSuccessMessage('Senha alterada com sucesso. Faça login com sua nova senha.')
+      setResetSuccessMessage(t('auth:reset.success'))
       setNewPassword('')
       setConfirmNewPassword('')
       setRecoveryAccessToken('')
@@ -277,7 +279,7 @@ function AuthCard({ title, type }) {
         navigate('/login', { replace: true })
       }, 1200)
     } catch {
-      setResetError('Não foi possível redefinir a senha. Tente novamente.')
+      setResetError(t('auth:errors.resetFailedRetry'))
     } finally {
       setResetLoading(false)
     }
@@ -305,8 +307,8 @@ function AuthCard({ title, type }) {
       {type === 'login' && isForgotModalOpen && (
         <div className="auth-modal-overlay" onClick={closeForgotModal}>
           <div className="auth-modal-card" onClick={(e) => e.stopPropagation()}>
-            <h2 className="auth-modal-title">Recuperar senha</h2>
-            <p className="auth-modal-subtitle">Digite o email da sua conta para receber o link de redefinição.</p>
+            <h2 className="auth-modal-title">{t('auth:forgot.title')}</h2>
+            <p className="auth-modal-subtitle">{t('auth:forgot.subtitle')}</p>
 
             {forgotError && <div className="auth-error auth-modal-feedback">{forgotError}</div>}
             {forgotSuccessMessage && <div className="auth-success auth-modal-feedback">{forgotSuccessMessage}</div>}
@@ -315,7 +317,7 @@ function AuthCard({ title, type }) {
               <i className="bi bi-envelope-fill input-icon"></i>
               <input
                 type="email"
-                placeholder="Email da conta"
+                placeholder={t('auth:forgot.emailPlaceholder')}
                 className="auth-input"
                 value={forgotEmail}
                 onChange={(e) => setForgotEmail(e.target.value)}
@@ -326,14 +328,14 @@ function AuthCard({ title, type }) {
 
             <div className="auth-modal-actions">
               <button className="auth-secondary-button" onClick={closeForgotModal} disabled={forgotLoading}>
-                Cancelar
+                {t('common:cancel')}
               </button>
               <button
                 className={`auth-button auth-modal-button ${forgotEmail.trim() && !forgotLoading ? 'auth-button-active' : ''}`}
                 onClick={handleForgotPassword}
                 disabled={!forgotEmail.trim() || forgotLoading}
               >
-                {forgotLoading ? 'Enviando...' : 'Enviar link'}
+                {forgotLoading ? t('auth:forgot.sending') : t('auth:forgot.send')}
               </button>
             </div>
           </div>
@@ -343,8 +345,8 @@ function AuthCard({ title, type }) {
       {type === 'login' && isResetModalOpen && (
         <div className="auth-modal-overlay" onClick={closeResetModal}>
           <div className="auth-modal-card" onClick={(e) => e.stopPropagation()}>
-            <h2 className="auth-modal-title">Redefinir senha</h2>
-            <p className="auth-modal-subtitle">Digite e confirme sua nova senha para finalizar.</p>
+            <h2 className="auth-modal-title">{t('auth:reset.title')}</h2>
+            <p className="auth-modal-subtitle">{t('auth:reset.subtitle')}</p>
 
             {resetError && <div className="auth-error auth-modal-feedback">{resetError}</div>}
             {resetSuccessMessage && <div className="auth-success auth-modal-feedback">{resetSuccessMessage}</div>}
@@ -353,7 +355,7 @@ function AuthCard({ title, type }) {
               <i className="bi bi-shield-lock-fill input-icon"></i>
               <input
                 type="password"
-                placeholder="Nova senha (mínimo 8 caracteres)"
+                placeholder={t('auth:reset.newPasswordPlaceholder')}
                 className="auth-input"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -365,7 +367,7 @@ function AuthCard({ title, type }) {
               <i className="bi bi-shield-lock-fill input-icon"></i>
               <input
                 type="password"
-                placeholder="Confirmar nova senha"
+                placeholder={t('auth:reset.confirmPlaceholder')}
                 className="auth-input"
                 value={confirmNewPassword}
                 onChange={(e) => setConfirmNewPassword(e.target.value)}
@@ -376,14 +378,14 @@ function AuthCard({ title, type }) {
 
             <div className="auth-modal-actions">
               <button className="auth-secondary-button" onClick={closeResetModal} disabled={resetLoading}>
-                Cancelar
+                {t('common:cancel')}
               </button>
               <button
                 className={`auth-button auth-modal-button ${isResetFormValid && !resetLoading ? 'auth-button-active' : ''}`}
                 onClick={handleResetPassword}
                 disabled={!isResetFormValid || resetLoading}
               >
-                {resetLoading ? 'Salvando...' : 'Salvar nova senha'}
+                {resetLoading ? t('common:saving') : t('auth:reset.save')}
               </button>
             </div>
           </div>
@@ -393,9 +395,9 @@ function AuthCard({ title, type }) {
       {type === 'login' && isMfaModalOpen && (
         <div className="auth-modal-overlay" onClick={closeMfaModal}>
           <div className="auth-modal-card" onClick={(e) => e.stopPropagation()}>
-            <h2 className="auth-modal-title">Verificação em 2 etapas</h2>
+            <h2 className="auth-modal-title">{t('auth:mfa.title')}</h2>
             <p className="auth-modal-subtitle">
-              Informe o código de 6 dígitos do seu app autenticador para concluir o login.
+              {t('auth:mfa.subtitle')}
             </p>
 
             {mfaError && <div className="auth-error auth-modal-feedback">{mfaError}</div>}
@@ -404,7 +406,7 @@ function AuthCard({ title, type }) {
               <i className="bi bi-shield-lock-fill input-icon"></i>
               <input
                 type="text"
-                placeholder="Código MFA"
+                placeholder={t('auth:mfa.codePlaceholder')}
                 className="auth-input"
                 value={mfaCode}
                 onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -415,20 +417,20 @@ function AuthCard({ title, type }) {
 
             {mfaRetrySeconds > 0 && (
               <p className="auth-mfa-cooldown">
-                Aguarde {mfaRetrySeconds}s para tentar novamente.
+                {t('auth:mfa.cooldown', { seconds: mfaRetrySeconds })}
               </p>
             )}
 
             <div className="auth-modal-actions">
               <button className="auth-secondary-button" onClick={closeMfaModal} disabled={mfaLoading}>
-                Cancelar
+                {t('common:cancel')}
               </button>
               <button
                 className={`auth-button auth-modal-button ${mfaCode.length === 6 && !mfaLoading && mfaRetrySeconds === 0 ? 'auth-button-active' : ''}`}
                 onClick={handleVerifyMfa}
                 disabled={mfaCode.length !== 6 || mfaLoading || mfaRetrySeconds > 0}
               >
-                {mfaLoading ? 'Validando...' : 'Confirmar código'}
+                {mfaLoading ? t('auth:mfa.validating') : t('auth:mfa.confirm')}
               </button>
             </div>
           </div>
@@ -439,7 +441,7 @@ function AuthCard({ title, type }) {
       <div className="auth-card-header">
         <img 
           src="/logo.png" 
-          alt="FinTracker Logo" 
+          alt={t('auth:logoAlt')} 
           className="auth-card-logo"
         />
         <h1 className="auth-card-title">{title}</h1>
@@ -453,7 +455,7 @@ function AuthCard({ title, type }) {
             <i className="bi bi-envelope-fill input-icon"></i>
             <input 
               type="email"
-              placeholder="Endereço de email"
+              placeholder={t('auth:emailPlaceholder')}
               className="auth-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -465,7 +467,7 @@ function AuthCard({ title, type }) {
             <i className="bi bi-shield-lock-fill input-icon"></i>
             <input 
               type="password"
-              placeholder="Senha"
+              placeholder={t('auth:passwordPlaceholder')}
               className="auth-input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -479,12 +481,12 @@ function AuthCard({ title, type }) {
             disabled={!isLoginFormValid || loading}
             onClick={handleLogin}
           >
-            {loading ? 'Entrando...' : 'Entrar'}
+            {loading ? t('auth:loginLoading') : t('auth:loginButton')}
           </button>
           
           <div className="auth-links login-links">
             <p className="signup-text">
-              Ainda não possui conta? <Link to="/cadastro" className="signup-link">Cadastre-se</Link>
+              {t('auth:noAccount')} <Link to="/cadastro" className="signup-link">{t('auth:signUpLink')}</Link>
             </p>
             
             <a
@@ -498,7 +500,7 @@ function AuthCard({ title, type }) {
                 setIsForgotModalOpen(true)
               }}
             >
-              Esqueceu a senha?
+              {t('auth:forgotPassword')}
             </a>
           </div>
         </div>
@@ -513,7 +515,7 @@ function AuthCard({ title, type }) {
               <i className="bi bi-person-fill input-icon"></i>
               <input
                 type="text"
-                placeholder="Nome"
+                placeholder={t('auth:firstNamePlaceholder')}
                 className="auth-input"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -525,7 +527,7 @@ function AuthCard({ title, type }) {
               <i className="bi bi-person-fill input-icon"></i>
               <input
                 type="text"
-                placeholder="Último nome"
+                placeholder={t('auth:lastNamePlaceholder')}
                 className="auth-input"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -538,7 +540,7 @@ function AuthCard({ title, type }) {
             <i className="bi bi-envelope-fill input-icon"></i>
             <input
               type="email"
-              placeholder="Endereço de email"
+              placeholder={t('auth:emailPlaceholder')}
               className="auth-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -550,7 +552,7 @@ function AuthCard({ title, type }) {
             <i className="bi bi-shield-lock-fill input-icon"></i>
             <input
               type="password"
-              placeholder="Senha (mínimo 8 caracteres)"
+              placeholder={t('auth:passwordMinPlaceholder')}
               className="auth-input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -562,7 +564,7 @@ function AuthCard({ title, type }) {
             <i className="bi bi-shield-lock-fill input-icon"></i>
             <input
               type="password"
-              placeholder="Confirmar senha"
+              placeholder={t('auth:confirmPasswordPlaceholder')}
               className="auth-input"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -576,12 +578,12 @@ function AuthCard({ title, type }) {
             disabled={!isCadastroFormValid || loading}
             onClick={handleCadastro}
           >
-            {loading ? 'Cadastrando...' : 'Cadastrar'}
+            {loading ? t('auth:signupLoading') : t('auth:signupButton')}
           </button>
 
           <div className="auth-links cadastro-links">
             <p className="login-text">
-              Já possui conta? <Link to="/login" className="login-link">Entrar</Link>
+              {t('auth:hasAccount')} <Link to="/login" className="login-link">{t('auth:loginLink')}</Link>
             </p>
           </div>
         </div>
@@ -591,4 +593,4 @@ function AuthCard({ title, type }) {
   )
 }
 
-export default AuthCard 
+export default AuthCard

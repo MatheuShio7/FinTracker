@@ -1,0 +1,21 @@
+{
+  "title": "Explorar",
+  "fetchError": "Erro ao buscar watchlist",
+  "updatePricesError": "Erro ao atualizar preços",
+  "watchlist": {
+    "loading": "Carregando lista de observação...",
+    "loginRequired": "Faça login para ver sua lista de observação",
+    "empty": "Nenhuma ação na lista de observação",
+    "lastDividend": "Último Provento"
+  },
+  "search": {
+    "placeholder": "Pesquisar",
+    "loading": "Carregando...",
+    "noResults": "Nenhuma ação encontrada",
+    "addTransactionAria": "Adicionar transação",
+    "loginPortfolio": "Você precisa estar logado para gerenciar sua carteira!",
+    "loginWatchlist": "Você precisa estar logado para gerenciar sua watchlist!",
+    "portfolioError": "Erro ao gerenciar carteira. Tente novamente.",
+    "watchlistError": "Erro ao gerenciar watchlist. Tente novamente."
+  }
+}

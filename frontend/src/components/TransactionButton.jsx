@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { authFetch } from '../lib/authFetch'
 import './TransactionButton.css'
@@ -14,6 +15,7 @@ const TransactionButton = forwardRef(function TransactionButton(
   },
   ref
 ) {
+  const { t } = useTranslation(['portfolio', 'common'])
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [results, setResults] = useState([])
@@ -32,8 +34,8 @@ const TransactionButton = forwardRef(function TransactionButton(
   const searchRef = useRef(null)
 
   const priceLabel = useMemo(() => {
-    return transactionType === 'venda' ? 'Preço de Venda (1 un)' : 'Preço de Compra (1 un)'
-  }, [transactionType])
+    return transactionType === 'venda' ? t('portfolio:tx.priceSell') : t('portfolio:tx.priceBuy')
+  }, [transactionType, t])
 
   const resetForm = () => {
     setSearchTerm('')
@@ -182,24 +184,24 @@ const TransactionButton = forwardRef(function TransactionButton(
     const stockTicker = selectedStock?.ticker
 
     if (!stockId && !stockTicker) {
-      setSubmitError('Selecione uma ação para continuar.')
+      setSubmitError(t('portfolio:tx.err.selectStock'))
       return
     }
 
     const parsedPrice = Number(price)
     if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
-      setSubmitError('Informe um preço válido maior que zero.')
+      setSubmitError(t('portfolio:tx.err.price'))
       return
     }
 
     const parsedQuantity = Number(quantity)
     if (!Number.isInteger(parsedQuantity) || parsedQuantity <= 0) {
-      setSubmitError('Informe uma quantidade inteira maior que zero.')
+      setSubmitError(t('portfolio:tx.err.quantity'))
       return
     }
 
     if (!transactionDate) {
-      setSubmitError('Informe a data da transação.')
+      setSubmitError(t('portfolio:tx.err.date'))
       return
     }
 
@@ -224,10 +226,10 @@ const TransactionButton = forwardRef(function TransactionButton(
 
       const data = await response.json()
       if (!response.ok || data.status !== 'success') {
-        throw new Error(data.message || 'Não foi possível salvar a transação.')
+        throw new Error(data.message || t('portfolio:tx.err.save'))
       }
 
-      setSubmitSuccess('Transação salva com sucesso!')
+      setSubmitSuccess(t('portfolio:tx.success'))
 
       if (typeof onTransactionSaved === 'function') {
         onTransactionSaved(data.data)
@@ -239,7 +241,7 @@ const TransactionButton = forwardRef(function TransactionButton(
         handleClose()
       }, 600)
     } catch (error) {
-      setSubmitError(error.message || 'Erro ao salvar transação.')
+      setSubmitError(error.message || t('portfolio:tx.err.saveGeneric'))
     } finally {
       setIsSubmitting(false)
     }
@@ -252,11 +254,11 @@ const TransactionButton = forwardRef(function TransactionButton(
           type="button"
           className={`reload-button transaction-button ${className}`}
           onClick={handleOpen}
-          title="Nova transação"
-          aria-label="Nova transação"
+          title={t('portfolio:tx.triggerTitle')}
+          aria-label={t('portfolio:tx.triggerAria')}
         >
           <i className="bi bi-plus-slash-minus"></i>
-          <span>Transação</span>
+          <span>{t('portfolio:tx.trigger')}</span>
         </button>
       )}
 
@@ -267,15 +269,15 @@ const TransactionButton = forwardRef(function TransactionButton(
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label="Nova transacao"
+            aria-label={t('portfolio:tx.modalAria')}
           >
             <div className="transaction-modal-header">
-              <h3>Nova Transação</h3>
+              <h3>{t('portfolio:tx.modalTitle')}</h3>
               <button
                 type="button"
                 className="transaction-close-button"
                 onClick={handleClose}
-                aria-label="Fechar modal de transacao"
+                aria-label={t('portfolio:tx.closeAria')}
               >
                 <i className="bi bi-x-lg"></i>
               </button>
@@ -283,7 +285,7 @@ const TransactionButton = forwardRef(function TransactionButton(
 
             <form className="transaction-form" onSubmit={handleSubmit}>
               <div className="transaction-field" ref={searchRef}>
-                <label htmlFor="transaction-stock-search">Ação</label>
+                <label htmlFor="transaction-stock-search">{t('portfolio:tx.stockLabel')}</label>
                 {!selectedStock ? (
                   <div className="transaction-search-bar">
                     <i className="bi bi-search transaction-search-icon"></i>
@@ -291,7 +293,7 @@ const TransactionButton = forwardRef(function TransactionButton(
                       id="transaction-stock-search"
                       type="text"
                       className="transaction-search-input"
-                      placeholder="Pesquisar ticker ou empresa"
+                      placeholder={t('portfolio:tx.searchPlaceholder')}
                       value={searchTerm}
                       onChange={(event) => setSearchTerm(event.target.value)}
                       onFocus={() => searchTerm && setShowDropdown(true)}
@@ -312,7 +314,7 @@ const TransactionButton = forwardRef(function TransactionButton(
                       type="button"
                       className="transaction-selected-stock-remove"
                       onClick={handleClearSelectedStock}
-                      aria-label="Remover ação selecionada"
+                      aria-label={t('portfolio:tx.removeStockAria')}
                     >
                       <i className="bi bi-x-lg"></i>
                     </button>
@@ -322,7 +324,7 @@ const TransactionButton = forwardRef(function TransactionButton(
                 {showDropdown && !selectedStock && (
                   <div className="transaction-search-dropdown">
                     {isSearching ? (
-                      <div className="transaction-result-item loading">Carregando...</div>
+                      <div className="transaction-result-item loading">{t('portfolio:tx.loading')}</div>
                     ) : results.length > 0 ? (
                       results.map((stock) => (
                         <button
@@ -336,7 +338,7 @@ const TransactionButton = forwardRef(function TransactionButton(
                         </button>
                       ))
                     ) : (
-                      <div className="transaction-result-item no-results">Nenhuma ação encontrada</div>
+                      <div className="transaction-result-item no-results">{t('portfolio:tx.noResults')}</div>
                     )}
                   </div>
                 )}
@@ -344,7 +346,7 @@ const TransactionButton = forwardRef(function TransactionButton(
 
               <div className="transaction-grid">
                 <div className="transaction-field">
-                  <label htmlFor="transaction-type">Tipo de Transação</label>
+                  <label htmlFor="transaction-type">{t('portfolio:tx.typeLabel')}</label>
                   <div className={`transaction-select-wrapper ${isTransactionTypeOpen ? 'open' : ''}`}>
                     <select
                       id="transaction-type"
@@ -362,8 +364,8 @@ const TransactionButton = forwardRef(function TransactionButton(
                         setIsTransactionTypeOpen(false)
                       }}
                     >
-                      <option value="compra">Compra</option>
-                      <option value="venda">Venda</option>
+                      <option value="compra">{t('common:buy')}</option>
+                      <option value="venda">{t('common:sell')}</option>
                     </select>
                     <i className="bi bi-chevron-down transaction-select-arrow"></i>
                   </div>
@@ -377,28 +379,28 @@ const TransactionButton = forwardRef(function TransactionButton(
                     className="transaction-number-input"
                     step="0.01"
                     min="0"
-                    placeholder="0.00"
+                    placeholder={t('portfolio:tx.pricePlaceholder')}
                     value={price}
                     onChange={(event) => setPrice(event.target.value)}
                   />
                 </div>
 
                 <div className="transaction-field">
-                  <label htmlFor="transaction-quantity">Quantidade</label>
+                  <label htmlFor="transaction-quantity">{t('common:quantity')}</label>
                   <input
                     id="transaction-quantity"
                     type="number"
                     className="transaction-number-input"
                     min="1"
                     step="1"
-                    placeholder="0"
+                    placeholder={t('portfolio:tx.qtyPlaceholder')}
                     value={quantity}
                     onChange={(event) => setQuantity(event.target.value)}
                   />
                 </div>
 
                 <div className="transaction-field">
-                  <label htmlFor="transaction-date">Data da Transação</label>
+                  <label htmlFor="transaction-date">{t('portfolio:tx.dateLabel')}</label>
                   <input
                     id="transaction-date"
                     type="date"
@@ -409,7 +411,7 @@ const TransactionButton = forwardRef(function TransactionButton(
               </div>
 
               <button type="submit" className="transaction-submit-button" disabled={isSubmitting}>
-                {isSubmitting ? 'Salvando...' : 'Salvar Transação'}
+                {isSubmitting ? t('common:saving') : t('portfolio:tx.submit')}
               </button>
 
               {submitError && (

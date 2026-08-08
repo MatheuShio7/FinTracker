@@ -1,0 +1,17 @@
+{
+  "initialMessage": "Hi! How can I help you today?",
+  "windowAria": "AI chat window",
+  "title": "AI Assistant",
+  "closeAria": "Close chat",
+  "typingAria": "Assistant typing",
+  "typing": "typing",
+  "placeholderLoggedIn": "Type your message...",
+  "placeholderLoggedOut": "Sign in to chat",
+  "inputAria": "Message field",
+  "sendAria": "Send message",
+  "openAria": "Open AI chat",
+  "closeTriggerAria": "Close AI chat",
+  "loginRequired": "You need to be signed in to use the assistant.",
+  "emptyAnswer": "Empty response from the assistant.",
+  "error": "I couldn't answer right now. Please try again in a moment."
+}
