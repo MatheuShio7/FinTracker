@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
+import ChatMarkdown from './ChatMarkdown'
 import './ChatWidget.css'
 
 function ChatWidget({ enabled = false }) {
@@ -243,7 +244,14 @@ function ChatWidget({ enabled = false }) {
                   key={`${message.role}-${index}-${message.text.slice(0, 16)}`}
                   className={`chat-widget-message ${message.role === 'user' ? 'is-user' : 'is-assistant'}`}
                 >
-                  {message.text}
+                  {message.role === 'assistant' ? (
+                    <ChatMarkdown
+                      text={message.text}
+                      onNavigate={() => setIsOpen(false)}
+                    />
+                  ) : (
+                    message.text
+                  )}
                 </div>
               ))}
 
