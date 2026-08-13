@@ -1,0 +1,150 @@
+.landing-page {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.landing-header-actions {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 25px;
+}
+
+.landing-header-actions .theme-toggle-container {
+  margin: 0;
+}
+
+.landing-language {
+  position: relative;
+}
+
+.landing-language-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-text-primary);
+}
+
+.landing-language-flag {
+  width: 36px;
+  height: 24px;
+  object-fit: cover;
+  border-radius: 3px;
+  box-shadow: 0 2px 8px var(--color-shadow);
+}
+
+.landing-language-chevron {
+  font-size: 0.85rem;
+  transition: transform 0.2s ease;
+}
+
+.landing-language-chevron.open {
+  transform: rotate(180deg);
+}
+
+.landing-language-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 170px;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px var(--color-shadow);
+  z-index: 1001;
+}
+
+.landing-language-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s ease;
+}
+
+.landing-language-option:hover {
+  background-color: var(--color-bg-surface-hover);
+}
+
+.landing-language-option.selected {
+  background-color: var(--color-accent-bg);
+}
+
+.landing-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 110px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.landing-btn:hover {
+  transform: scale(1.02);
+}
+
+.landing-btn-login {
+  background-color: transparent;
+  color: var(--color-text-primary);
+  border: 1.5px solid var(--color-border);
+}
+
+.landing-btn-login:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.landing-btn-signup {
+  background-color: var(--color-accent);
+  color: #ffffff;
+  border: 1.5px solid var(--color-accent);
+}
+
+.landing-btn-signup:hover {
+  background-color: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+  opacity: 0.95;
+}
+
+@media (max-width: 720px) {
+  .landing-header-actions {
+    gap: 12px;
+    padding: 18px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: calc(100% - 160px);
+  }
+
+  .landing-btn {
+    min-width: 90px;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 0.85rem;
+  }
+}
