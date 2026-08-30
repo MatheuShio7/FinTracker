@@ -124,9 +124,6 @@ flowchart LR
   EF --> GM
 ```
 
-<!-- INSERT HERE (optional): PNG export of the Mermaid diagram above if you want a static image fallback — save as docs/screenshots/03-arquitetura.png -->
-![Architecture diagram](./docs/screenshots/03-arquitetura.png)
-
 ### Repository structure
 
 ```
