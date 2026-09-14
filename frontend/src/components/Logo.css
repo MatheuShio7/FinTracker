@@ -25,4 +25,10 @@
   font-weight: 800;
   color: var(--color-text-primary);
   user-select: none;
+}
+
+@media (max-width: 768px) {
+  .logo {
+    display: none;
+  }
 } 

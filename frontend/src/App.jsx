@@ -16,7 +16,9 @@ import Explorar from './Explorar'
 import Grupos from './Grupos'
 import Acao from './Acao'
 import Configuracoes from './Configuracoes'
+import Chat from './Chat'
 import Sidebar from './components/Sidebar'
+import MobileBottomNav from './components/MobileBottomNav'
 import ChatWidget from './components/ChatWidget'
 import './App.css'
 
@@ -85,7 +87,10 @@ function AppContent() {
   return (
     <div className="app">
       <Sidebar />
-      <div className={`app-content ${shouldHideSidebar ? 'no-sidebar' : ''}`}>
+      <MobileBottomNav />
+      <div
+        className={`app-content ${shouldHideSidebar ? 'no-sidebar' : ''} ${location.pathname === '/chat' ? 'chat-route' : ''}`}
+      >
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
@@ -105,14 +110,19 @@ function AppContent() {
               <Grupos />
             </ProtectedRoute>
           } />
-          <Route path="/:ticker" element={
-            <ProtectedRoute>
-              <Acao />
-            </ProtectedRoute>
-          } />
           <Route path="/configuracoes" element={
             <ProtectedRoute>
               <Configuracoes />
+            </ProtectedRoute>
+          } />
+          <Route path="/chat" element={
+            <ProtectedRoute>
+              <Chat />
+            </ProtectedRoute>
+          } />
+          <Route path="/:ticker" element={
+            <ProtectedRoute>
+              <Acao />
             </ProtectedRoute>
           } />
         </Routes>

@@ -1,0 +1,16 @@
+.chat-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding-top: 5.5rem;
+}
+
+@media (max-width: 768px) {
+  .chat-page {
+    padding-top: 0.75rem;
+    min-height: calc(100dvh - 4.5rem - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - 4.5rem - env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+  }
+}

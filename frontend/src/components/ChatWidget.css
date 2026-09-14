@@ -392,17 +392,34 @@
   }
 }
 
-@media (max-width: 768px) {
-  .chat-widget-trigger {
-    right: 1rem;
-    bottom: 1rem;
-  }
+.chat-widget-page {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: 0 0.75rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
+    var(--color-chat-card-bg);
+  box-shadow: 0 16px 28px var(--color-shadow-lg);
+}
 
+.chat-widget-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at top right, rgba(246, 83, 8, 0.12), transparent 42%);
+}
+
+@media (max-width: 768px) {
+  .chat-widget-trigger,
   .chat-widget-card {
-    right: 1rem;
-    bottom: 5.6rem;
-    width: calc(100vw - 2rem);
-    height: min(70vh, 30rem);
+    display: none !important;
   }
 }
 

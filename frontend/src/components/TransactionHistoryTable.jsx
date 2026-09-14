@@ -227,7 +227,7 @@ function TransactionHistoryTable({
         <thead>
           <tr>
             <th>{t('common:ticker')}</th>
-            <th>{t('tx.typeLabel')}</th>
+            <th>{t('common:type')}</th>
             <th>{t('common:quantity')}</th>
             <th>{t('common:price')}</th>
             <th>{t('common:total')}</th>

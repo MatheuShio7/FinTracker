@@ -14,6 +14,7 @@
   "clear": "Clear",
   "email": "Email",
   "ticker": "Ticker",
+  "type": "Type",
   "quantity": "Quantity",
   "price": "Price",
   "date": "Date",

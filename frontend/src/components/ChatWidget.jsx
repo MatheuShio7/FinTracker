@@ -5,11 +5,12 @@ import { supabase } from '../lib/supabase'
 import ChatMarkdown from './ChatMarkdown'
 import './ChatWidget.css'
 
-function ChatWidget({ enabled = false }) {
+function ChatWidget({ enabled = false, variant = 'widget' }) {
   const { t, i18n } = useTranslation('chat')
   const { user } = useAuth()
-  const [isOpen, setIsOpen] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
+  const isPage = variant === 'page'
+  const [isOpen, setIsOpen] = useState(isPage)
+  const [isMounted, setIsMounted] = useState(isPage)
   const [messages, setMessages] = useState(() => [
     { role: 'assistant', text: t('initialMessage') },
   ])
@@ -54,13 +55,23 @@ function ChatWidget({ enabled = false }) {
   }
 
   useEffect(() => {
+    if (isPage) {
+      setIsOpen(true)
+      setIsMounted(true)
+      return
+    }
+
     if (!enabled) {
       setIsOpen(false)
       setIsMounted(false)
     }
-  }, [enabled])
+  }, [enabled, isPage])
 
   useEffect(() => {
+    if (isPage) {
+      return undefined
+    }
+
     let closeTimer
 
     if (isOpen) {
@@ -76,7 +87,7 @@ function ChatWidget({ enabled = false }) {
         window.clearTimeout(closeTimer)
       }
     }
-  }, [isOpen, isMounted])
+  }, [isOpen, isMounted, isPage])
 
   useEffect(() => {
     setMessages([{ role: 'assistant', text: t('initialMessage') }])
@@ -214,6 +225,101 @@ function ChatWidget({ enabled = false }) {
     return null
   }
 
+  const conversation = (
+    <>
+      <header className="chat-widget-header">
+        <div>
+          <h3>{t('title')}</h3>
+        </div>
+
+        {!isPage && (
+          <button
+            type="button"
+            className="chat-widget-close"
+            onClick={() => setIsOpen(false)}
+            aria-label={t('closeAria')}
+          >
+            <i className="bi bi-x-lg"></i>
+          </button>
+        )}
+      </header>
+
+      <div className="chat-widget-body">
+        <div className="chat-widget-messages" aria-live="polite" aria-relevant="additions text">
+          {messages.map((message, index) => (
+            <div
+              key={`${message.role}-${index}-${message.text.slice(0, 16)}`}
+              className={`chat-widget-message ${message.role === 'user' ? 'is-user' : 'is-assistant'}`}
+            >
+              {message.role === 'assistant' ? (
+                <ChatMarkdown
+                  text={message.text}
+                  onNavigate={isPage ? undefined : () => setIsOpen(false)}
+                />
+              ) : (
+                message.text
+              )}
+            </div>
+          ))}
+
+          {loading && (
+            <div className="chat-widget-message is-assistant is-typing" aria-label={t('typingAria')}>
+              <span className="chat-widget-typing-text">{t('typing')}</span>
+              <span className="chat-widget-typing-dots" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </span>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+
+      {error && (
+        <div className="chat-widget-error" role="alert">
+          {error}
+        </div>
+      )}
+
+      <footer className="chat-widget-footer">
+        <form className="chat-widget-form" onSubmit={handleSendMessage}>
+          <textarea
+            ref={inputRef}
+            rows={1}
+            placeholder={user ? t('placeholderLoggedIn') : t('placeholderLoggedOut')}
+            aria-label={t('inputAria')}
+            value={inputValue}
+            onChange={handleInputChange}
+            onFocus={handleInputFocus}
+            onKeyDown={handleInputKeyDown}
+            disabled={loading || !user}
+          />
+          <button
+            type="submit"
+            disabled={loading || !inputValue.trim() || !user}
+            aria-label={t('sendAria')}
+          >
+            {loading ? (
+              <i className="bi bi-hourglass-split"></i>
+            ) : (
+              <i className="bi bi-send-fill"></i>
+            )}
+          </button>
+        </form>
+      </footer>
+    </>
+  )
+
+  if (isPage) {
+    return (
+      <section className="chat-widget-page" aria-label={t('windowAria')}>
+        {conversation}
+      </section>
+    )
+  }
+
   return (
     <>
       {isMounted && (
@@ -222,86 +328,7 @@ function ChatWidget({ enabled = false }) {
           aria-label={t('windowAria')}
           aria-hidden={!isOpen}
         >
-          <header className="chat-widget-header">
-            <div>
-              <h3>{t('title')}</h3>
-            </div>
-
-            <button
-              type="button"
-              className="chat-widget-close"
-              onClick={() => setIsOpen(false)}
-              aria-label={t('closeAria')}
-            >
-              <i className="bi bi-x-lg"></i>
-            </button>
-          </header>
-
-          <div className="chat-widget-body">
-            <div className="chat-widget-messages" aria-live="polite" aria-relevant="additions text">
-              {messages.map((message, index) => (
-                <div
-                  key={`${message.role}-${index}-${message.text.slice(0, 16)}`}
-                  className={`chat-widget-message ${message.role === 'user' ? 'is-user' : 'is-assistant'}`}
-                >
-                  {message.role === 'assistant' ? (
-                    <ChatMarkdown
-                      text={message.text}
-                      onNavigate={() => setIsOpen(false)}
-                    />
-                  ) : (
-                    message.text
-                  )}
-                </div>
-              ))}
-
-              {loading && (
-                <div className="chat-widget-message is-assistant is-typing" aria-label={t('typingAria')}>
-                  <span className="chat-widget-typing-text">{t('typing')}</span>
-                  <span className="chat-widget-typing-dots" aria-hidden="true">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </span>
-                </div>
-              )}
-
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
-
-          {error && (
-            <div className="chat-widget-error" role="alert">
-              {error}
-            </div>
-          )}
-
-          <footer className="chat-widget-footer">
-            <form className="chat-widget-form" onSubmit={handleSendMessage}>
-              <textarea
-                ref={inputRef}
-                rows={1}
-                placeholder={user ? t('placeholderLoggedIn') : t('placeholderLoggedOut')}
-                aria-label={t('inputAria')}
-                value={inputValue}
-                onChange={handleInputChange}
-                onFocus={handleInputFocus}
-                onKeyDown={handleInputKeyDown}
-                disabled={loading || !user}
-              />
-              <button
-                type="submit"
-                disabled={loading || !inputValue.trim() || !user}
-                aria-label={t('sendAria')}
-              >
-                {loading ? (
-                  <i className="bi bi-hourglass-split"></i>
-                ) : (
-                  <i className="bi bi-send-fill"></i>
-                )}
-              </button>
-            </form>
-          </footer>
+          {conversation}
         </section>
       )}
 

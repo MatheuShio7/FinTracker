@@ -20,4 +20,12 @@
   .app-content {
     margin-left: 0;
   }
+
+  .app-content:not(.no-sidebar) {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .app-content.chat-route {
+    padding-bottom: 0;
+  }
 } 
