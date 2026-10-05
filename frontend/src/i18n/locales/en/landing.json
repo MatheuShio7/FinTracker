@@ -1,0 +1,171 @@
+{
+  "nav": {
+    "problem": "The problem",
+    "features": "Features",
+    "howItWorks": "How it works",
+    "audience": "Who it's for",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "mainNav": "Main navigation"
+  },
+  "hero": {
+    "badge": "Stock portfolio tracking for Brazilian investors",
+    "titleStart": "Your stock portfolio,",
+    "titleHighlight": "simple and clear.",
+    "subtitle": "Record your buys and sells, track the performance of each asset and understand where your money is. No spreadsheets, no jargon and no information overload.",
+    "cta": "Create free account",
+    "secondary": "See how it works",
+    "trust": {
+      "free": "Free to use",
+      "virtual": "Virtual portfolios to practice risk-free",
+      "mfa": "Protected with 2-step verification"
+    }
+  },
+  "mockup": {
+    "windowTitle": "My portfolio",
+    "totalLabel": "Total balance",
+    "totalValue": "R$ 48,230.00",
+    "returnLabel": "Return",
+    "returnValue": "+12.4%",
+    "assetsLabel": "Assets",
+    "assetsValue": "8",
+    "allocationTitle": "Allocation",
+    "positionsTitle": "Positions",
+    "colAsset": "Asset",
+    "colQty": "Qty.",
+    "colPrice": "Price",
+    "colVariation": "Chg.",
+    "watchlistTitle": "Watchlist",
+    "watchlistTag": "Watching",
+    "chatQuestion": "What is dividend yield?",
+    "chatAnswer": "It is how much a stock paid in dividends relative to its price. Want an example?",
+    "virtualBadge": "Test portfolio",
+    "disclaimer": "Illustrative values only."
+  },
+  "problem": {
+    "eyebrow": "The problem",
+    "title": "Investing shouldn't be confusing",
+    "subtitle": "Investors without organization end up choosing between two extremes, and neither really solves the problem.",
+    "items": {
+      "complex": {
+        "title": "Platforms that are too complex",
+        "text": "Hundreds of indicators, acronyms and charts that confuse anyone who just wants a clear view of where their money is."
+      },
+      "sheets": {
+        "title": "Spreadsheets and notes",
+        "text": "They are simple, but hard to maintain and deliver no useful visual conclusions about your portfolio."
+      },
+      "learn": {
+        "title": "No safe place to learn",
+        "text": "There is hardly any simple way to simulate buys and sells to learn how the market works without risking real money."
+      }
+    }
+  },
+  "solution": {
+    "eyebrow": "The solution",
+    "title": "The middle ground that was missing",
+    "subtitle": "FinTracker is simple enough for any investor profile and complete enough to generate real insights about your portfolio.",
+    "points": {
+      "overview": "Consolidated portfolio view in a single screen",
+      "visual": "Charts that show what matters, without visual clutter",
+      "practice": "Virtual portfolios to practice before investing for real"
+    },
+    "spectrum": {
+      "left": {
+        "title": "Spreadsheets and paper",
+        "text": "Simple, but no big picture"
+      },
+      "center": {
+        "title": "FinTracker",
+        "text": "Simple and complete"
+      },
+      "right": {
+        "title": "Robust platforms",
+        "text": "Complete, but complex"
+      }
+    }
+  },
+  "features": {
+    "eyebrow": "Features",
+    "title": "Everything you need, nothing you don't",
+    "subtitle": "Tools designed to bring clarity to your investing life.",
+    "items": {
+      "portfolio": {
+        "title": "Consolidated portfolio",
+        "text": "See all your assets together, with current price and performance for each one, plus allocation charts."
+      },
+      "transactions": {
+        "title": "Transactions",
+        "text": "Record stock buys and sells and keep a complete, organized history of everything you did."
+      },
+      "watchlist": {
+        "title": "Watchlist",
+        "text": "Monitor the stocks that catch your eye and follow their prices before deciding to buy."
+      },
+      "groups": {
+        "title": "Groups",
+        "text": "Organize accounts into groups for your family or multiple portfolios, with shared visibility."
+      },
+      "ai": {
+        "title": "AI assistant",
+        "text": "Ask questions about the system and the financial market anytime, in plain language."
+      },
+      "security": {
+        "title": "MFA security",
+        "text": "Protect your account with two-step verification using an authenticator app."
+      }
+    }
+  },
+  "steps": {
+    "eyebrow": "How it works",
+    "title": "Get started in three simple steps",
+    "subtitle": "In just a few minutes you have a clear view of your portfolio.",
+    "items": {
+      "signup": {
+        "title": "Create your account",
+        "text": "Sign up for free with just a few details."
+      },
+      "register": {
+        "title": "Record your transactions",
+        "text": "Add your buys and sells or build a virtual portfolio to practice."
+      },
+      "track": {
+        "title": "Follow your progress",
+        "text": "Check your portfolio performance and ask the AI assistant anything."
+      }
+    }
+  },
+  "audience": {
+    "eyebrow": "Who it's for",
+    "title": "Built for the way you invest",
+    "subtitle": "Whatever stage you're at, FinTracker adapts to you.",
+    "items": {
+      "beginner": {
+        "title": "Those who want to start",
+        "text": "Aspiring and beginner investors who want a test portfolio to track performance with zero risk."
+      },
+      "organized": {
+        "title": "Those who want organization",
+        "text": "Investors of all levels who want simplicity to know exactly where their money is."
+      },
+      "family": {
+        "title": "Families investing together",
+        "text": "People who share investments and want shared visibility, without confusion or swapping spreadsheets."
+      },
+      "multi": {
+        "title": "Those with multiple portfolios",
+        "text": "People who manage more than one portfolio and need everything organized in one place."
+      }
+    }
+  },
+  "cta": {
+    "title": "Ready to get clarity on your investments?",
+    "subtitle": "Create your free account and start tracking your portfolio today.",
+    "button": "Create free account",
+    "login": "I already have an account"
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "disclaimer": "FinTracker is a tracking tool and does not constitute investment advice."
+  }
+}

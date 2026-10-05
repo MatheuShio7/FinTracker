@@ -1,0 +1,171 @@
+{
+  "nav": {
+    "problem": "O problema",
+    "features": "Funcionalidades",
+    "howItWorks": "Como funciona",
+    "audience": "Para quem é",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu",
+    "mainNav": "Navegação principal"
+  },
+  "hero": {
+    "badge": "Controle de carteira de ações para investidores brasileiros",
+    "titleStart": "Sua carteira de ações,",
+    "titleHighlight": "simples e clara.",
+    "subtitle": "Registre suas compras e vendas, acompanhe o desempenho de cada ativo e entenda onde está o seu dinheiro. Sem planilhas, sem jargões e sem excesso de informação.",
+    "cta": "Criar conta grátis",
+    "secondary": "Ver como funciona",
+    "trust": {
+      "free": "Gratuito",
+      "virtual": "Carteiras virtuais para treinar sem risco",
+      "mfa": "Proteção com verificação em 2 etapas"
+    }
+  },
+  "mockup": {
+    "windowTitle": "Minha carteira",
+    "totalLabel": "Patrimônio total",
+    "totalValue": "R$ 48.230,00",
+    "returnLabel": "Rentabilidade",
+    "returnValue": "+12,4%",
+    "assetsLabel": "Ativos",
+    "assetsValue": "8",
+    "allocationTitle": "Distribuição",
+    "positionsTitle": "Posições",
+    "colAsset": "Ativo",
+    "colQty": "Qtd.",
+    "colPrice": "Preço",
+    "colVariation": "Var.",
+    "watchlistTitle": "Watchlist",
+    "watchlistTag": "Acompanhando",
+    "chatQuestion": "O que é dividend yield?",
+    "chatAnswer": "É o quanto uma ação pagou em dividendos em relação ao seu preço. Quer um exemplo?",
+    "virtualBadge": "Carteira teste",
+    "disclaimer": "Valores meramente ilustrativos."
+  },
+  "problem": {
+    "eyebrow": "O problema",
+    "title": "Investir não deveria ser confuso",
+    "subtitle": "Quem investe sem organização acaba escolhendo entre dois extremos, e nenhum deles resolve de verdade.",
+    "items": {
+      "complex": {
+        "title": "Plataformas complexas demais",
+        "text": "Centenas de indicadores, siglas e gráficos que confundem quem só quer saber, de forma clara, onde está o seu dinheiro."
+      },
+      "sheets": {
+        "title": "Planilhas e anotações",
+        "text": "São simples, mas dão trabalho para manter e não entregam nenhuma conclusão visual útil sobre a sua carteira."
+      },
+      "learn": {
+        "title": "Sem lugar seguro para aprender",
+        "text": "Quase não existe uma forma simples de simular compras e vendas para aprender como o mercado funciona sem arriscar dinheiro real."
+      }
+    }
+  },
+  "solution": {
+    "eyebrow": "A solução",
+    "title": "O meio-termo que faltava",
+    "subtitle": "O FinTracker é simples o suficiente para qualquer perfil de investidor e completo o suficiente para gerar insights reais sobre a sua carteira.",
+    "points": {
+      "overview": "Visão consolidada da carteira em uma única tela",
+      "visual": "Gráficos que mostram o que importa, sem poluição visual",
+      "practice": "Carteiras virtuais para praticar antes de investir de verdade"
+    },
+    "spectrum": {
+      "left": {
+        "title": "Planilhas e papel",
+        "text": "Simples, mas sem visão do todo"
+      },
+      "center": {
+        "title": "FinTracker",
+        "text": "Simples e completo"
+      },
+      "right": {
+        "title": "Plataformas robustas",
+        "text": "Completas, mas complexas"
+      }
+    }
+  },
+  "features": {
+    "eyebrow": "Funcionalidades",
+    "title": "Tudo o que você precisa, nada do que você não precisa",
+    "subtitle": "Ferramentas pensadas para dar clareza à sua vida de investidor.",
+    "items": {
+      "portfolio": {
+        "title": "Carteira consolidada",
+        "text": "Veja todos os seus ativos reunidos, com preço atual e desempenho de cada um, além de gráficos de distribuição."
+      },
+      "transactions": {
+        "title": "Transações",
+        "text": "Registre compras e vendas de ações e mantenha um histórico completo e organizado de tudo o que você fez."
+      },
+      "watchlist": {
+        "title": "Watchlist",
+        "text": "Monitore as ações que despertam seu interesse e acompanhe os preços antes de decidir comprar."
+      },
+      "groups": {
+        "title": "Grupos",
+        "text": "Organize contas em grupos para a família ou para múltiplas carteiras, com visibilidade compartilhada."
+      },
+      "ai": {
+        "title": "Assistente de IA",
+        "text": "Tire dúvidas sobre o sistema e sobre o mercado financeiro a qualquer momento, em linguagem simples."
+      },
+      "security": {
+        "title": "Segurança com MFA",
+        "text": "Proteja a sua conta com verificação em duas etapas usando um aplicativo autenticador."
+      }
+    }
+  },
+  "steps": {
+    "eyebrow": "Como funciona",
+    "title": "Comece em três passos simples",
+    "subtitle": "Em poucos minutos você já tem uma visão clara da sua carteira.",
+    "items": {
+      "signup": {
+        "title": "Crie sua conta",
+        "text": "Cadastre-se gratuitamente, com apenas alguns dados."
+      },
+      "register": {
+        "title": "Registre suas transações",
+        "text": "Adicione suas compras e vendas ou monte uma carteira virtual para testar."
+      },
+      "track": {
+        "title": "Acompanhe sua evolução",
+        "text": "Veja o desempenho da carteira e tire dúvidas com o assistente de IA."
+      }
+    }
+  },
+  "audience": {
+    "eyebrow": "Para quem é",
+    "title": "Feito para o seu jeito de investir",
+    "subtitle": "Seja qual for o seu momento, o FinTracker se adapta a você.",
+    "items": {
+      "beginner": {
+        "title": "Quem quer começar",
+        "text": "Aspirantes e iniciantes que querem criar uma carteira teste e acompanhar o desempenho sem risco algum."
+      },
+      "organized": {
+        "title": "Quem quer organização",
+        "text": "Investidores de todos os níveis que buscam simplicidade para saber exatamente onde está o seu dinheiro."
+      },
+      "family": {
+        "title": "Famílias que investem juntas",
+        "text": "Quem divide investimentos e quer visibilidade compartilhada, sem confusão e sem troca de planilhas."
+      },
+      "multi": {
+        "title": "Quem tem várias carteiras",
+        "text": "Pessoas que gerenciam mais de uma carteira e precisam de tudo organizado em um só lugar."
+      }
+    }
+  },
+  "cta": {
+    "title": "Pronto para ter clareza sobre os seus investimentos?",
+    "subtitle": "Crie sua conta gratuita e comece a acompanhar sua carteira hoje mesmo.",
+    "button": "Criar conta grátis",
+    "login": "Já tenho conta"
+  },
+  "footer": {
+    "rights": "Todos os direitos reservados.",
+    "disclaimer": "O FinTracker é uma ferramenta de acompanhamento e não constitui recomendação de investimento."
+  }
+}
