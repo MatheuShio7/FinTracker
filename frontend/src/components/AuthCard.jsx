@@ -1,3 +1,4 @@
+import '../Landing.css'
 import './AuthCard.css'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -5,8 +6,9 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { buildApiUrl } from '../config/api'
+import AuthField from './AuthField'
 
-function AuthCard({ title, type }) {
+function AuthCard({ type }) {
   const { t } = useTranslation(['auth', 'common'])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -35,14 +37,14 @@ function AuthCard({ title, type }) {
   const [resetLoading, setResetLoading] = useState(false)
   const [resetError, setResetError] = useState('')
   const [resetSuccessMessage, setResetSuccessMessage] = useState('')
-  
+
   const location = useLocation()
   const navigate = useNavigate()
   const { login, signup, verifyMfaLogin, pendingMfa, cancelMfaLogin } = useAuth()
-  
+
   const isLoginFormValid = email.trim() !== '' && password.trim() !== ''
-  const isCadastroFormValid = firstName.trim() !== '' && lastName.trim() !== '' && 
-                             email.trim() !== '' && password.trim() !== '' && 
+  const isCadastroFormValid = firstName.trim() !== '' && lastName.trim() !== '' &&
+                             email.trim() !== '' && password.trim() !== '' &&
                              confirmPassword.trim() !== ''
 
   const isResetFormValid = newPassword.trim() !== '' && confirmNewPassword.trim() !== ''
@@ -95,13 +97,13 @@ function AuthCard({ title, type }) {
 
   const handleLogin = async () => {
     if (!isLoginFormValid) return
-    
+
     setError('')
     setLoading(true)
-    
+
     try {
       const result = await login(email, password)
-      
+
       if (result.success) {
         // Login bem-sucedido, redireciona para carteira
         setIsMfaModalOpen(false)
@@ -165,25 +167,25 @@ function AuthCard({ title, type }) {
 
   const handleCadastro = async () => {
     if (!isCadastroFormValid) return
-    
+
     setError('')
-    
+
     // Validações adicionais
     if (password.length < 8) {
       setError(t('auth:errors.passwordMin'))
       return
     }
-    
+
     if (password !== confirmPassword) {
       setError(t('auth:errors.passwordMismatch'))
       return
     }
-    
+
     setLoading(true)
-    
+
     try {
       const result = await signup(firstName, lastName, email, password)
-      
+
       if (result.success) {
         // Cadastro bem-sucedido, redireciona para carteira
         navigate('/carteira')
@@ -302,39 +304,99 @@ function AuthCard({ title, type }) {
     navigate('/login', { replace: true })
   }
 
+  // Esc fecha o modal que estiver aberto
+  useEffect(() => {
+    const hasOpenModal = isForgotModalOpen || isResetModalOpen || isMfaModalOpen
+    if (!hasOpenModal) return
+
+    const handleEscape = (event) => {
+      if (event.key !== 'Escape') return
+
+      if (isMfaModalOpen) {
+        closeMfaModal()
+      } else if (isResetModalOpen) {
+        closeResetModal()
+      } else if (isForgotModalOpen) {
+        closeForgotModal()
+      }
+    }
+
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+    // Os handlers de fechar só dependem dos estados abaixo e de funções estáveis do contexto.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isForgotModalOpen, isResetModalOpen, isMfaModalOpen])
+
+  const isLogin = type === 'login'
+  const mfaReady = mfaCode.length === 6 && !mfaLoading && mfaRetrySeconds === 0
+
+  const renderAlert = (message, variant = 'error') =>
+    message ? (
+      <div
+        className={`auth-alert auth-alert-${variant}`}
+        role={variant === 'error' ? 'alert' : 'status'}
+      >
+        <i
+          className={`bi ${variant === 'error' ? 'bi-exclamation-circle-fill' : 'bi-check-circle-fill'}`}
+          aria-hidden="true"
+        ></i>
+        <span>{message}</span>
+      </div>
+    ) : null
+
+  const renderSpinner = (isLoading) =>
+    isLoading ? <span className="auth-spinner" aria-hidden="true"></span> : null
+
   return (
     <>
-      {type === 'login' && isForgotModalOpen && (
+      {isLogin && isForgotModalOpen && (
         <div className="auth-modal-overlay" onClick={closeForgotModal}>
-          <div className="auth-modal-card" onClick={(e) => e.stopPropagation()}>
-            <h2 className="auth-modal-title">{t('auth:forgot.title')}</h2>
+          <div
+            className="auth-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="forgot-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="auth-modal-icon" aria-hidden="true">
+              <i className="bi bi-key-fill"></i>
+            </div>
+            <h2 className="auth-modal-title" id="forgot-modal-title">{t('auth:forgot.title')}</h2>
             <p className="auth-modal-subtitle">{t('auth:forgot.subtitle')}</p>
 
-            {forgotError && <div className="auth-error auth-modal-feedback">{forgotError}</div>}
-            {forgotSuccessMessage && <div className="auth-success auth-modal-feedback">{forgotSuccessMessage}</div>}
+            {renderAlert(forgotError, 'error')}
+            {renderAlert(forgotSuccessMessage, 'success')}
 
-            <div className="input-group auth-modal-input-group">
-              <i className="bi bi-envelope-fill input-icon"></i>
-              <input
-                type="email"
-                placeholder={t('auth:forgot.emailPlaceholder')}
-                className="auth-input"
-                value={forgotEmail}
-                onChange={(e) => setForgotEmail(e.target.value)}
-                disabled={forgotLoading}
-                onKeyDown={(e) => e.key === 'Enter' && handleForgotPassword()}
-              />
-            </div>
+            <AuthField
+              id="forgot-email"
+              icon="bi-envelope-fill"
+              type="email"
+              label={t('auth:forgot.emailPlaceholder')}
+              placeholder={t('auth:emailExample')}
+              autoComplete="email"
+              value={forgotEmail}
+              onChange={(e) => setForgotEmail(e.target.value)}
+              disabled={forgotLoading}
+              onKeyDown={(e) => e.key === 'Enter' && handleForgotPassword()}
+              autoFocus
+            />
 
             <div className="auth-modal-actions">
-              <button className="auth-secondary-button" onClick={closeForgotModal} disabled={forgotLoading}>
+              <button
+                type="button"
+                className="auth-secondary-button"
+                onClick={closeForgotModal}
+                disabled={forgotLoading}
+              >
                 {t('common:cancel')}
               </button>
               <button
-                className={`auth-button auth-modal-button ${forgotEmail.trim() && !forgotLoading ? 'auth-button-active' : ''}`}
+                type="button"
+                className="lp-btn lp-btn-primary auth-modal-button"
                 onClick={handleForgotPassword}
                 disabled={!forgotEmail.trim() || forgotLoading}
               >
+                {renderSpinner(forgotLoading)}
                 {forgotLoading ? t('auth:forgot.sending') : t('auth:forgot.send')}
               </button>
             </div>
@@ -342,49 +404,64 @@ function AuthCard({ title, type }) {
         </div>
       )}
 
-      {type === 'login' && isResetModalOpen && (
+      {isLogin && isResetModalOpen && (
         <div className="auth-modal-overlay" onClick={closeResetModal}>
-          <div className="auth-modal-card" onClick={(e) => e.stopPropagation()}>
-            <h2 className="auth-modal-title">{t('auth:reset.title')}</h2>
+          <div
+            className="auth-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="auth-modal-icon" aria-hidden="true">
+              <i className="bi bi-shield-lock-fill"></i>
+            </div>
+            <h2 className="auth-modal-title" id="reset-modal-title">{t('auth:reset.title')}</h2>
             <p className="auth-modal-subtitle">{t('auth:reset.subtitle')}</p>
 
-            {resetError && <div className="auth-error auth-modal-feedback">{resetError}</div>}
-            {resetSuccessMessage && <div className="auth-success auth-modal-feedback">{resetSuccessMessage}</div>}
+            {renderAlert(resetError, 'error')}
+            {renderAlert(resetSuccessMessage, 'success')}
 
-            <div className="input-group auth-modal-input-group">
-              <i className="bi bi-shield-lock-fill input-icon"></i>
-              <input
-                type="password"
-                placeholder={t('auth:reset.newPasswordPlaceholder')}
-                className="auth-input"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                disabled={resetLoading}
-              />
-            </div>
+            <AuthField
+              id="reset-new-password"
+              icon="bi-shield-lock-fill"
+              type="password"
+              label={t('auth:reset.newPasswordPlaceholder')}
+              autoComplete="new-password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              disabled={resetLoading}
+              autoFocus
+            />
 
-            <div className="input-group auth-modal-input-group">
-              <i className="bi bi-shield-lock-fill input-icon"></i>
-              <input
-                type="password"
-                placeholder={t('auth:reset.confirmPlaceholder')}
-                className="auth-input"
-                value={confirmNewPassword}
-                onChange={(e) => setConfirmNewPassword(e.target.value)}
-                disabled={resetLoading}
-                onKeyDown={(e) => e.key === 'Enter' && handleResetPassword()}
-              />
-            </div>
+            <AuthField
+              id="reset-confirm-password"
+              icon="bi-shield-lock-fill"
+              type="password"
+              label={t('auth:reset.confirmPlaceholder')}
+              autoComplete="new-password"
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
+              disabled={resetLoading}
+              onKeyDown={(e) => e.key === 'Enter' && handleResetPassword()}
+            />
 
             <div className="auth-modal-actions">
-              <button className="auth-secondary-button" onClick={closeResetModal} disabled={resetLoading}>
+              <button
+                type="button"
+                className="auth-secondary-button"
+                onClick={closeResetModal}
+                disabled={resetLoading}
+              >
                 {t('common:cancel')}
               </button>
               <button
-                className={`auth-button auth-modal-button ${isResetFormValid && !resetLoading ? 'auth-button-active' : ''}`}
+                type="button"
+                className="lp-btn lp-btn-primary auth-modal-button"
                 onClick={handleResetPassword}
                 disabled={!isResetFormValid || resetLoading}
               >
+                {renderSpinner(resetLoading)}
                 {resetLoading ? t('common:saving') : t('auth:reset.save')}
               </button>
             </div>
@@ -392,44 +469,62 @@ function AuthCard({ title, type }) {
         </div>
       )}
 
-      {type === 'login' && isMfaModalOpen && (
+      {isLogin && isMfaModalOpen && (
         <div className="auth-modal-overlay" onClick={closeMfaModal}>
-          <div className="auth-modal-card" onClick={(e) => e.stopPropagation()}>
-            <h2 className="auth-modal-title">{t('auth:mfa.title')}</h2>
-            <p className="auth-modal-subtitle">
-              {t('auth:mfa.subtitle')}
-            </p>
-
-            {mfaError && <div className="auth-error auth-modal-feedback">{mfaError}</div>}
-
-            <div className="input-group auth-modal-input-group">
-              <i className="bi bi-shield-lock-fill input-icon"></i>
-              <input
-                type="text"
-                placeholder={t('auth:mfa.codePlaceholder')}
-                className="auth-input"
-                value={mfaCode}
-                onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                disabled={mfaLoading}
-                onKeyDown={(e) => e.key === 'Enter' && handleVerifyMfa()}
-              />
+          <div
+            className="auth-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mfa-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="auth-modal-icon" aria-hidden="true">
+              <i className="bi bi-shield-check"></i>
             </div>
+            <h2 className="auth-modal-title" id="mfa-modal-title">{t('auth:mfa.title')}</h2>
+            <p className="auth-modal-subtitle">{t('auth:mfa.subtitle')}</p>
+
+            {renderAlert(mfaError, 'error')}
+
+            <AuthField
+              id="mfa-code"
+              icon="bi-shield-lock-fill"
+              type="text"
+              label={t('auth:mfa.codePlaceholder')}
+              placeholder="000000"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              value={mfaCode}
+              onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              disabled={mfaLoading}
+              onKeyDown={(e) => e.key === 'Enter' && handleVerifyMfa()}
+              autoFocus
+            />
 
             {mfaRetrySeconds > 0 && (
               <p className="auth-mfa-cooldown">
+                <i className="bi bi-clock-history" aria-hidden="true"></i>
                 {t('auth:mfa.cooldown', { seconds: mfaRetrySeconds })}
               </p>
             )}
 
             <div className="auth-modal-actions">
-              <button className="auth-secondary-button" onClick={closeMfaModal} disabled={mfaLoading}>
+              <button
+                type="button"
+                className="auth-secondary-button"
+                onClick={closeMfaModal}
+                disabled={mfaLoading}
+              >
                 {t('common:cancel')}
               </button>
               <button
-                className={`auth-button auth-modal-button ${mfaCode.length === 6 && !mfaLoading && mfaRetrySeconds === 0 ? 'auth-button-active' : ''}`}
+                type="button"
+                className="lp-btn lp-btn-primary auth-modal-button"
                 onClick={handleVerifyMfa}
-                disabled={mfaCode.length !== 6 || mfaLoading || mfaRetrySeconds > 0}
+                disabled={!mfaReady}
               >
+                {renderSpinner(mfaLoading)}
                 {mfaLoading ? t('auth:mfa.validating') : t('auth:mfa.confirm')}
               </button>
             </div>
@@ -437,158 +532,173 @@ function AuthCard({ title, type }) {
         </div>
       )}
 
-      <div className="auth-card">
-      <div className="auth-card-header">
-        <img 
-          src="/logo.png" 
-          alt={t('auth:logoAlt')} 
-          className="auth-card-logo"
-        />
-        <h1 className="auth-card-title">{title}</h1>
-      </div>
-      
-      {type === 'login' && (
-        <div className="auth-card-content">
-          {error && <div className="auth-error">{error}</div>}
-          
-          <div className="input-group">
-            <i className="bi bi-envelope-fill input-icon"></i>
-            <input 
-              type="email"
-              placeholder={t('auth:emailPlaceholder')}
-              className="auth-input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-          
-          <div className="input-group">
-            <i className="bi bi-shield-lock-fill input-icon"></i>
-            <input 
-              type="password"
-              placeholder={t('auth:passwordPlaceholder')}
-              className="auth-input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-              disabled={loading}
-            />
-          </div>
-          
-          <button 
-            className={`auth-button ${isLoginFormValid && !loading ? 'auth-button-active' : ''}`}
-            disabled={!isLoginFormValid || loading}
-            onClick={handleLogin}
-          >
-            {loading ? t('auth:loginLoading') : t('auth:loginButton')}
-          </button>
-          
-          <div className="auth-links login-links">
-            <p className="signup-text">
-              {t('auth:noAccount')} <Link to="/cadastro" className="signup-link">{t('auth:signUpLink')}</Link>
-            </p>
-            
-            <a
-              href="#"
-              className="forgot-password-link"
-              onClick={(e) => {
+      <section className="auth-card">
+        <header className="auth-card-header">
+          <h1 className="auth-card-title">
+            {isLogin ? t('auth:loginHeading') : t('auth:signupHeading')}
+          </h1>
+          <p className="auth-card-subtitle">
+            {isLogin ? t('auth:loginSubtitle') : t('auth:signupSubtitle')}
+          </p>
+        </header>
+
+        {isLogin && (
+          <>
+            <form
+              className="auth-form"
+              noValidate
+              onSubmit={(e) => {
                 e.preventDefault()
-                setForgotEmail(email)
-                setForgotError('')
-                setForgotSuccessMessage('')
-                setIsForgotModalOpen(true)
+                handleLogin()
               }}
             >
-              {t('auth:forgotPassword')}
-            </a>
-          </div>
-        </div>
-      )}
+              {renderAlert(error, 'error')}
 
-      {type === 'cadastro' && (
-        <div className="auth-card-content">
-          {error && <div className="auth-error">{error}</div>}
-
-          <div className="name-inputs">
-            <div className="input-group half-width">
-              <i className="bi bi-person-fill input-icon"></i>
-              <input
-                type="text"
-                placeholder={t('auth:firstNamePlaceholder')}
-                className="auth-input"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+              <AuthField
+                id="login-email"
+                icon="bi-envelope-fill"
+                type="email"
+                label={t('auth:emailLabel')}
+                placeholder={t('auth:emailExample')}
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
               />
-            </div>
 
-            <div className="input-group half-width">
-              <i className="bi bi-person-fill input-icon"></i>
-              <input
-                type="text"
-                placeholder={t('auth:lastNamePlaceholder')}
-                className="auth-input"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+              <AuthField
+                id="login-password"
+                icon="bi-shield-lock-fill"
+                type="password"
+                label={t('auth:passwordLabel')}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
+                labelAction={
+                  <button
+                    type="button"
+                    className="auth-link-button"
+                    onClick={() => {
+                      setForgotEmail(email)
+                      setForgotError('')
+                      setForgotSuccessMessage('')
+                      setIsForgotModalOpen(true)
+                    }}
+                  >
+                    {t('auth:forgotPassword')}
+                  </button>
+                }
               />
-            </div>
-          </div>
 
-          <div className="input-group">
-            <i className="bi bi-envelope-fill input-icon"></i>
-            <input
-              type="email"
-              placeholder={t('auth:emailPlaceholder')}
-              className="auth-input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-            />
-          </div>
+              <button
+                type="submit"
+                className="lp-btn lp-btn-primary auth-submit"
+                disabled={!isLoginFormValid || loading}
+              >
+                {renderSpinner(loading)}
+                {loading ? t('auth:loginLoading') : t('auth:loginButton')}
+                {!loading && <i className="bi bi-arrow-right" aria-hidden="true"></i>}
+              </button>
+            </form>
 
-          <div className="input-group">
-            <i className="bi bi-shield-lock-fill input-icon"></i>
-            <input
-              type="password"
-              placeholder={t('auth:passwordMinPlaceholder')}
-              className="auth-input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-
-          <div className="input-group">
-            <i className="bi bi-shield-lock-fill input-icon"></i>
-            <input
-              type="password"
-              placeholder={t('auth:confirmPasswordPlaceholder')}
-              className="auth-input"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleCadastro()}
-              disabled={loading}
-            />
-          </div>
-
-          <button
-            className={`auth-button ${isCadastroFormValid && !loading ? 'auth-button-active' : ''}`}
-            disabled={!isCadastroFormValid || loading}
-            onClick={handleCadastro}
-          >
-            {loading ? t('auth:signupLoading') : t('auth:signupButton')}
-          </button>
-
-          <div className="auth-links cadastro-links">
-            <p className="login-text">
-              {t('auth:hasAccount')} <Link to="/login" className="login-link">{t('auth:loginLink')}</Link>
+            <p className="auth-switch">
+              {t('auth:noAccount')}{' '}
+              <Link to="/cadastro" className="auth-link">{t('auth:signUpLink')}</Link>
             </p>
-          </div>
-        </div>
-      )}
-      </div>
+          </>
+        )}
+
+        {!isLogin && (
+          <>
+            <form
+              className="auth-form"
+              noValidate
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleCadastro()
+              }}
+            >
+              {renderAlert(error, 'error')}
+
+              <div className="auth-row">
+                <AuthField
+                  id="signup-first-name"
+                  icon="bi-person-fill"
+                  label={t('auth:firstNameLabel')}
+                  autoComplete="given-name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  disabled={loading}
+                />
+
+                <AuthField
+                  id="signup-last-name"
+                  icon="bi-person-fill"
+                  label={t('auth:lastNameLabel')}
+                  autoComplete="family-name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+
+              <AuthField
+                id="signup-email"
+                icon="bi-envelope-fill"
+                type="email"
+                label={t('auth:emailLabel')}
+                placeholder={t('auth:emailExample')}
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+              />
+
+              <AuthField
+                id="signup-password"
+                icon="bi-shield-lock-fill"
+                type="password"
+                label={t('auth:passwordLabel')}
+                placeholder="••••••••"
+                hint={t('auth:passwordHint')}
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+              />
+
+              <AuthField
+                id="signup-confirm-password"
+                icon="bi-shield-lock-fill"
+                type="password"
+                label={t('auth:confirmPasswordLabel')}
+                placeholder="••••••••"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={loading}
+              />
+
+              <button
+                type="submit"
+                className="lp-btn lp-btn-primary auth-submit"
+                disabled={!isCadastroFormValid || loading}
+              >
+                {renderSpinner(loading)}
+                {loading ? t('auth:signupLoading') : t('auth:signupButton')}
+                {!loading && <i className="bi bi-arrow-right" aria-hidden="true"></i>}
+              </button>
+            </form>
+
+            <p className="auth-switch">
+              {t('auth:hasAccount')}{' '}
+              <Link to="/login" className="auth-link">{t('auth:loginLink')}</Link>
+            </p>
+          </>
+        )}
+      </section>
     </>
   )
 }
