@@ -1,5 +1,5 @@
 {
-  "appId": "com.fintracker.app",
+  "appId": "com.matheushio.fintracker",
   "appName": "FinTracker",
   "webDir": "dist",
   "server": {

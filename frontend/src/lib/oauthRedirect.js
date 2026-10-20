@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core'
 
 /** Scheme/host usados no AndroidManifest e no Supabase Redirect URLs */
-export const NATIVE_OAUTH_SCHEME = 'com.fintracker.app'
+export const NATIVE_OAUTH_SCHEME = 'com.matheushio.fintracker'
 export const NATIVE_OAUTH_HOST = 'login-callback'
 export const NATIVE_OAUTH_REDIRECT = `${NATIVE_OAUTH_SCHEME}://${NATIVE_OAUTH_HOST}`
 
@@ -14,7 +14,7 @@ export const getOAuthRedirectTo = () => {
 
 /**
  * Extrai code / tokens de callbacks OAuth (query ou hash),
- * inclusive em URLs com scheme custom (com.fintracker.app://...).
+ * inclusive em URLs com scheme custom (com.matheushio.fintracker://...).
  */
 export const parseAuthCallbackUrl = (url) => {
   if (!url || typeof url !== 'string') {

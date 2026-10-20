@@ -28,7 +28,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="com.fintracker.app"
+                    android:scheme="com.matheushio.fintracker"
                     android:host="login-callback" />
             </intent-filter>
 

@@ -1,4 +1,4 @@
-package com.fintracker.app;
+package com.matheushio.fintracker;
 
 import com.getcapacitor.BridgeActivity;
 
