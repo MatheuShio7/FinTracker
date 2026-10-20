@@ -45,41 +45,43 @@ def fetch_dividends_from_yahoo(ticker: str) -> Optional[List[Dict[str, any]]]:
         
         # Cria um objeto Ticker do yfinance
         acao = yf.Ticker(ticker_yahoo)
-        
-        # Tenta obter informações básicas para validar se o ticker existe
-        try:
-            info = acao.info
-            if not info or 'symbol' not in info:
-                print(f"[ERRO] Ticker '{ticker}' não encontrado no Yahoo Finance")
-                return None
-        except Exception as e:
-            print(f"[ERRO] Ticker '{ticker}' inválido ou não encontrado")
-            print(f"Detalhes: {str(e)}")
-            return None
-        
-        # Obtém o histórico de dividendos
+
+        # NÃO depende de acao.info (falha com frequência em IPs de cloud/Render).
+        # Tenta dividends / get_dividends / history(actions=True).
+        dividendos = None
         try:
             dividendos = acao.dividends
         except Exception as e:
-            print(f"[ERRO] Erro ao buscar dividendos de {ticker}")
-            print(f"Detalhes: {str(e)}")
+            print(f"[AVISO] acao.dividends falhou para {ticker}: {e}")
+
+        if dividendos is None or getattr(dividendos, 'empty', True):
+            try:
+                dividendos = acao.get_dividends()
+            except Exception as e:
+                print(f"[AVISO] get_dividends falhou para {ticker}: {e}")
+
+        if dividendos is None or getattr(dividendos, 'empty', True):
+            try:
+                hist = acao.history(period='5y', actions=True)
+                if hist is not None and not hist.empty and 'Dividends' in hist.columns:
+                    dividendos = hist.loc[hist['Dividends'] > 0, 'Dividends']
+            except Exception as e:
+                print(f"[AVISO] history(actions) falhou para {ticker}: {e}")
+
+        if dividendos is None or getattr(dividendos, 'empty', True):
+            print(f"[AVISO] Nenhum dividendo encontrado no Yahoo para {ticker}")
             return []
-        
-        # Verifica se há dividendos
-        if dividendos is None or dividendos.empty:
-            print(f"[AVISO] Nenhum dividendo encontrado para {ticker}")
-            return []
-        
+
         # Filtra apenas dividendos com valor maior que 0
         dividendos_validos = dividendos[dividendos > 0]
-        
+
         if dividendos_validos.empty:
             print(f"[AVISO] Nenhum dividendo com valor válido encontrado para {ticker}")
             return []
-        
+
         # Pega apenas os últimos 12 dividendos válidos
         ultimos_12 = dividendos_validos.tail(12)
-        
+
         # Formata os dados de dividendos
         dividends_list = []
         for data, valor in ultimos_12.items():
@@ -87,7 +89,7 @@ def fetch_dividends_from_yahoo(ticker: str) -> Optional[List[Dict[str, any]]]:
                 # Converte a data para string no formato ISO (YYYY-MM-DD)
                 data_formatada = data.strftime('%Y-%m-%d')
                 valor_float = float(valor)
-                
+
                 dividends_list.append({
                     "payment_date": data_formatada,
                     "value": valor_float
@@ -95,11 +97,11 @@ def fetch_dividends_from_yahoo(ticker: str) -> Optional[List[Dict[str, any]]]:
             except (ValueError, TypeError, AttributeError) as e:
                 print(f"[AVISO] Erro ao processar dividendo: {str(e)}")
                 continue
-        
+
         if not dividends_list:
             print(f"[AVISO] Nenhum dividendo processado com sucesso para {ticker}")
             return []
-        
+
         print(f"[OK] Sucesso! {len(dividends_list)} dividendos encontrados para {ticker}")
         return dividends_list
         

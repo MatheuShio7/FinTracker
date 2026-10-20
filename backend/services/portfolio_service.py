@@ -19,7 +19,7 @@ def ensure_stock_data_for_watchlist(stock_id, ticker):
     """
     try:
         from services.brapi_price_service import get_current_stock_price
-        from services.yahoo_dividend_service import fetch_dividends_from_yahoo
+        from services.dividend_service import fetch_dividends
         from services.save_service import save_prices, save_dividends
         
         print(f"[INFO] Garantindo dados para watchlist: {ticker}...")
@@ -47,7 +47,7 @@ def ensure_stock_data_for_watchlist(stock_id, ticker):
         
         # 2. Buscar e salvar dividendos
         print(f"[INFO] Buscando dividendos para {ticker}...")
-        dividends_from_api = fetch_dividends_from_yahoo(ticker)
+        dividends_from_api = fetch_dividends(ticker)
         
         if dividends_from_api is None:
             print(f"[ERRO] Erro ao buscar dividendos para {ticker}")

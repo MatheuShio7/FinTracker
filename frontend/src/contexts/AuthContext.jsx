@@ -1,9 +1,21 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from 'react'
+import { Capacitor } from '@capacitor/core'
+import { App as CapApp } from '@capacitor/app'
+import { Browser } from '@capacitor/browser'
 import { buildApiUrl } from '../config/api'
 import { supabase } from '../lib/supabase'
+import {
+  getOAuthRedirectTo,
+  isNativeOAuthCallback,
+  parseAuthCallbackUrl,
+} from '../lib/oauthRedirect'
 import { authFetch, authFetchWithToken } from '../lib/authFetch'
 import i18n from '../i18n'
+
+const notifyOAuthUi = (detail) => {
+  window.dispatchEvent(new CustomEvent('fintracker:oauth-done', { detail }))
+}
 
 const AuthContext = createContext()
 
@@ -337,9 +349,43 @@ export function AuthProvider({ children }) {
       }, 0)
     })
 
+    let appUrlListener = null
+    let browserFinishedListener = null
+
+    const setupNativeOAuthListeners = async () => {
+      if (!Capacitor.isNativePlatform()) return
+
+      appUrlListener = await CapApp.addListener('appUrlOpen', async ({ url }) => {
+        if (!isNativeOAuthCallback(url)) return
+
+        try {
+          await Browser.close()
+        } catch {
+          // Custom Tab pode já ter fechado
+        }
+
+        await completeOAuthFromUrl(url)
+      })
+
+      browserFinishedListener = await Browser.addListener('browserFinished', async () => {
+        // Usuário fechou a aba sem completar o login
+        window.setTimeout(async () => {
+          if (!isMounted) return
+          const { data: { session } } = await supabase.auth.getSession()
+          if (!session) {
+            notifyOAuthUi({ success: false, cancelled: true })
+          }
+        }, 400)
+      })
+    }
+
+    setupNativeOAuthListeners()
+
     return () => {
       isMounted = false
       subscription.unsubscribe()
+      appUrlListener?.remove()
+      browserFinishedListener?.remove()
     }
   }, [])
   /* eslint-enable react-hooks/exhaustive-deps */
@@ -482,12 +528,55 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const completeOAuthFromUrl = async (url) => {
+    const params = parseAuthCallbackUrl(url)
+
+    if (params.error) {
+      const message = params.error_description || params.error
+      notifyOAuthUi({ success: false, message })
+      return { success: false, message }
+    }
+
+    if (params.code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(params.code)
+      if (error) {
+        const message = error.message || i18n.t('auth:ctx.googleLoginFailed')
+        notifyOAuthUi({ success: false, message })
+        return { success: false, message }
+      }
+      notifyOAuthUi({ success: true })
+      return { success: true, session: data.session }
+    }
+
+    if (params.access_token && params.refresh_token) {
+      const { data, error } = await supabase.auth.setSession({
+        access_token: params.access_token,
+        refresh_token: params.refresh_token,
+      })
+      if (error) {
+        const message = error.message || i18n.t('auth:ctx.googleLoginFailed')
+        notifyOAuthUi({ success: false, message })
+        return { success: false, message }
+      }
+      notifyOAuthUi({ success: true })
+      return { success: true, session: data.session }
+    }
+
+    notifyOAuthUi({ success: false, message: i18n.t('auth:ctx.googleLoginFailed') })
+    return { success: false, message: i18n.t('auth:ctx.googleLoginFailed') }
+  }
+
   const loginWithGoogle = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const isNative = Capacitor.isNativePlatform()
+      const redirectTo = getOAuthRedirectTo()
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/login`,
+          redirectTo,
+          // No Android abrimos o Custom Tab manualmente e voltamos via deep link
+          skipBrowserRedirect: isNative,
           queryParams: {
             prompt: 'select_account',
           },
@@ -499,6 +588,16 @@ export function AuthProvider({ children }) {
           success: false,
           message: error.message || i18n.t('auth:ctx.googleLoginFailed'),
         }
+      }
+
+      if (isNative) {
+        if (!data?.url) {
+          return {
+            success: false,
+            message: i18n.t('auth:ctx.googleLoginFailed'),
+          }
+        }
+        await Browser.open({ url: data.url })
       }
 
       return { success: true, redirecting: true }
