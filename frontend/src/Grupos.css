@@ -10,18 +10,18 @@
 }
 
 .grupos-group-button {
-  top: 56px;
-  right: 210px;
+  top: var(--hdr-top);
+  right: var(--hdr-slot-3);
 }
 
 .grupos-notifications-button {
-  top: 56px;
-  right: 145px;
+  top: var(--hdr-top);
+  right: var(--hdr-slot-2);
 }
 
 .grupos-reload-button {
-  top: 56px;
-  right: 80px;
+  top: var(--hdr-top);
+  right: var(--hdr-slot-1);
 }
 
 .grupos-group-button {
@@ -1192,44 +1192,152 @@
   font-size: 13px;
 }
 
-@media (max-width: 768px) {
-  .grupos-page .page-title {
-    left: 20px;
+/* Tablet */
+@media (max-width: 1024px) {
+  .grupos-page {
+    padding-top: 120px;
   }
 
   .grupos-content {
-    padding: 0 20px 28px;
+    padding: 0 40px 32px;
+    gap: 32px;
+  }
+
+  .grupos-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  }
+}
+
+/* Celular */
+@media (max-width: 768px) {
+  .grupos-page {
+    padding-top: 80px;
+  }
+
+  .grupos-page .page-title {
+    left: 16px;
+  }
+
+  .grupos-content {
+    padding: 0 16px 28px;
+    gap: 28px;
+  }
+
+  .grupos-section {
+    gap: 14px;
   }
 
   .grupos-section-title {
-    font-size: 20px;
+    font-size: 18px;
   }
 
-  .grupos-group-button {
-    right: 140px;
-    min-width: 52px;
-    padding: 0 12px;
+  /* Evita que cards estourem a largura em telas muito estreitas */
+  .grupos-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
   }
 
-  .grupos-group-button span {
-    display: none;
+  .grupos-card {
+    height: auto;
+    min-height: 168px;
   }
 
-  .grupos-notifications-button {
-    right: 80px;
-  }
-
-  .grupos-reload-button {
-    right: 20px;
+  .grupos-card-description {
+    -webkit-line-clamp: 2;
   }
 
   .grupos-permissions-grid {
     grid-template-columns: 1fr;
   }
 
+  /* Modais */
+  .grupos-modal-overlay {
+    padding: 10px;
+  }
+
+  .grupos-modal-card,
+  .grupos-details-modal-card,
+  .grupos-invite-modal-card,
+  .grupos-delete-modal-card,
+  .grupos-transfer-modal-card,
+  .grupos-consent-modal-card {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+  }
+
+  .grupos-modal-header,
+  .grupos-invite-header,
+  .grupos-delete-header {
+    padding: 14px 16px;
+  }
+
+  .grupos-modal-header h3,
+  .grupos-invite-header h3,
+  .grupos-delete-header h3 {
+    font-size: 18px;
+  }
+
+  .grupos-form {
+    padding: 16px;
+  }
+
+  /* 16px evita o zoom automático ao focar campos no iOS */
+  .grupos-field input:not([type='checkbox']),
+  .grupos-field textarea,
+  .grupos-field select,
+  .grupos-invite-search-input {
+    font-size: 16px;
+  }
+
+  .grupos-details-header {
+    padding: 16px 16px 14px;
+  }
+
+  .grupos-details-title-row h3 {
+    font-size: 20px;
+    overflow-wrap: anywhere;
+  }
+
+  .grupos-details-body {
+    padding: 16px;
+  }
+
+  .grupos-details-summary {
+    gap: 18px;
+  }
+
+  .grupos-details-description {
+    font-size: 15px;
+  }
+
+  .grupos-details-meta-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .grupos-details-menu-popover {
+    min-width: 200px;
+    max-width: calc(100vw - 52px);
+  }
+
+  .grupos-members-list {
+    padding: 0;
+  }
+
   .grupos-member-item {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
+    padding: 14px 4px;
+  }
+
+  .grupos-member-info {
+    width: 100%;
+  }
+
+  .grupos-member-email {
+    overflow-wrap: anywhere;
   }
 
   .grupos-member-actions {
@@ -1237,12 +1345,63 @@
     justify-content: flex-start;
   }
 
+  .grupos-pending-requests {
+    padding: 12px;
+  }
+
   .grupos-pending-request-item {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .grupos-modal-card {
-    width: min(100%, 720px);
+  .grupos-invite-link-section {
+    padding: 14px 16px 4px;
+  }
+
+  .grupos-invite-body,
+  .grupos-delete-body,
+  .grupos-consent-body {
+    padding: 12px 16px 18px;
+  }
+
+  .grupos-invite-results {
+    min-height: 160px;
+    max-height: 45vh;
+  }
+
+  .grupos-invite-result-item {
+    gap: 10px;
+  }
+
+  .grupos-transfer-body {
+    padding: 0 16px 18px;
+  }
+
+  .grupos-transfer-body .grupos-submit-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .grupos-consent-header h3 {
+    font-size: 20px;
+  }
+
+  .grupos-delete-actions {
+    flex-direction: column-reverse;
+  }
+
+  .grupos-delete-actions button {
+    width: 100%;
+  }
+}
+
+/* Celulares pequenos */
+@media (max-width: 380px) {
+  .grupos-card {
+    padding: 14px;
+  }
+
+  .grupos-member-action {
+    padding: 6px 12px;
   }
 }

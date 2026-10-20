@@ -13,6 +13,45 @@ html {
   --font-size-scale: 1;
 }
 
+/*
+ * Geometria do cabeçalho das páginas internas (botões de ação no canto superior direito).
+ * Os "slots" são as posições (right) de cada botão, da direita para a esquerda:
+ * recarregar -> notificações -> ação principal (nova transação / novo grupo).
+ * Os breakpoints abaixo só precisam alterar as variáveis base.
+ */
+:root {
+  --hdr-top: 56px;
+  --hdr-size: 50px;
+  --hdr-gap: 15px;
+  --hdr-right: 80px;
+  --hdr-slot-1: var(--hdr-right);
+  --hdr-slot-2: calc(var(--hdr-right) + var(--hdr-size) + var(--hdr-gap));
+  --hdr-slot-3: calc(var(--hdr-right) + 2 * (var(--hdr-size) + var(--hdr-gap)));
+  --page-title-size: clamp(3rem, 7vw, 6.25rem);
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  :root {
+    --hdr-top: 18px;
+    --hdr-size: 46px;
+    --hdr-gap: 10px;
+    --hdr-right: 40px;
+    --page-title-size: clamp(3rem, 6vw, 4.25rem);
+  }
+}
+
+/* Celular */
+@media (max-width: 768px) {
+  :root {
+    --hdr-top: 12px;
+    --hdr-size: 42px;
+    --hdr-gap: 8px;
+    --hdr-right: 12px;
+    --page-title-size: clamp(1.75rem, 8.5vw, 2.5rem);
+  }
+}
+
 html[data-font-size="small"] {
   font-size: 14px;
   --font-size-scale: 0.875;

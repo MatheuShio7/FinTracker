@@ -5,13 +5,35 @@
   z-index: 1000;
   display: flex;
   align-items: center;
+  max-width: calc(100vw - 300px);
 }
 
 .page-title-text {
   font-family: 'Poppins', sans-serif;
-  font-size: 6.25rem;
+  font-size: var(--page-title-size);
   font-weight: 700;
   color: var(--color-page-title);
   margin: 0;
   user-select: none;
-} 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 1024px) {
+  .page-title-text {
+    line-height: 1.25;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-title {
+    top: 10px;
+    left: 16px;
+    max-width: calc(100vw - 32px);
+  }
+
+  .page-title-text {
+    line-height: 1.15;
+  }
+}

@@ -353,14 +353,28 @@
   }
 }
 
+@media (max-width: 1024px) {
+  .notifications-modal-card {
+    top: calc(var(--hdr-top) + var(--hdr-size) + 12px);
+    right: var(--hdr-right);
+    max-height: min(420px, calc(100vh - 110px));
+  }
+}
+
 @media (max-width: 768px) {
   .notifications-modal-card {
-    top: 115px;
-    right: 16px;
-    max-height: min(400px, calc(100vh - 130px));
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-height: min(480px, calc(100vh - 90px));
+    max-height: min(480px, calc(100dvh - 90px));
+  }
+
+  .notifications-modal-body {
+    padding: 12px 6px 14px 12px;
   }
 
   .notifications-mark-all-button {
-    font-size: 10px;
+    font-size: 11px;
   }
 }

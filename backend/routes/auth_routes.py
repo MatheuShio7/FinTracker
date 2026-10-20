@@ -10,6 +10,7 @@ from services.auth_service import (
     update_user,
     update_password,
     reset_password_with_recovery_token,
+    sync_oauth_profile,
 )
 from utils.auth_context import require_authenticated_user
 
@@ -132,6 +133,38 @@ def login():
             
     except Exception as e:
         print(f"❌ Erro no endpoint de login: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": "Erro interno do servidor"
+        }), 500
+
+
+@bp.route('/sync-profile', methods=['POST'])
+@require_authenticated_user(allow_legacy=False)
+def sync_profile():
+    """
+    POST /api/auth/sync-profile
+    Cria/retorna o perfil em public.users para sessão OAuth (Google etc.).
+    Requer Authorization: Bearer <access_token>.
+    """
+    try:
+        access_token = getattr(g, 'auth_access_token', None)
+        result = sync_oauth_profile(access_token)
+
+        if result['success']:
+            return jsonify({
+                "status": "success",
+                "user": result['user'],
+                "created": result.get('created', False),
+            }), 200
+
+        return jsonify({
+            "status": "error",
+            "message": result['error']
+        }), 400
+
+    except Exception as e:
+        print(f"❌ Erro no endpoint de sync-profile: {str(e)}")
         return jsonify({
             "status": "error",
             "message": "Erro interno do servidor"

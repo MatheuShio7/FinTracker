@@ -4,7 +4,7 @@ Gerencia registro, login e busca de usuários usando Supabase Auth
 """
 import re
 from config.supabase_config import get_supabase_client, get_supabase_admin_client
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 
 
 def validate_email(email: str) -> bool:
@@ -268,6 +268,86 @@ def get_mfa_status(user_id: str) -> Optional[Dict[str, Any]]:
         return None
 
 
+def _derive_name_from_metadata(metadata: Optional[Dict[str, Any]], email: str) -> Tuple[str, str]:
+    """Deriva nome e sobrenome a partir dos metadados do Auth (ex.: Google)."""
+    meta = metadata if isinstance(metadata, dict) else {}
+
+    given_name = (meta.get('given_name') or '').strip()
+    family_name = (meta.get('family_name') or '').strip()
+    if given_name or family_name:
+        return given_name, family_name
+
+    full_name = (meta.get('full_name') or meta.get('name') or '').strip()
+    if full_name:
+        parts = full_name.split()
+        if len(parts) == 1:
+            return parts[0], ''
+        return parts[0], ' '.join(parts[1:])
+
+    local_part = (email or '').split('@')[0].strip()
+    return (local_part or 'Usuário', '')
+
+
+def sync_oauth_profile(access_token: str) -> Dict[str, Any]:
+    """
+    Garante perfil em public.users para sessão OAuth (ex.: Google), sem senha.
+
+    Args:
+        access_token: JWT do Supabase Auth
+
+    Returns:
+        Dict com success, user e created (bool) ou error
+    """
+    try:
+        if not access_token or not str(access_token).strip():
+            return {"success": False, "error": "Token de autenticação é obrigatório"}
+
+        supabase_admin = get_supabase_admin_client()
+        auth_response = supabase_admin.auth.get_user(access_token)
+        auth_user_id = _extract_auth_user_id(auth_response)
+
+        if not auth_user_id:
+            return {"success": False, "error": "Token de autenticação inválido"}
+
+        user_obj = getattr(auth_response, 'user', None)
+        if user_obj is None and isinstance(auth_response, dict):
+            user_obj = auth_response.get('user')
+
+        if isinstance(user_obj, dict):
+            email = (user_obj.get('email') or '').lower().strip()
+            metadata = user_obj.get('user_metadata') or user_obj.get('raw_user_meta_data') or {}
+        else:
+            email = (getattr(user_obj, 'email', None) or '').lower().strip()
+            metadata = (
+                getattr(user_obj, 'user_metadata', None)
+                or getattr(user_obj, 'raw_user_meta_data', None)
+                or {}
+            )
+
+        existing = supabase_admin.table('users').select('*').eq('id', auth_user_id).execute()
+        if existing.data and len(existing.data) > 0:
+            return {"success": True, "user": existing.data[0], "created": False}
+
+        derived_name, derived_last_name = _derive_name_from_metadata(metadata, email)
+
+        user_profile_result = _upsert_custom_user(
+            supabase=supabase_admin,
+            user_id=auth_user_id,
+            name=derived_name,
+            last_name=derived_last_name,
+            email=email
+        )
+
+        if not user_profile_result['success']:
+            return {"success": False, "error": user_profile_result['error']}
+
+        return {"success": True, "user": user_profile_result['user'], "created": True}
+
+    except Exception as e:
+        print(f"❌ Erro ao sincronizar perfil OAuth: {str(e)}")
+        return {"success": False, "error": f"Erro no servidor: {str(e)}"}
+
+
 def login_user(email: str, password: str) -> Dict[str, Any]:
     """
     Autentica um usuário
@@ -307,17 +387,7 @@ def login_user(email: str, password: str) -> Dict[str, Any]:
 
         # Se autenticou no Auth mas não existe perfil custom, cria automaticamente.
         metadata = _extract_auth_user_metadata(auth_result)
-        full_name = (metadata.get('full_name') or '').strip() if isinstance(metadata, dict) else ''
-        derived_name = ''
-        derived_last_name = ''
-
-        if full_name:
-            parts = full_name.split()
-            if len(parts) == 1:
-                derived_name = parts[0]
-            elif len(parts) > 1:
-                derived_name = parts[0]
-                derived_last_name = ' '.join(parts[1:])
+        derived_name, derived_last_name = _derive_name_from_metadata(metadata, normalized_email)
 
         user_profile_result = _upsert_custom_user(
             supabase=supabase,

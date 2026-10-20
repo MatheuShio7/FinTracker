@@ -154,7 +154,44 @@
 }
 
 
-/* Responsividade */
+/*
+ * Responsividade
+ * O layout depende da largura do container (classes --narrow / --stacked
+ * definidas em PortfolioPieChart.jsx), e não da janela, pois o gráfico
+ * também aparece dentro do modal de carteira dos grupos.
+ */
+.portfolio-pie-chart-container--narrow .portfolio-total-info {
+  right: 8%;
+}
+
+.portfolio-pie-chart-container--narrow .total-label {
+  font-size: 32px;
+  margin-left: 0;
+}
+
+.portfolio-pie-chart-container--narrow .total-value {
+  font-size: 26px;
+}
+
+/* Total passa para baixo do gráfico, centralizado */
+.portfolio-pie-chart-container--stacked .portfolio-total-info {
+  position: static;
+  transform: none;
+  align-items: center;
+  margin: 0 auto 8px;
+  text-align: center;
+}
+
+.portfolio-pie-chart-container--stacked .total-label {
+  font-size: 22px;
+  margin-left: 0;
+}
+
+.portfolio-pie-chart-container--stacked .total-value {
+  align-self: center;
+  font-size: 24px;
+}
+
 @media (max-width: 768px) {
   .portfolio-pie-chart-container {
     margin: 15px 0;
@@ -162,18 +199,6 @@
   
   .recharts-pie-label-text {
     font-size: 12px;
-  }
-
-  .portfolio-total-info {
-    right: 10%;
-  }
-
-  .total-label {
-    font-size: 20px;
-  }
-
-  .total-value {
-    font-size: 24px;
   }
 }
 
@@ -186,15 +211,11 @@
     font-size: 11px;
   }
 
-  .portfolio-total-info {
-    right: 5%;
+  .portfolio-pie-chart-container--stacked .total-label {
+    font-size: 18px;
   }
 
-  .total-label {
-    font-size: 16px;
-  }
-
-  .total-value {
+  .portfolio-pie-chart-container--stacked .total-value {
     font-size: 20px;
   }
 }

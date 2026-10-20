@@ -70,6 +70,22 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const syncOAuthBackendProfile = async (accessToken) => {
+    try {
+      if (!accessToken) return null
+
+      const response = await authFetchWithToken('api/auth/sync-profile', accessToken, {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+      return data.status === 'success' ? data.user : null
+    } catch (error) {
+      console.error('Erro ao sincronizar perfil OAuth no backend:', error)
+      return null
+    }
+  }
+
   const getTotpFactors = async () => {
     const { data, error } = await supabase.auth.mfa.listFactors()
     if (error) throw error
@@ -154,6 +170,10 @@ export function AuthProvider({ children }) {
       resolvedUser = await ensureBackendProfile(email, passwordForEnsure)
     }
 
+    if (!resolvedUser && accessToken) {
+      resolvedUser = await syncOAuthBackendProfile(accessToken)
+    }
+
     if (!resolvedUser) {
       resolvedUser = {
         id: userId,
@@ -164,6 +184,48 @@ export function AuthProvider({ children }) {
     }
 
     return resolvedUser
+  }
+
+  const finalizeSessionLogin = async (session, { runPostUpdates = false } = {}) => {
+    if (!session?.user?.id) {
+      return { success: false, message: i18n.t('auth:ctx.noAuthUser') }
+    }
+
+    const requiresMfa = await isMfaStepRequired()
+    if (requiresMfa) {
+      const factors = await getTotpFactors().catch(() => [])
+      const primaryFactorId = factors[0]?.id || null
+
+      setMfaPendingFlag()
+      setUser(null)
+      setPendingMfa({
+        email: session.user.email || '',
+        factorId: primaryFactorId,
+        failedAttempts: 0,
+        lockedUntil: null,
+      })
+
+      return {
+        success: false,
+        mfaRequired: true,
+        factorId: primaryFactorId,
+        message: i18n.t('auth:ctx.mfaRequired'),
+      }
+    }
+
+    const resolvedUser = await resolveUserProfile({
+      userId: session.user.id,
+      email: session.user.email || '',
+      accessToken: session.access_token || null,
+    })
+
+    applyAuthenticatedUser(resolvedUser)
+
+    if (runPostUpdates) {
+      await runPostLoginUpdates(resolvedUser.id)
+    }
+
+    return { success: true, user: resolvedUser }
   }
 
   const applyAuthenticatedUser = (resolvedUser) => {
@@ -218,14 +280,7 @@ export function AuthProvider({ children }) {
           return
         }
 
-        const resolvedUser = await resolveUserProfile({
-          userId: session.user.id,
-          email: session.user.email || '',
-          accessToken: session.access_token,
-        })
-
-        if (!isMounted) return
-        applyAuthenticatedUser(resolvedUser)
+        await finalizeSessionLogin(session, { runPostUpdates: false })
       } catch (error) {
         console.error('Erro ao inicializar sessão:', error)
         if (isMounted) {
@@ -276,14 +331,9 @@ export function AuthProvider({ children }) {
           return
         }
 
-        const resolvedUser = await resolveUserProfile({
-          userId: session.user.id,
-          email: session.user.email || '',
-          accessToken: session.access_token,
+        await finalizeSessionLogin(session, {
+          runPostUpdates: event === 'SIGNED_IN',
         })
-
-        if (!isMounted) return
-        applyAuthenticatedUser(resolvedUser)
       }, 0)
     })
 
@@ -428,6 +478,32 @@ export function AuthProvider({ children }) {
       return { success: true, user: resolvedUser }
     } catch (error) {
       console.error('Erro no login:', error)
+      return { success: false, message: i18n.t('auth:ctx.serverError') }
+    }
+  }
+
+  const loginWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/login`,
+          queryParams: {
+            prompt: 'select_account',
+          },
+        },
+      })
+
+      if (error) {
+        return {
+          success: false,
+          message: error.message || i18n.t('auth:ctx.googleLoginFailed'),
+        }
+      }
+
+      return { success: true, redirecting: true }
+    } catch (error) {
+      console.error('Erro no login com Google:', error)
       return { success: false, message: i18n.t('auth:ctx.serverError') }
     }
   }
@@ -699,6 +775,7 @@ export function AuthProvider({ children }) {
     cancelMfaLogin,
     signup,
     login,
+    loginWithGoogle,
     verifyMfaLogin,
     getMfaStatus,
     startMfaEnrollment,

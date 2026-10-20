@@ -14,16 +14,67 @@
 /* Posicionamento do botão de reload na página Explorar */
 /* Posiciona ao lado direito da barra de pesquisa */
 .explorar-page .reload-button.explorar-reload-button {
-  top: 56px;
-  right: 80px;
+  top: var(--hdr-top);
+  right: var(--hdr-slot-1);
 }
 
 .explorar-page .notifications-button.explorar-notifications-button {
-  top: 56px;
-  right: 145px;
+  top: var(--hdr-top);
+  right: var(--hdr-slot-2);
 }
 
 /* Reposiciona a barra de pesquisa para a esquerda na página Explorar */
 .explorar-page .search-bar-container {
-  right: 210px;
-} 
+  right: var(--hdr-slot-3);
+}
+
+/*
+ * Telas até 1360px: a barra de pesquisa não cabe mais ao lado do título,
+ * então ela desce para uma linha própria abaixo do cabeçalho.
+ */
+@media (max-width: 1360px) {
+  .explorar-page {
+    padding-top: 205px;
+  }
+
+  .explorar-page .search-bar-container {
+    position: absolute;
+    top: 125px;
+    left: 72px;
+    right: auto;
+    width: min(520px, calc(100% - 144px));
+  }
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .explorar-page {
+    padding-top: 185px;
+  }
+
+  .explorar-page .search-bar-container {
+    top: 100px;
+  }
+}
+
+/* Celular */
+@media (max-width: 768px) {
+  .explorar-page {
+    padding-top: 138px;
+  }
+
+  .explorar-page .page-title {
+    left: 16px;
+  }
+
+  .explorar-page .search-bar-container {
+    top: 66px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+
+  .explorar-page .watchlist-table-container {
+    margin-top: 0;
+  }
+}

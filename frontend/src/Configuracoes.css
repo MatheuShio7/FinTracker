@@ -605,10 +605,177 @@
   cursor: not-allowed;
 }
 
+/* Logout mobile — oculto no desktop (sidebar já oferece a ação) */
+.mobile-logout-section {
+  display: none;
+}
+
+.mobile-logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 320px;
+  height: 50px;
+  margin: 0 auto;
+  padding: 0 18px;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  border-radius: 25px;
+  background-color: var(--color-bg-surface);
+  color: #ef4444;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.mobile-logout-button:hover {
+  transform: scale(1.02);
+  background-color: var(--color-sidebar-logout-hover);
+  border-color: #ef4444;
+}
+
+.mobile-logout-button:active {
+  transform: scale(0.98);
+}
+
+.mobile-logout-button i {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
 /* Responsividade */
 @media (max-width: 1200px) {
   .profile-sections-container {
     flex-direction: column;
     gap: 40px;
+  }
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .configuracoes-container {
+    padding: 20px 20px 32px;
+  }
+
+  .configuracoes-content {
+    margin-top: 110px;
+    margin-left: 0;
+    padding: 0 20px;
+  }
+
+  .configuracoes-group-title {
+    font-size: 1.4rem;
+    margin: 40px 0 16px;
+  }
+
+  .two-factor-card {
+    max-width: 100%;
+  }
+}
+
+/* Celular */
+@media (max-width: 768px) {
+  .configuracoes-container {
+    padding: 12px 12px 24px;
+  }
+
+  .configuracoes-content {
+    margin-top: 70px;
+    padding: 0;
+  }
+
+  .configuracoes-group-title {
+    font-size: 1.25rem;
+    margin: 32px 0 14px;
+  }
+
+  .configuracoes-section-title {
+    font-size: 1rem;
+  }
+
+  /* Remove o recuo lateral que consumia a largura útil em telas pequenas */
+  .configuracoes-content > :not(.configuracoes-group-title) {
+    margin-left: 0;
+  }
+
+  .profile-sections-container {
+    gap: 32px;
+  }
+
+  .profile-fields-container,
+  .password-fields-container,
+  .password-buttons-container,
+  .profile-error,
+  .profile-success {
+    max-width: 100%;
+  }
+
+  .two-factor-card {
+    padding: 16px;
+  }
+
+  .two-factor-card-text {
+    padding-left: 12px;
+    font-size: 0.92rem;
+  }
+
+  .mfa-secret-text {
+    overflow-wrap: anywhere;
+  }
+
+  .mfa-qr-wrapper svg,
+  .mfa-qr-image {
+    max-width: 100%;
+  }
+
+  /* 16px evita o zoom automático ao focar campos no iOS */
+  .profile-input {
+    font-size: 16px;
+  }
+
+  .mobile-logout-section {
+    display: block;
+    margin-top: 40px;
+    /* Espaço para não ficar sob a barra inferior do mobile */
+    padding-bottom: calc(1.5rem + 4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Celulares pequenos */
+@media (max-width: 480px) {
+  /* Nome e sobrenome empilhados para os campos não ficarem espremidos */
+  .profile-field-row {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .profile-save-button {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 20px auto 0;
+  }
+
+  .password-buttons-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .password-buttons-container .profile-save-button {
+    margin: 0;
+  }
+
+  .password-buttons-container .profile-save-button,
+  .profile-clear-button {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .language-selector-container,
+  .font-size-selector-container {
+    flex-wrap: wrap;
   }
 } 

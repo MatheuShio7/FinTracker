@@ -366,17 +366,49 @@
   text-align: center;
 }
 
-@media (max-width: 768px) {
-  .transaction-button {
-    min-width: 52px;
-    padding: 0 12px;
+/* Tablet e celular: botão de ação do cabeçalho vira apenas ícone */
+@media (max-width: 1024px) {
+  .reload-button.transaction-button:not(.grupos-wallet-transaction-button) {
+    width: var(--hdr-size);
+    min-width: var(--hdr-size);
+    padding: 0;
+    gap: 0;
   }
 
-  .transaction-button span {
+  .reload-button.transaction-button:not(.grupos-wallet-transaction-button) span {
     display: none;
+  }
+
+  .reload-button.transaction-button:not(.grupos-wallet-transaction-button) i {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .transaction-modal-card {
+    max-height: calc(100dvh - 32px);
+  }
+
+  .transaction-modal-header {
+    padding: 14px 16px;
+  }
+
+  .transaction-modal-header h3 {
+    font-size: 18px;
+  }
+
+  .transaction-form {
+    padding: 16px;
   }
 
   .transaction-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* 16px evita o zoom automático ao focar campos no iOS */
+  .transaction-field input:not(.transaction-search-input),
+  .transaction-field select,
+  .transaction-search-input {
+    font-size: 16px;
   }
 }

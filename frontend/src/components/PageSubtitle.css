@@ -5,6 +5,7 @@
   z-index: 999;
   display: flex;
   align-items: center;
+  max-width: calc(100vw - 340px);
 }
 
 .page-subtitle-text {
@@ -17,3 +18,20 @@
   user-select: none;
 }
 
+@media (max-width: 1024px) {
+  .page-subtitle-text {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-subtitle {
+    left: 16px;
+    max-width: calc(100vw - 32px);
+  }
+
+  .page-subtitle-text {
+    font-size: 1rem;
+    margin-left: 0;
+  }
+}

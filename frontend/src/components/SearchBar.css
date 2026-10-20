@@ -187,3 +187,42 @@
 .action-button.active:hover i::after {
   background-color: rgb(179, 43, 56);
 }
+
+@media (max-width: 768px) {
+  .search-bar {
+    padding: 12px 18px;
+  }
+
+  .search-icon {
+    margin-right: 12px;
+  }
+
+  /* 16px evita o zoom automático ao focar o campo no iOS */
+  .search-input {
+    min-width: 0;
+    font-size: 16px;
+  }
+
+  .search-dropdown {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .search-result-item {
+    padding: 12px;
+  }
+
+  .result-ticker {
+    min-width: 56px;
+  }
+
+  .result-actions {
+    gap: 16px;
+  }
+
+  /* Áreas de toque maiores para os botões de ação */
+  .action-button {
+    min-width: 36px;
+    min-height: 36px;
+  }
+}

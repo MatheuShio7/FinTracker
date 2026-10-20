@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useTranslation } from 'react-i18next'
 import { formatCurrency, formatDate } from '../lib/format'
+import { useMediaQuery } from '../lib/useResponsive'
 import './PriceChart.css'
 
 function PriceChart({ prices, onRangeChange, loading }) {
   const [selectedRange, setSelectedRange] = useState('3m')
   const { t, i18n } = useTranslation('stock')
+  const isMobile = useMediaQuery('(max-width: 768px)')
 
   const handleRangeChange = (newRange) => {
     setSelectedRange(newRange)
@@ -113,10 +115,12 @@ function PriceChart({ prices, onRangeChange, loading }) {
           <p>{t('price.loading')}</p>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height={isMobile ? 300 : 400}>
         <LineChart
           data={chartData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          margin={isMobile
+            ? { top: 10, right: 8, left: 0, bottom: 10 }
+            : { top: 20, right: 30, left: 20, bottom: 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
 
@@ -135,7 +139,7 @@ function PriceChart({ prices, onRangeChange, loading }) {
             tickFormatter={(value) => formatCurrency(value) ?? ''}
             stroke={axisColor}
             style={{ fontSize: '12px' }}
-            width={80}
+            width={isMobile ? 64 : 80}
           />
 
           <Tooltip content={<CustomTooltip />} />

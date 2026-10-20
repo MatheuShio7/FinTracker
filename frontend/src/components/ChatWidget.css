@@ -416,10 +416,38 @@
   background: radial-gradient(circle at top right, rgba(246, 83, 8, 0.12), transparent 42%);
 }
 
+/* Janelas baixas (ex.: tablet na horizontal): o card não pode passar do topo */
+.chat-widget-card {
+  max-height: calc(100vh - 3rem);
+}
+
 @media (max-width: 768px) {
   .chat-widget-trigger,
   .chat-widget-card {
     display: none !important;
+  }
+
+  /* Na página /chat o widget ocupa a tela toda */
+  .chat-widget-page {
+    margin: 0 0.5rem 0.5rem;
+    border-radius: 0.875rem;
+  }
+
+  .chat-widget-message {
+    max-width: 92%;
+  }
+
+  .chat-widget-messages {
+    padding: 0.75rem;
+  }
+
+  .chat-widget-footer {
+    padding: 0.65rem;
+  }
+
+  /* 16px evita o zoom automático ao focar o campo no iOS */
+  .chat-widget-footer textarea {
+    font-size: 16px;
   }
 }
 

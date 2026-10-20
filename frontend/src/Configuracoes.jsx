@@ -2,15 +2,18 @@ import './Configuracoes.css'
 import Logo from './components/Logo'
 import PageTitle from './components/PageTitle'
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from './contexts/AuthContext'
 import { useTheme } from './contexts/ThemeContext'
 import { normalizeLanguage } from './i18n'
 
 function Configuracoes() {
-  const { t, i18n } = useTranslation(['settings', 'common', 'auth'])
+  const { t, i18n } = useTranslation(['settings', 'common', 'auth', 'nav'])
+  const navigate = useNavigate()
   const {
     user,
+    logout,
     updateProfile,
     updatePassword,
     getMfaStatus,
@@ -213,6 +216,11 @@ function Configuracoes() {
     setConfirmPassword('')
     setPasswordError('')
     setPasswordSuccess('')
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login')
   }
 
   const handleStartMfa = async () => {
@@ -649,6 +657,18 @@ function Configuracoes() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Visível só em telas ≤768px (sidebar com logout some nesse breakpoint) */}
+        <div className="mobile-logout-section">
+          <button
+            type="button"
+            className="mobile-logout-button"
+            onClick={handleLogout}
+          >
+            <i className="bi bi-box-arrow-left" aria-hidden="true"></i>
+            {t('nav:logout')}
+          </button>
         </div>
       </div>
     </div>

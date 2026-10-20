@@ -35,21 +35,21 @@
 
 .acao-page .reload-button {
   position: absolute;
-  top: 56px;
-  right: 80px;
+  top: var(--hdr-top);
+  right: var(--hdr-slot-1);
 }
 
 .acao-page .transaction-button.acao-transaction-button {
   position: absolute;
-  top: 56px;
-  right: 210px;
+  top: var(--hdr-top);
+  right: var(--hdr-slot-3);
   z-index: 1001;
 }
 
 .acao-page .notifications-button.acao-notifications-button {
   position: absolute;
-  top: 56px;
-  right: 145px;
+  top: var(--hdr-top);
+  right: var(--hdr-slot-2);
 }
 
 /* Mantem o espaco do topo na Acao sem sobrepor o grafico */
@@ -90,4 +90,66 @@
   font-size: 1rem;
   margin: 0;
   font-weight: 500;
-} 
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .acao-header {
+    min-height: 190px;
+  }
+
+  .acao-page .page-title {
+    top: 36px;
+  }
+
+  .acao-page .page-subtitle {
+    top: 125px;
+  }
+
+  .acao-page .price-chart-container,
+  .acao-page .dividends-chart-container {
+    width: calc(100% - 2rem);
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Celular */
+@media (max-width: 768px) {
+  .acao-header {
+    min-height: 140px;
+  }
+
+  .acao-page .back-navigation {
+    top: 20px;
+    left: 16px;
+  }
+
+  .acao-page .page-title {
+    top: 46px;
+    left: 16px;
+  }
+
+  .acao-page .page-subtitle {
+    top: 98px;
+    left: 16px;
+  }
+
+  .acao-page .price-chart-container {
+    margin-top: 0.5rem;
+  }
+
+  .acao-page .price-chart-container,
+  .acao-page .dividends-chart-container {
+    width: calc(100% - 1.5rem);
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1rem;
+  }
+
+  .backend-loading,
+  .backend-error {
+    width: calc(100% - 1.5rem);
+    padding: 1rem;
+  }
+}

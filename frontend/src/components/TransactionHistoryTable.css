@@ -294,12 +294,41 @@
 
 @media (max-width: 768px) {
   .transaction-history-container {
-    padding: 0 10px;
+    padding: 0 12px;
     margin: 20px auto 50px;
+    /* A tabela tem até 7 colunas: no celular ela rola na horizontal */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .transaction-history-table {
+    min-width: 600px;
   }
 
   .transaction-history-title {
     font-size: 1.125rem;
+    position: sticky;
+    left: 0;
+    width: max-content;
+    max-width: 100%;
+  }
+
+  .transaction-history-loading,
+  .transaction-history-error {
+    padding: 36px 20px;
+  }
+
+  .transaction-history-confirm-content {
+    padding: 18px 16px;
+  }
+
+  .transaction-history-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .transaction-history-confirm-actions button {
+    width: 100%;
   }
 
   .transaction-history-table thead th,

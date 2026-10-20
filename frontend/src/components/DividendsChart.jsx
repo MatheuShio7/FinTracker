@@ -1,10 +1,12 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useTranslation } from 'react-i18next'
 import { formatCurrency, formatDate } from '../lib/format'
+import { useMediaQuery } from '../lib/useResponsive'
 import './DividendsChart.css'
 
 function DividendsChart({ dividends }) {
   const { t, i18n } = useTranslation(['stock', 'common'])
+  const isMobile = useMediaQuery('(max-width: 768px)')
 
   if (!dividends || dividends.length === 0) {
     return (
@@ -83,10 +85,12 @@ function DividendsChart({ dividends }) {
         <h3>{t('dividends.title')}</h3>
       </div>
 
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={isMobile ? 300 : 400}>
         <BarChart
           data={chartData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          margin={isMobile
+            ? { top: 10, right: 8, left: 0, bottom: 10 }
+            : { top: 20, right: 30, left: 20, bottom: 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
 
@@ -105,7 +109,7 @@ function DividendsChart({ dividends }) {
             tickFormatter={(value) => formatCurrency(value) ?? ''}
             stroke={axisColor}
             style={{ fontSize: '12px' }}
-            width={80}
+            width={isMobile ? 64 : 80}
           />
 
           <Tooltip content={<CustomTooltip />} />

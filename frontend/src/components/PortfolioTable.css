@@ -231,11 +231,22 @@
   box-shadow: 0 8px 24px var(--color-shadow-lg);
 }
 
+/* Tablet */
+@media (max-width: 1024px) {
+  .portfolio-table-container {
+    margin-top: 120px;
+  }
+}
+
 /* Responsividade para telas menores */
 @media (max-width: 768px) {
   .portfolio-table-container {
-    padding: 0 10px;
-    margin-top: 120px;
+    padding: 0 12px;
+    margin-top: 80px;
+  }
+
+  .portfolio-table tbody td {
+    overflow-wrap: anywhere;
   }
 
   .portfolio-table thead th,
@@ -271,12 +282,13 @@
 @media (max-width: 480px) {
   .portfolio-table thead th,
   .portfolio-table tbody td {
-    padding: 10px 8px;
-    font-size: 0.8125rem;
+    padding: 10px 4px;
+    font-size: 0.75rem;
   }
 
   .portfolio-table thead th {
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
+    letter-spacing: 0.4px;
   }
 
   .portfolio-loading,

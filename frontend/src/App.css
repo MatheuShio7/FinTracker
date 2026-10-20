@@ -7,6 +7,7 @@
 
 .app-content {
   flex: 1;
+  min-width: 0; /* permite que tabelas/gráficos largos rolem em vez de estourar o layout */
   margin-left: 225px;
   transition: margin-left 0.3s ease;
 }

@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from '../contexts/AuthContext'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 import './Sidebar.css'
 
@@ -7,6 +8,7 @@ const Sidebar = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { t } = useTranslation('nav')
+  const { logout } = useAuth()
 
   // Não mostrar o sidebar nas páginas de login e cadastro
   const hiddenRoutes = ['/login', '/cadastro', '/']
@@ -21,8 +23,8 @@ const Sidebar = () => {
     { name: t('settings'), path: '/configuracoes', icon: 'bi-gear-wide-connected' }
   ]
 
-  const handleLogout = () => {
-    // Aqui você pode adicionar lógica de logout (limpar tokens, etc.)
+  const handleLogout = async () => {
+    await logout()
     navigate('/login')
   }
 

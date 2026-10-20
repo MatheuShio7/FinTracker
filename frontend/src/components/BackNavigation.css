@@ -25,3 +25,13 @@
   user-select: none;
 }
 
+@media (max-width: 768px) {
+  .back-navigation {
+    left: 16px;
+    font-size: 16px;
+  }
+
+  .back-navigation i {
+    font-size: 16px;
+  }
+}

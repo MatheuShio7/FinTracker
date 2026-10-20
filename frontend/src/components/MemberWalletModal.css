@@ -150,3 +150,51 @@
   position: relative;
   z-index: 2;
 }
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .grupos-wallet-modal-card {
+    width: min(1100px, 96vw);
+  }
+}
+
+/* Celular */
+@media (max-width: 768px) {
+  .grupos-wallet-modal-card {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+  }
+
+  .grupos-wallet-header {
+    flex-wrap: wrap;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .grupos-wallet-title-row {
+    flex: 1 1 160px;
+    gap: 10px;
+  }
+
+  .grupos-wallet-title-row h3 {
+    font-size: 18px;
+    overflow-wrap: anywhere;
+  }
+
+  /* Botão de nova transação vira apenas ícone */
+  .grupos-wallet-header-actions .reload-button.grupos-wallet-transaction-button {
+    min-width: 36px;
+    width: 36px;
+    padding: 0;
+  }
+
+  .grupos-wallet-header-actions .reload-button.grupos-wallet-transaction-button span {
+    display: none;
+  }
+
+  .grupos-wallet-body {
+    padding: 4px 12px 16px;
+  }
+}
