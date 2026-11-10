@@ -251,12 +251,7 @@ def test_sec_009_bcrypt_hash_is_not_plaintext():
     assert bcrypt.checkpw(password, hashed.encode())
 
 
-@pytest.mark.skip(reason='Requires two real Supabase users and a database with RLS enabled')
-def test_sec_010_rls_isolation_requires_supabase_credentials():
-    pytest.skip('Requires two real Supabase users and a database with RLS enabled')
-
-
-def test_con_011_quote_failure_returns_historical_fallback(client, monkeypatch):
+def test_con_010_quote_failure_returns_historical_fallback(client, monkeypatch):
     from routes import price_routes
 
     monkeypatch.setattr(
