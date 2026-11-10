@@ -1,0 +1,57 @@
+{
+  "backHome": "Back to home",
+  "eyebrow": "Legal",
+  "title": "Privacy Policy",
+  "updatedAt": "Last updated: {{date}}",
+  "intro": "This Privacy Policy describes how FinTracker collects, uses, stores, and protects personal data of users of the website and the app. FinTracker is a stock portfolio tracking and simulation tool; it is not a brokerage and does not place market orders.",
+  "sections": {
+    "controller": {
+      "title": "1. Data controller",
+      "body": "Personal data is processed by FinTracker as the controller of the information you provide to create and use your account."
+    },
+    "data": {
+      "title": "2. What data we collect",
+      "intro": "We only collect data needed to operate the platform:",
+      "items": {
+        "account": "Account data: first name, last name, email, and password (passwords are handled securely by the authentication provider and are not stored in plain text). If you sign in with Google, we also receive basic profile information you authorize.",
+        "portfolio": "Financial usage data you enter: buy/sell transactions (ticker, quantity, price, and date), portfolio positions, and watchlist items.",
+        "groups": "Collaboration data: groups you create or join, invites, permissions, and related notifications.",
+        "chat": "Messages sent to FinTracker’s AI assistant, used to generate responses within the service.",
+        "prefs": "Local device/browser preferences such as theme, language, and font size.",
+        "tech": "Basic technical data required for operation (for example, session tokens and authentication records)."
+      }
+    },
+    "purpose": {
+      "title": "3. How we use the data",
+      "body": "We use the data to authenticate users, provide portfolio tracking, enable collaborative features (groups), send account-related notifications, power the AI assistant, and improve security and reliability. We do not use the data for third-party marketing."
+    },
+    "storage": {
+      "title": "4. Where data is stored",
+      "body": "Account, portfolio, transaction, group, and notification data are stored on Supabase cloud infrastructure (PostgreSQL database and authentication). Interface preferences may remain only on your device (local storage)."
+    },
+    "sharing": {
+      "title": "5. Sharing and sale of data",
+      "body": "We do not sell personal data. We may share information only with providers essential to running the service — mainly Supabase (storage and authentication), Google (Google sign-in, when used, and AI assistant processing via Gemini), and market quote APIs (public price data, not personal data). In collaborative groups, other members only see your portfolio information according to the permissions you grant. We may also disclose data when required by law."
+    },
+    "rights": {
+      "title": "6. Your rights",
+      "body": "You can access and update your name and email in the app Settings, and edit or delete transactions and other data you entered. To request full account and associated data deletion, contact us using the channels below. We will respond within a reasonable time, subject to applicable law (including Brazil’s LGPD, where relevant)."
+    },
+    "security": {
+      "title": "7. Security",
+      "body": "We apply reasonable safeguards, including secure session authentication (JWT), Row Level Security in the database, and optional two-factor authentication (MFA/TOTP). No system is risk-free; we recommend a strong password and MFA when possible."
+    },
+    "children": {
+      "title": "8. Children",
+      "body": "FinTracker is not intended for children under 13. If we learn that we collected data from a child without appropriate consent, we will take steps to remove it."
+    },
+    "changes": {
+      "title": "9. Changes to this policy",
+      "body": "We may update this Privacy Policy from time to time. The last update date will appear at the top of this page. Continued use of the service after changes are published means you acknowledge the current version."
+    },
+    "contact": {
+      "title": "10. Contact",
+      "body": "Privacy questions or data-related requests can be sent to the support email listed on the app’s store listing (Google Play / App Store) or through the contact channel provided by FinTracker."
+    }
+  }
+}

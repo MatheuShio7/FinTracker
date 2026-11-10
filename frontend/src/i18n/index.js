@@ -12,6 +12,7 @@ import ptStock from './locales/pt-BR/stock.json'
 import ptChat from './locales/pt-BR/chat.json'
 import ptNotifications from './locales/pt-BR/notifications.json'
 import ptLanding from './locales/pt-BR/landing.json'
+import ptPrivacy from './locales/pt-BR/privacy.json'
 
 import enCommon from './locales/en/common.json'
 import enNav from './locales/en/nav.json'
@@ -24,6 +25,7 @@ import enStock from './locales/en/stock.json'
 import enChat from './locales/en/chat.json'
 import enNotifications from './locales/en/notifications.json'
 import enLanding from './locales/en/landing.json'
+import enPrivacy from './locales/en/privacy.json'
 
 const LANGUAGE_STORAGE_KEY = 'fintracker-language'
 const SUPPORTED_LANGUAGES = ['pt-BR', 'en']
@@ -76,6 +78,7 @@ const resources = {
     chat: ptChat,
     notifications: ptNotifications,
     landing: ptLanding,
+    privacy: ptPrivacy,
   },
   en: {
     common: enCommon,
@@ -89,6 +92,7 @@ const resources = {
     chat: enChat,
     notifications: enNotifications,
     landing: enLanding,
+    privacy: enPrivacy,
   },
 }
 
@@ -110,6 +114,7 @@ void i18n.use(initReactI18next).init({
     'chat',
     'notifications',
     'landing',
+    'privacy',
   ],
   interpolation: {
     escapeValue: false,
