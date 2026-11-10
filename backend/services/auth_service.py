@@ -68,6 +68,56 @@ def _extract_auth_user_metadata(auth_response: Any) -> Dict[str, Any]:
     )
 
 
+def _extract_access_token(auth_response: Any) -> Optional[str]:
+    """Extract the Supabase session JWT from object or dictionary responses."""
+    if not auth_response:
+        return None
+
+    session = getattr(auth_response, 'session', None)
+    if session is None and isinstance(auth_response, dict):
+        session = auth_response.get('session')
+
+    if isinstance(session, dict):
+        return session.get('access_token')
+    return getattr(session, 'access_token', None)
+
+
+def _extract_session(auth_response: Any) -> Any:
+    if not auth_response:
+        return None
+    session = getattr(auth_response, 'session', None)
+    if session is None and isinstance(auth_response, dict):
+        session = auth_response.get('session')
+    return session
+
+
+def _session_access_token(session: Any) -> Optional[str]:
+    if isinstance(session, dict):
+        return session.get('access_token')
+    return getattr(session, 'access_token', None)
+
+
+def _get_factor_value(factor: Any, name: str) -> Any:
+    if isinstance(factor, dict):
+        return factor.get(name)
+    return getattr(factor, name, None)
+
+
+def _verified_totp_factors(supabase: Any) -> list:
+    list_factors = getattr(getattr(supabase.auth, 'mfa', None), 'list_factors', None)
+    if not callable(list_factors):
+        return []
+    factors_response = list_factors()
+    factors = getattr(factors_response, 'factors', None)
+    if factors is None and isinstance(factors_response, dict):
+        factors = factors_response.get('factors')
+    return [
+        factor for factor in (factors or [])
+        if _get_factor_value(factor, 'factor_type') == 'totp'
+        and _get_factor_value(factor, 'status') == 'verified'
+    ]
+
+
 def _upsert_custom_user(
     supabase: Any,
     user_id: str,
@@ -105,6 +155,32 @@ def _upsert_custom_user(
         }
 
 
+def ensure_user_profile(user_id: str, email: str = '') -> Dict[str, Any]:
+    """Repair a missing public profile before FK-protected business writes."""
+    try:
+        supabase_admin = get_supabase_admin_client()
+        existing = supabase_admin.table('users').select('*').eq(
+            'id', user_id
+        ).limit(1).execute()
+        if existing.data:
+            return {'success': True, 'user': existing.data[0], 'created': False}
+
+        normalized_email = (email or '').strip().lower()
+        local_part = normalized_email.split('@', 1)[0] or 'Usuário'
+        return {
+            **_upsert_custom_user(
+                supabase=supabase_admin,
+                user_id=user_id,
+                name=local_part,
+                last_name='',
+                email=normalized_email,
+            ),
+            'created': True,
+        }
+    except Exception as error:
+        return {'success': False, 'error': f"Erro ao garantir perfil: {error}"}
+
+
 def register_user(name: str, last_name: str, email: str, password: str) -> Dict[str, Any]:
     """
     Registra um novo usuário no sistema
@@ -137,6 +213,7 @@ def register_user(name: str, last_name: str, email: str, password: str) -> Dict[
         
         # Conecta ao Supabase
         supabase = get_supabase_client()
+        supabase_admin = get_supabase_admin_client()
 
         normalized_name = name.strip()
         normalized_last_name = last_name.strip()
@@ -179,7 +256,7 @@ def register_user(name: str, last_name: str, email: str, password: str) -> Dict[
             }
 
         custom_result = _upsert_custom_user(
-            supabase=supabase,
+            supabase=supabase_admin,
             user_id=auth_user_id,
             name=normalized_name,
             last_name=normalized_last_name,
@@ -268,6 +345,79 @@ def get_mfa_status(user_id: str) -> Optional[Dict[str, Any]]:
         return None
 
 
+def setup_mfa(access_token: Optional[str] = None) -> Dict[str, Any]:
+    """Enroll a TOTP factor for the currently authenticated Supabase session."""
+    try:
+        supabase = get_supabase_client()
+        supabase_admin = get_supabase_admin_client()
+        if access_token:
+            set_session = getattr(supabase.auth, 'set_session', None)
+            if callable(set_session):
+                set_session(access_token, '')
+        enroll = getattr(getattr(supabase.auth, 'mfa', None), 'enroll', None)
+        if not callable(enroll):
+            return {"success": False, "error": "MFA TOTP indisponível"}
+
+        response = enroll({
+            'factor_type': 'totp',
+            'friendly_name': 'FinTracker TOTP',
+        })
+        factor = getattr(response, 'factor', None)
+        totp = getattr(response, 'totp', None)
+        if isinstance(response, dict):
+            factor = response.get('factor', factor)
+            totp = response.get('totp', totp)
+
+        factor_id = _get_factor_value(factor, 'id')
+        secret = _get_factor_value(totp, 'secret')
+        uri = _get_factor_value(totp, 'uri')
+        if not factor_id or not secret:
+            return {"success": False, "error": "Supabase não retornou o segredo TOTP"}
+
+        return {
+            "success": True,
+            "factor_id": factor_id,
+            "secret": secret,
+            "qr_code": uri,
+        }
+    except Exception as error:
+        return {"success": False, "error": f"Erro ao configurar MFA: {error}"}
+
+
+def enable_mfa(
+    factor_id: str,
+    code: str,
+    access_token: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Verify a TOTP challenge and activate the enrolled factor."""
+    try:
+        if not factor_id or not str(code).isdigit() or len(str(code)) != 6:
+            return {"success": False, "error": "Código MFA inválido"}
+
+        supabase = get_supabase_client()
+        if access_token:
+            set_session = getattr(supabase.auth, 'set_session', None)
+            if callable(set_session):
+                set_session(access_token, '')
+        mfa_api = getattr(supabase.auth, 'mfa', None)
+        challenge = getattr(mfa_api, 'challenge', None)
+        verify = getattr(mfa_api, 'verify', None)
+        if not callable(challenge) or not callable(verify):
+            return {"success": False, "error": "MFA TOTP indisponível"}
+
+        challenge_response = challenge(factor_id)
+        challenge_id = getattr(challenge_response, 'id', None)
+        if challenge_id is None and isinstance(challenge_response, dict):
+            challenge_id = challenge_response.get('id')
+        if not challenge_id:
+            return {"success": False, "error": "Não foi possível iniciar o desafio MFA"}
+
+        verify(factor_id, challenge_id, str(code))
+        return {"success": True}
+    except Exception as error:
+        return {"success": False, "error": f"Falha ao ativar MFA: {error}"}
+
+
 def _derive_name_from_metadata(metadata: Optional[Dict[str, Any]], email: str) -> Tuple[str, str]:
     """Deriva nome e sobrenome a partir dos metadados do Auth (ex.: Google)."""
     meta = metadata if isinstance(metadata, dict) else {}
@@ -348,7 +498,7 @@ def sync_oauth_profile(access_token: str) -> Dict[str, Any]:
         return {"success": False, "error": f"Erro no servidor: {str(e)}"}
 
 
-def login_user(email: str, password: str) -> Dict[str, Any]:
+def login_user(email: str, password: str, mfa_code: Optional[str] = None) -> Dict[str, Any]:
     """
     Autentica um usuário
     
@@ -369,6 +519,7 @@ def login_user(email: str, password: str) -> Dict[str, Any]:
         
         # Conecta ao Supabase
         supabase = get_supabase_client()
+        supabase_admin = get_supabase_admin_client()
         
         normalized_email = email.lower().strip()
 
@@ -381,16 +532,50 @@ def login_user(email: str, password: str) -> Dict[str, Any]:
         if not auth_user_id:
             return {"success": False, "error": "Email ou senha incorretos"}
 
-        result = supabase.table('users').select('*').eq('id', auth_user_id).execute()
+        verified_factors = _verified_totp_factors(supabase)
+        final_access_token = _extract_access_token(auth_result)
+        if verified_factors:
+            if not mfa_code or not str(mfa_code).isdigit() or len(str(mfa_code)) != 6:
+                return {
+                    "success": False,
+                    "error": "Código MFA obrigatório",
+                    "mfa_required": True,
+                }
+
+            factor_id = _get_factor_value(verified_factors[0], 'id')
+            mfa_api = getattr(supabase.auth, 'mfa', None)
+            challenge = getattr(mfa_api, 'challenge', None)
+            verify = getattr(mfa_api, 'verify', None)
+            if not factor_id or not callable(challenge) or not callable(verify):
+                return {"success": False, "error": "MFA indisponível"}
+
+            challenge_response = challenge(factor_id)
+            challenge_id = getattr(challenge_response, 'id', None)
+            if challenge_id is None and isinstance(challenge_response, dict):
+                challenge_id = challenge_response.get('id')
+            if not challenge_id:
+                return {"success": False, "error": "Não foi possível iniciar o desafio MFA"}
+
+            verify_response = verify(factor_id, challenge_id, str(mfa_code))
+            verified_session = _extract_session(verify_response)
+            final_access_token = _session_access_token(verified_session) or final_access_token
+            if not final_access_token:
+                return {"success": False, "error": "Falha ao validar o código MFA"}
+
+        result = supabase_admin.table('users').select('*').eq('id', auth_user_id).execute()
         if result.data and len(result.data) > 0:
-            return {"success": True, "user": result.data[0]}
+            return {
+                "success": True,
+                "user": result.data[0],
+                "access_token": final_access_token,
+            }
 
         # Se autenticou no Auth mas não existe perfil custom, cria automaticamente.
         metadata = _extract_auth_user_metadata(auth_result)
         derived_name, derived_last_name = _derive_name_from_metadata(metadata, normalized_email)
 
         user_profile_result = _upsert_custom_user(
-            supabase=supabase,
+            supabase=supabase_admin,
             user_id=auth_user_id,
             name=derived_name,
             last_name=derived_last_name,
@@ -400,7 +585,11 @@ def login_user(email: str, password: str) -> Dict[str, Any]:
         if not user_profile_result['success']:
             return {"success": False, "error": user_profile_result['error']}
 
-        return {"success": True, "user": user_profile_result['user']}
+        return {
+            "success": True,
+            "user": user_profile_result['user'],
+            "access_token": final_access_token,
+        }
         
     except Exception as e:
         print(f"❌ Erro no login de usuário: {str(e)}")

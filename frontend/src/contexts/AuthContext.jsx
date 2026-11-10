@@ -132,7 +132,7 @@ export function AuthProvider({ children }) {
     try {
       const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
       if (error) return false
-      return data?.nextLevel === 'aal2'
+      return data?.currentLevel === 'aal1' && data?.nextLevel === 'aal2'
     } catch {
       return false
     }
@@ -145,8 +145,6 @@ export function AuthProvider({ children }) {
   const clearMfaPendingFlag = () => {
     localStorage.removeItem(MFA_PENDING_STORAGE_KEY)
   }
-
-  const hasMfaPendingFlag = () => localStorage.getItem(MFA_PENDING_STORAGE_KEY) === '1'
 
   const mapMfaErrorMessage = (message = '') => {
     const lower = message.toLowerCase()
@@ -305,20 +303,6 @@ export function AuthProvider({ children }) {
           return
         }
 
-        if (hasMfaPendingFlag()) {
-          const factors = await getTotpFactors().catch(() => [])
-          if (!isMounted) return
-
-          setUser(null)
-          setPendingMfa({
-            email: session.user.email || '',
-            factorId: factors[0]?.id || null,
-            failedAttempts: 0,
-            lockedUntil: null,
-          })
-          return
-        }
-
         await finalizeSessionLogin(session, { runPostUpdates: false })
       } catch (error) {
         console.error('Erro ao inicializar sessão:', error)
@@ -347,7 +331,7 @@ export function AuthProvider({ children }) {
       }
 
       // Evita trabalho em eventos que não mudam contexto de login.
-      if (event !== 'SIGNED_IN' && event !== 'USER_UPDATED') {
+      if (event !== 'SIGNED_IN') {
         return
       }
 
@@ -355,20 +339,6 @@ export function AuthProvider({ children }) {
 
       window.setTimeout(async () => {
         if (!isMounted || explicitAuthRef.current) return
-
-        if (hasMfaPendingFlag()) {
-          const factors = await getTotpFactors().catch(() => [])
-          if (!isMounted) return
-
-          setUser(null)
-          setPendingMfa({
-            email: session.user.email || '',
-            factorId: factors[0]?.id || null,
-            failedAttempts: 0,
-            lockedUntil: null,
-          })
-          return
-        }
 
         await finalizeSessionLogin(session, {
           runPostUpdates: event === 'SIGNED_IN',

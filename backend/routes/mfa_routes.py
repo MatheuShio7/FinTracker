@@ -2,13 +2,41 @@
 Rotas de autenticação MFA (Multi-Factor Authentication)
 Endpoints para verificar status de MFA (TOTP) de um usuário
 """
-from flask import Blueprint, jsonify, g
+from flask import Blueprint, jsonify, g, request
 from utils.auth_context import require_authenticated_user
-from services.auth_service import get_mfa_status
+from services.auth_service import enable_mfa, get_mfa_status, setup_mfa
 from services.notification_service import sync_mfa_notification
 
 # Cria blueprint para rotas de MFA
 bp = Blueprint('mfa', __name__, url_prefix='/api/mfa')
+
+
+@bp.route('/setup', methods=['POST'])
+@require_authenticated_user(allow_legacy=False)
+def mfa_setup():
+    result = setup_mfa(getattr(g, 'auth_access_token', None))
+    if not result['success']:
+        return jsonify({"status": "error", "message": result['error']}), 400
+    return jsonify({
+        "status": "success",
+        "factor_id": result['factor_id'],
+        "secret": result['secret'],
+        "qr_code": result.get('qr_code'),
+    }), 200
+
+
+@bp.route('/enable', methods=['POST'])
+@require_authenticated_user(allow_legacy=False)
+def mfa_enable():
+    payload = request.get_json(silent=True) or {}
+    result = enable_mfa(
+        payload.get('factor_id'),
+        payload.get('code'),
+        getattr(g, 'auth_access_token', None),
+    )
+    if not result['success']:
+        return jsonify({"status": "error", "message": result['error']}), 400
+    return jsonify({"status": "success", "message": "MFA ativado com sucesso"}), 200
 
 
 @bp.route('/status', methods=['GET'])

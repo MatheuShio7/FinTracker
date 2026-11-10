@@ -159,7 +159,7 @@ def get_most_recent_price_date(stock_id: str) -> Optional[date]:
         if not response.data or len(response.data) == 0:
             print(f"[AVISO] Nenhum preço encontrado para stock_id={stock_id}")
             return None
-        
+
         # Extrai a data do resultado
         date_str = response.data[0]['date']
         
@@ -185,3 +185,34 @@ def get_most_recent_price_date(stock_id: str) -> Optional[date]:
         print(f"Detalhes: {str(e)}")
         return None
 
+
+def get_latest_cached_price(ticker: str) -> Optional[Dict[str, any]]:
+    """Return the most recent locally stored quote for a ticker."""
+    try:
+        supabase = get_supabase_client()
+        stock = supabase.table('stocks').select('id').eq(
+            'ticker', ticker.upper().strip()
+        ).limit(1).execute()
+        if not stock.data:
+            return None
+
+        response = supabase.table('stock_prices').select(
+            'price, date'
+        ).eq('stock_id', stock.data[0]['id']).order(
+            'date', desc=True
+        ).limit(1).execute()
+        if not response.data:
+            return None
+
+        item = response.data[0]
+        return {
+            'ticker': ticker.upper().strip(),
+            'current_price': float(item['price']),
+            'date': item['date'],
+            'market_status': 'closed',
+        }
+    except (KeyError, TypeError, ValueError):
+        return None
+    except Exception as error:
+        print(f"[ERRO] Erro ao buscar fallback de {ticker}: {error}")
+        return None
