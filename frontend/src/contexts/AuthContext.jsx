@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { App as CapApp } from '@capacitor/app'
 import { Browser } from '@capacitor/browser'
@@ -17,6 +17,20 @@ const notifyOAuthUi = (detail) => {
   window.dispatchEvent(new CustomEvent('fintracker:oauth-done', { detail }))
 }
 
+const AUTH_REQUEST_TIMEOUT_MS = 45000
+
+const fetchWithTimeout = (url, options = {}) => {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), AUTH_REQUEST_TIMEOUT_MS)
+
+  return fetch(url, {
+    ...options,
+    signal: controller.signal,
+  }).finally(() => {
+    window.clearTimeout(timeoutId)
+  })
+}
+
 const AuthContext = createContext()
 
 export function useAuth() {
@@ -31,6 +45,8 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [pendingMfa, setPendingMfa] = useState(null)
+  const explicitAuthRef = useRef(false)
+  const postLoginUpdatesRef = useRef(new Set())
   const MFA_PENDING_STORAGE_KEY = 'mfa_login_required'
   const MFA_MAX_ATTEMPTS = 3
   const MFA_LOCK_SECONDS = 30
@@ -43,6 +59,7 @@ export function AuthProvider({ children }) {
       const data = await response.json()
       return data.status === 'success' ? data.user : null
     } catch (error) {
+      if (error?.name === 'AbortError') throw error
       console.error('Erro ao buscar usuário:', error)
       return null
     }
@@ -54,6 +71,7 @@ export function AuthProvider({ children }) {
       const data = await response.json()
       return data.status === 'success' ? data.user : null
     } catch (error) {
+      if (error?.name === 'AbortError') throw error
       console.error('Erro ao buscar usuário com token:', error)
       return null
     }
@@ -63,7 +81,7 @@ export function AuthProvider({ children }) {
     try {
       if (!password) return null
 
-      const response = await fetch(buildApiUrl('api/auth/login'), {
+      const response = await fetchWithTimeout(buildApiUrl('api/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -169,6 +187,15 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const schedulePostLoginUpdates = (userId) => {
+    if (!userId || postLoginUpdatesRef.current.has(userId)) return
+
+    postLoginUpdatesRef.current.add(userId)
+    void runPostLoginUpdates(userId).finally(() => {
+      postLoginUpdatesRef.current.delete(userId)
+    })
+  }
+
   const resolveUserProfile = async ({ userId, email, accessToken, passwordForEnsure = '' }) => {
     let resolvedUser = null
 
@@ -234,7 +261,7 @@ export function AuthProvider({ children }) {
     applyAuthenticatedUser(resolvedUser)
 
     if (runPostUpdates) {
-      await runPostLoginUpdates(resolvedUser.id)
+      schedulePostLoginUpdates(resolvedUser.id)
     }
 
     return { success: true, user: resolvedUser }
@@ -327,7 +354,7 @@ export function AuthProvider({ children }) {
       if (!session?.user?.id) return
 
       window.setTimeout(async () => {
-        if (!isMounted) return
+        if (!isMounted || explicitAuthRef.current) return
 
         if (hasMfaPendingFlag()) {
           const factors = await getTotpFactors().catch(() => [])
@@ -391,10 +418,12 @@ export function AuthProvider({ children }) {
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const signup = async (name, lastName, email, password) => {
+    explicitAuthRef.current = true
+
     try {
       const normalizedEmail = normalizeEmail(email)
 
-      const response = await fetch(buildApiUrl('api/auth/register'), {
+      const response = await fetchWithTimeout(buildApiUrl('api/auth/register'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -429,12 +458,14 @@ export function AuthProvider({ children }) {
       })
 
       applyAuthenticatedUser(resolvedUser)
-      await runPostLoginUpdates(resolvedUser.id)
+      schedulePostLoginUpdates(resolvedUser.id)
 
       return { success: true, message: data.message, user: resolvedUser }
     } catch (error) {
       console.error('Erro no cadastro:', error)
       return { success: false, message: i18n.t('auth:ctx.serverError') }
+    } finally {
+      explicitAuthRef.current = false
     }
   }
 
@@ -469,6 +500,8 @@ export function AuthProvider({ children }) {
   }
 
   const login = async (email, password) => {
+    explicitAuthRef.current = true
+
     try {
       const normalizedEmail = normalizeEmail(email)
 
@@ -519,12 +552,14 @@ export function AuthProvider({ children }) {
       })
 
       applyAuthenticatedUser(resolvedUser)
-      await runPostLoginUpdates(resolvedUser.id)
+      schedulePostLoginUpdates(resolvedUser.id)
 
       return { success: true, user: resolvedUser }
     } catch (error) {
       console.error('Erro no login:', error)
       return { success: false, message: i18n.t('auth:ctx.serverError') }
+    } finally {
+      explicitAuthRef.current = false
     }
   }
 
@@ -684,7 +719,7 @@ export function AuthProvider({ children }) {
       })
 
       applyAuthenticatedUser(resolvedUser)
-      await runPostLoginUpdates(resolvedUser.id)
+      schedulePostLoginUpdates(resolvedUser.id)
 
       return { success: true, user: resolvedUser }
     } catch (error) {
