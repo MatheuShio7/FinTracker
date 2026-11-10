@@ -10,6 +10,7 @@ from typing import Any, Dict, Optional, Tuple
 from flask import g, jsonify, request
 
 from config.supabase_config import get_supabase_admin_client
+from services.auth_service import ensure_user_profile
 
 
 def _extract_bearer_token() -> Optional[str]:
@@ -107,6 +108,16 @@ def resolve_authenticated_user(
                     'status': 'error',
                     'message': 'user_id nao corresponde ao usuario autenticado'
                 }), 403)
+
+            profile_result = ensure_user_profile(
+                authenticated_user_id,
+                user.get('email') or '',
+            )
+            if not profile_result.get('success'):
+                return None, (jsonify({
+                    'status': 'error',
+                    'message': 'Perfil do usuário não está disponível',
+                }), 503)
 
             return {
                 'user_id': authenticated_user_id,

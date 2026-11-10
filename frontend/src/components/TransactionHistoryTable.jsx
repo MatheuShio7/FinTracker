@@ -223,61 +223,63 @@ function TransactionHistoryTable({
   return (
     <div className="transaction-history-container">
       <h2 className="transaction-history-title">{t('history.title')}</h2>
-      <table className="transaction-history-table">
-        <thead>
-          <tr>
-            <th>{t('common:ticker')}</th>
-            <th>{t('common:type')}</th>
-            <th>{t('common:quantity')}</th>
-            <th>{t('common:price')}</th>
-            <th>{t('common:total')}</th>
-            <th>{t('common:date')}</th>
-            {!readOnly && <th>{t('common:actions')}</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {transactions.length === 0 ? (
-            <tr className="transaction-history-empty-row">
-              <td colSpan={readOnly ? 6 : 7}>{t('history.empty')}</td>
+      <div className="transaction-history-scroll">
+        <table className="transaction-history-table">
+          <thead>
+            <tr>
+              <th>{t('common:ticker')}</th>
+              <th>{t('common:type')}</th>
+              <th>{t('common:quantity')}</th>
+              <th>{t('common:price')}</th>
+              <th>{t('common:total')}</th>
+              <th>{t('common:date')}</th>
+              {!readOnly && <th>{t('common:actions')}</th>}
             </tr>
-          ) : (
-            transactions.map((transaction) => (
-              <tr key={transaction.id} className="transaction-history-row">
-                <td className="transaction-history-action-cell">{transaction.ticker || t('common:na')}</td>
-                <td className={`transaction-history-type-cell ${transaction.type === 'buy' ? 'is-buy' : 'is-sell'}`}>
-                  {formatType(transaction.type)}
-                </td>
-                <td className="transaction-history-number-cell">{formatQuantity(transaction.quantity)}</td>
-                <td className="transaction-history-number-cell">{formatCurrency(transaction.price)}</td>
-                <td className="transaction-history-number-cell">{formatCurrency(transaction.total)}</td>
-                <td className="transaction-history-date-cell">{formatDate(transaction.date)}</td>
-                {!readOnly && (
-                  <td className="transaction-history-actions-cell">
-                    <button
-                      type="button"
-                      className="transaction-history-icon-button transaction-history-edit-button"
-                      onClick={() => openEditModal(transaction)}
-                      title={t('history.editTitle')}
-                      aria-label={t('history.editAria')}
-                    >
-                      <i className="bi bi-pencil-square"></i>
-                    </button>
-                    <button
-                      type="button"
-                      className="transaction-history-icon-button transaction-history-delete-button"
-                      onClick={() => openDeleteModal(transaction)}
-                      title={t('history.deleteTitle')}
-                      aria-label={t('history.deleteAria')}
-                    >
-                      <i className="bi bi-trash3-fill"></i>
-                    </button>
-                  </td>
-                )}
+          </thead>
+          <tbody>
+            {transactions.length === 0 ? (
+              <tr className="transaction-history-empty-row">
+                <td colSpan={readOnly ? 6 : 7}>{t('history.empty')}</td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              transactions.map((transaction) => (
+                <tr key={transaction.id} className="transaction-history-row">
+                  <td className="transaction-history-action-cell">{transaction.ticker || t('common:na')}</td>
+                  <td className={`transaction-history-type-cell ${transaction.type === 'buy' ? 'is-buy' : 'is-sell'}`}>
+                    {formatType(transaction.type)}
+                  </td>
+                  <td className="transaction-history-number-cell">{formatQuantity(transaction.quantity)}</td>
+                  <td className="transaction-history-number-cell">{formatCurrency(transaction.price)}</td>
+                  <td className="transaction-history-number-cell">{formatCurrency(transaction.total)}</td>
+                  <td className="transaction-history-date-cell">{formatDate(transaction.date)}</td>
+                  {!readOnly && (
+                    <td className="transaction-history-actions-cell">
+                      <button
+                        type="button"
+                        className="transaction-history-icon-button transaction-history-edit-button"
+                        onClick={() => openEditModal(transaction)}
+                        title={t('history.editTitle')}
+                        aria-label={t('history.editAria')}
+                      >
+                        <i className="bi bi-pencil-square"></i>
+                      </button>
+                      <button
+                        type="button"
+                        className="transaction-history-icon-button transaction-history-delete-button"
+                        onClick={() => openDeleteModal(transaction)}
+                        title={t('history.deleteTitle')}
+                        aria-label={t('history.deleteAria')}
+                      >
+                        <i className="bi bi-trash3-fill"></i>
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {!readOnly && editTransaction && createPortal(
         <div className={modalOverlayClassName} onClick={closeEditModal} role="presentation">

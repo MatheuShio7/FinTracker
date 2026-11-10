@@ -118,19 +118,27 @@ def login():
         # Chama serviço de login
         result = login_user(
             email=data['email'],
-            password=data['password']
+            password=data['password'],
+            mfa_code=data.get('mfa_code') or data.get('totp_code'),
         )
         
         if result['success']:
-            return jsonify({
+            response = {
                 "status": "success",
                 "user": result['user']
-            }), 200
+            }
+            if result.get('access_token'):
+                response['access_token'] = result['access_token']
+            return jsonify(response), 200
         else:
-            return jsonify({
+            response = {
                 "status": "error",
                 "message": result['error']
-            }), 401
+            }
+            if result.get('mfa_required'):
+                response['mfa_required'] = True
+                return jsonify(response), 403
+            return jsonify(response), 401
             
     except Exception as e:
         print(f"❌ Erro no endpoint de login: {str(e)}")
@@ -425,4 +433,3 @@ def delete_user_account():
             "status": "error",
             "message": "Erro interno do servidor"
         }), 500
-
