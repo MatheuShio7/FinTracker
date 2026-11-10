@@ -605,9 +605,14 @@ function Landing() {
           <p className="lp-footer-copy">
             © {year} FinTracker. {t('landing:footer.rights')}
           </p>
-          <Link to="/privacidade" className="lp-footer-link">
-            {t('landing:footer.privacy')}
-          </Link>
+          <div className="lp-footer-links">
+            <Link to="/privacidade" className="lp-footer-link">
+              {t('landing:footer.privacy')}
+            </Link>
+            <Link to="/excluir-conta" className="lp-footer-link">
+              {t('landing:footer.deleteAccount')}
+            </Link>
+          </div>
           <p className="lp-footer-disclaimer">{t('landing:footer.disclaimer')}</p>
         </div>
       </footer>

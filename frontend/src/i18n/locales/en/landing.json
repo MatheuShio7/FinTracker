@@ -167,6 +167,7 @@
   "footer": {
     "rights": "All rights reserved.",
     "disclaimer": "FinTracker is a tracking tool and does not constitute investment advice.",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "deleteAccount": "Delete account"
   }
 }

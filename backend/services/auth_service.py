@@ -638,3 +638,54 @@ def reset_password_with_recovery_token(access_token: str, new_password: str) -> 
     except Exception as e:
         print(f"❌ Erro ao redefinir senha por recovery token: {str(e)}")
         return {"success": False, "error": f"Erro no servidor: {str(e)}"}
+
+
+def delete_account(user_id: str) -> Dict[str, Any]:
+    """
+    Exclui permanentemente a conta do usuário e os dados associados.
+
+    Ordem:
+    1. Remove grupos em que o usuário é fundador (founder_id é ON DELETE RESTRICT)
+    2. Remove o perfil em public.users (CASCADE limpa carteira, transações, etc.)
+    3. Remove o usuário no Supabase Auth
+    """
+    try:
+        if not user_id:
+            return {"success": False, "error": "Usuário inválido"}
+
+        supabase_admin = get_supabase_admin_client()
+
+        founded_groups = supabase_admin.table('groups')\
+            .select('id')\
+            .eq('founder_id', user_id)\
+            .execute()
+
+        for group in (founded_groups.data or []):
+            group_id = group.get('id')
+            if not group_id:
+                continue
+            supabase_admin.table('groups').delete().eq('id', group_id).execute()
+
+        profile = supabase_admin.table('users')\
+            .select('id')\
+            .eq('id', user_id)\
+            .limit(1)\
+            .execute()
+
+        if profile.data:
+            supabase_admin.table('users').delete().eq('id', user_id).execute()
+
+        try:
+            supabase_admin.auth.admin.delete_user(user_id)
+        except Exception as auth_error:
+            print(f"❌ Erro ao excluir usuário no Auth: {str(auth_error)}")
+            return {
+                "success": False,
+                "error": "Não foi possível excluir a autenticação da conta. Tente novamente."
+            }
+
+        return {"success": True}
+
+    except Exception as e:
+        print(f"❌ Erro ao excluir conta: {str(e)}")
+        return {"success": False, "error": f"Erro no servidor: {str(e)}"}

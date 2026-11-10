@@ -1,0 +1,43 @@
+{
+  "backHome": "Back to home",
+  "eyebrow": "FinTracker",
+  "title": "Account and data deletion",
+  "intro": "This page explains how to request deletion of your FinTracker account and associated data, in line with Google Play requirements.",
+  "steps": {
+    "title": "How to request deletion",
+    "items": {
+      "login": "Open the FinTracker app or website and sign in to your account.",
+      "settings": "Go to Settings.",
+      "section": "In the Account section, below Edit Personal Details and Change Password, tap Delete my account.",
+      "confirm": "Confirm deletion by typing DELETE. Removal is permanent and immediate."
+    }
+  },
+  "deleted": {
+    "title": "Data deleted",
+    "intro": "When you confirm, we remove:",
+    "items": {
+      "profile": "Profile data (name, last name, and email) and authentication credentials",
+      "portfolio": "Portfolio, watchlist, and transaction history",
+      "groups": "Group memberships and groups you founded",
+      "notifications": "Notifications and account-related messages",
+      "local": "Local portfolio and watchlist caches on the device/browser after sign-out"
+    }
+  },
+  "retained": {
+    "title": "Data retained",
+    "body": "We do not keep a copy of your personal data after account deletion. Public market data (quotes and dividends) is not personal and remains in the system. Minimal technical security/operations logs, if any, are kept only when required by law and for the shortest possible period."
+  },
+  "period": {
+    "title": "Timeline",
+    "body": "Deletion is processed immediately after confirmation in the app. There is no additional retention period for account data."
+  },
+  "offline": {
+    "title": "If you cannot access your account",
+    "body": "Contact the support email listed on the FinTracker Google Play listing, request account deletion, and provide the email registered on the account."
+  },
+  "cta": {
+    "login": "Go to login",
+    "settings": "Open Settings",
+    "privacy": "Privacy Policy"
+  }
+}

@@ -35,7 +35,7 @@
     },
     "rights": {
       "title": "6. Seus direitos",
-      "body": "Você pode acessar e atualizar nome e e-mail nas Configurações do aplicativo, bem como editar ou excluir transações e outros dados que você mesmo registrou. Para solicitar exclusão completa da conta e dos dados associados, entre em contato pelos canais indicados abaixo. Responderemos em prazo razoável, observadas as exigências legais aplicáveis (incluindo a LGPD, quando cabível)."
+      "body": "Você pode acessar e atualizar nome e e-mail nas Configurações do aplicativo, bem como editar ou excluir transações e outros dados que você mesmo registrou. Também pode excluir permanentemente a conta em Configurações → Excluir Conta, ou seguir as instruções em /excluir-conta. Responderemos a solicitações adicionais em prazo razoável, observadas as exigências legais aplicáveis (incluindo a LGPD, quando cabível)."
     },
     "security": {
       "title": "7. Segurança",

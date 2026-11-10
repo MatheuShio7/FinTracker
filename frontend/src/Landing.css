@@ -1330,6 +1330,12 @@
   color: var(--color-text-secondary);
 }
 
+.lp-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+
 .lp-footer-link {
   font-size: 0.88rem;
   font-weight: 600;

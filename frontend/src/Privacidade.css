@@ -92,12 +92,20 @@
   color: var(--color-text-secondary);
 }
 
-.privacy-article ul {
+.privacy-article ul,
+.privacy-ordered-list {
   margin: 12px 0 0;
   padding-left: 1.2rem;
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.privacy-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 36px;
 }
 
 @media (max-width: 640px) {

@@ -867,6 +867,45 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const deleteAccount = async () => {
+    if (!user) {
+      return { success: false, message: i18n.t('auth:ctx.mustBeLoggedIn') }
+    }
+
+    try {
+      const response = await authFetch('api/auth/user/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const data = await response.json()
+
+      if (data.status === 'success') {
+        localStorage.removeItem(`portfolio_full_${user.id}`)
+        localStorage.removeItem(`watchlist_full_${user.id}`)
+
+        try {
+          await supabase.auth.signOut()
+        } catch (signOutError) {
+          console.error('Erro ao encerrar sessão após exclusão:', signOutError)
+        }
+
+        setUser(null)
+        setPendingMfa(null)
+        clearMfaPendingFlag()
+
+        return { success: true, message: data.message }
+      }
+
+      return { success: false, message: data.message }
+    } catch (error) {
+      console.error('Erro ao excluir conta:', error)
+      return { success: false, message: i18n.t('auth:ctx.serverError') }
+    }
+  }
+
   const value = {
     user,
     loading,
@@ -883,6 +922,7 @@ export function AuthProvider({ children }) {
     logout,
     updateProfile,
     updatePassword,
+    deleteAccount,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

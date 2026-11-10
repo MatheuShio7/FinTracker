@@ -9,6 +9,7 @@ import { authFetch } from './lib/authFetch'
 import ProtectedRoute from './components/ProtectedRoute'
 import Landing from './Landing'
 import Privacidade from './Privacidade'
+import ExcluirConta from './ExcluirConta'
 import Login from './Login'
 import { NotificationsProvider } from './contexts/NotificationsContext'
 import Cadastro from './Cadastro'
@@ -80,7 +81,7 @@ function AppContent() {
     initializeNotifications()
   }, [user, loadNotifications])
 
-  const hiddenRoutes = ['/login', '/cadastro', '/', '/privacidade']
+  const hiddenRoutes = ['/login', '/cadastro', '/', '/privacidade', '/excluir-conta']
   const shouldHideSidebar = hiddenRoutes.includes(location.pathname)
   const chatEnabledRoutes = ['/carteira', '/explorar', '/grupos']
   const shouldShowChatWidget = chatEnabledRoutes.includes(location.pathname)
@@ -95,6 +96,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/privacidade" element={<Privacidade />} />
+          <Route path="/excluir-conta" element={<ExcluirConta />} />
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/carteira" element={

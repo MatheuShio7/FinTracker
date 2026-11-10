@@ -57,5 +57,19 @@
     "confirm": "Confirmar Nova Senha",
     "success": "Senha atualizada com sucesso!",
     "error": "Erro ao atualizar senha"
+  },
+  "deleteAccount": {
+    "title": "Excluir Conta",
+    "description": "Esta ação é permanente. Serão removidos seus dados pessoais, carteira, transações, watchlist, notificações e grupos em que você for fundador. Não há período adicional de retenção desses dados.",
+    "button": "Excluir minha conta",
+    "modalTitle": "Confirmar exclusão da conta",
+    "modalAria": "Confirmação de exclusão da conta FinTracker",
+    "modalCloseAria": "Fechar confirmação de exclusão",
+    "modalMessage": "Tem certeza de que deseja excluir permanentemente sua conta no FinTracker? Essa ação não pode ser desfeita.",
+    "confirmLabel": "Para confirmar, digite EXCLUIR",
+    "confirmPlaceholder": "EXCLUIR",
+    "confirmWord": "EXCLUIR",
+    "confirmButton": "Excluir conta definitivamente",
+    "error": "Não foi possível excluir a conta. Tente novamente."
   }
 }
