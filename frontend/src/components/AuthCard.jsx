@@ -88,6 +88,25 @@ function AuthCard({ type }) {
     navigate('/carteira', { replace: true })
   }, [user, pendingMfa, isForgotModalOpen, isResetModalOpen, location.search, navigate])
 
+  useEffect(() => {
+    const onOAuthDone = (event) => {
+      const detail = event?.detail || {}
+      if (detail.success) {
+        setGoogleLoading(false)
+        return
+      }
+      if (detail.cancelled) {
+        setGoogleLoading(false)
+        return
+      }
+      setError(detail.message || t('auth:errors.googleLoginFailed'))
+      setGoogleLoading(false)
+    }
+
+    window.addEventListener('fintracker:oauth-done', onOAuthDone)
+    return () => window.removeEventListener('fintracker:oauth-done', onOAuthDone)
+  }, [t])
+
   const handleGoogleLogin = async () => {
     setError('')
     setGoogleLoading(true)
@@ -99,7 +118,7 @@ function AuthCard({ type }) {
         setError(result.message || t('auth:errors.googleLoginFailed'))
         setGoogleLoading(false)
       }
-      // Em sucesso o navegador redireciona para o Google; mantém loading.
+      // Em sucesso: web redireciona; Android volta via deep link (fintracker:oauth-done).
     } catch {
       setError(t('auth:errors.server'))
       setGoogleLoading(false)

@@ -11,6 +11,7 @@ from services.auth_service import (
     update_password,
     reset_password_with_recovery_token,
     sync_oauth_profile,
+    delete_account,
 )
 from utils.auth_context import require_authenticated_user
 
@@ -117,19 +118,27 @@ def login():
         # Chama serviço de login
         result = login_user(
             email=data['email'],
-            password=data['password']
+            password=data['password'],
+            mfa_code=data.get('mfa_code') or data.get('totp_code'),
         )
         
         if result['success']:
-            return jsonify({
+            response = {
                 "status": "success",
                 "user": result['user']
-            }), 200
+            }
+            if result.get('access_token'):
+                response['access_token'] = result['access_token']
+            return jsonify(response), 200
         else:
-            return jsonify({
+            response = {
                 "status": "error",
                 "message": result['error']
-            }), 401
+            }
+            if result.get('mfa_required'):
+                response['mfa_required'] = True
+                return jsonify(response), 403
+            return jsonify(response), 401
             
     except Exception as e:
         print(f"❌ Erro no endpoint de login: {str(e)}")
@@ -395,3 +404,32 @@ def reset_password_recovery():
             "message": "Erro interno do servidor"
         }), 500
 
+
+@bp.route('/user/delete', methods=['POST'])
+@require_authenticated_user(allow_legacy=False)
+def delete_user_account():
+    """
+    POST /api/auth/user/delete
+    Exclui permanentemente a conta autenticada e os dados associados.
+    """
+    try:
+        user_id = g.auth_user_id
+        result = delete_account(user_id)
+
+        if result['success']:
+            return jsonify({
+                "status": "success",
+                "message": "Conta excluída com sucesso."
+            }), 200
+
+        return jsonify({
+            "status": "error",
+            "message": result.get('error', 'Não foi possível excluir a conta')
+        }), 400
+
+    except Exception as e:
+        print(f"❌ Erro no endpoint de exclusão de conta: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": "Erro interno do servidor"
+        }), 500

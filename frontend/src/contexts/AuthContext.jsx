@@ -1,9 +1,35 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useRef } from 'react'
+import { Capacitor } from '@capacitor/core'
+import { App as CapApp } from '@capacitor/app'
+import { Browser } from '@capacitor/browser'
 import { buildApiUrl } from '../config/api'
 import { supabase } from '../lib/supabase'
+import {
+  getOAuthRedirectTo,
+  isNativeOAuthCallback,
+  parseAuthCallbackUrl,
+} from '../lib/oauthRedirect'
 import { authFetch, authFetchWithToken } from '../lib/authFetch'
 import i18n from '../i18n'
+
+const notifyOAuthUi = (detail) => {
+  window.dispatchEvent(new CustomEvent('fintracker:oauth-done', { detail }))
+}
+
+const AUTH_REQUEST_TIMEOUT_MS = 45000
+
+const fetchWithTimeout = (url, options = {}) => {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), AUTH_REQUEST_TIMEOUT_MS)
+
+  return fetch(url, {
+    ...options,
+    signal: controller.signal,
+  }).finally(() => {
+    window.clearTimeout(timeoutId)
+  })
+}
 
 const AuthContext = createContext()
 
@@ -19,6 +45,8 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [pendingMfa, setPendingMfa] = useState(null)
+  const explicitAuthRef = useRef(false)
+  const postLoginUpdatesRef = useRef(new Set())
   const MFA_PENDING_STORAGE_KEY = 'mfa_login_required'
   const MFA_MAX_ATTEMPTS = 3
   const MFA_LOCK_SECONDS = 30
@@ -31,6 +59,7 @@ export function AuthProvider({ children }) {
       const data = await response.json()
       return data.status === 'success' ? data.user : null
     } catch (error) {
+      if (error?.name === 'AbortError') throw error
       console.error('Erro ao buscar usuário:', error)
       return null
     }
@@ -42,6 +71,7 @@ export function AuthProvider({ children }) {
       const data = await response.json()
       return data.status === 'success' ? data.user : null
     } catch (error) {
+      if (error?.name === 'AbortError') throw error
       console.error('Erro ao buscar usuário com token:', error)
       return null
     }
@@ -51,7 +81,7 @@ export function AuthProvider({ children }) {
     try {
       if (!password) return null
 
-      const response = await fetch(buildApiUrl('api/auth/login'), {
+      const response = await fetchWithTimeout(buildApiUrl('api/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,7 +132,7 @@ export function AuthProvider({ children }) {
     try {
       const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
       if (error) return false
-      return data?.nextLevel === 'aal2'
+      return data?.currentLevel === 'aal1' && data?.nextLevel === 'aal2'
     } catch {
       return false
     }
@@ -115,8 +145,6 @@ export function AuthProvider({ children }) {
   const clearMfaPendingFlag = () => {
     localStorage.removeItem(MFA_PENDING_STORAGE_KEY)
   }
-
-  const hasMfaPendingFlag = () => localStorage.getItem(MFA_PENDING_STORAGE_KEY) === '1'
 
   const mapMfaErrorMessage = (message = '') => {
     const lower = message.toLowerCase()
@@ -155,6 +183,15 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Erro ao executar atualizações pós-login:', error)
     }
+  }
+
+  const schedulePostLoginUpdates = (userId) => {
+    if (!userId || postLoginUpdatesRef.current.has(userId)) return
+
+    postLoginUpdatesRef.current.add(userId)
+    void runPostLoginUpdates(userId).finally(() => {
+      postLoginUpdatesRef.current.delete(userId)
+    })
   }
 
   const resolveUserProfile = async ({ userId, email, accessToken, passwordForEnsure = '' }) => {
@@ -222,7 +259,7 @@ export function AuthProvider({ children }) {
     applyAuthenticatedUser(resolvedUser)
 
     if (runPostUpdates) {
-      await runPostLoginUpdates(resolvedUser.id)
+      schedulePostLoginUpdates(resolvedUser.id)
     }
 
     return { success: true, user: resolvedUser }
@@ -266,20 +303,6 @@ export function AuthProvider({ children }) {
           return
         }
 
-        if (hasMfaPendingFlag()) {
-          const factors = await getTotpFactors().catch(() => [])
-          if (!isMounted) return
-
-          setUser(null)
-          setPendingMfa({
-            email: session.user.email || '',
-            factorId: factors[0]?.id || null,
-            failedAttempts: 0,
-            lockedUntil: null,
-          })
-          return
-        }
-
         await finalizeSessionLogin(session, { runPostUpdates: false })
       } catch (error) {
         console.error('Erro ao inicializar sessão:', error)
@@ -308,28 +331,14 @@ export function AuthProvider({ children }) {
       }
 
       // Evita trabalho em eventos que não mudam contexto de login.
-      if (event !== 'SIGNED_IN' && event !== 'USER_UPDATED') {
+      if (event !== 'SIGNED_IN') {
         return
       }
 
       if (!session?.user?.id) return
 
       window.setTimeout(async () => {
-        if (!isMounted) return
-
-        if (hasMfaPendingFlag()) {
-          const factors = await getTotpFactors().catch(() => [])
-          if (!isMounted) return
-
-          setUser(null)
-          setPendingMfa({
-            email: session.user.email || '',
-            factorId: factors[0]?.id || null,
-            failedAttempts: 0,
-            lockedUntil: null,
-          })
-          return
-        }
+        if (!isMounted || explicitAuthRef.current) return
 
         await finalizeSessionLogin(session, {
           runPostUpdates: event === 'SIGNED_IN',
@@ -337,18 +346,54 @@ export function AuthProvider({ children }) {
       }, 0)
     })
 
+    let appUrlListener = null
+    let browserFinishedListener = null
+
+    const setupNativeOAuthListeners = async () => {
+      if (!Capacitor.isNativePlatform()) return
+
+      appUrlListener = await CapApp.addListener('appUrlOpen', async ({ url }) => {
+        if (!isNativeOAuthCallback(url)) return
+
+        try {
+          await Browser.close()
+        } catch {
+          // Custom Tab pode já ter fechado
+        }
+
+        await completeOAuthFromUrl(url)
+      })
+
+      browserFinishedListener = await Browser.addListener('browserFinished', async () => {
+        // Usuário fechou a aba sem completar o login
+        window.setTimeout(async () => {
+          if (!isMounted) return
+          const { data: { session } } = await supabase.auth.getSession()
+          if (!session) {
+            notifyOAuthUi({ success: false, cancelled: true })
+          }
+        }, 400)
+      })
+    }
+
+    setupNativeOAuthListeners()
+
     return () => {
       isMounted = false
       subscription.unsubscribe()
+      appUrlListener?.remove()
+      browserFinishedListener?.remove()
     }
   }, [])
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const signup = async (name, lastName, email, password) => {
+    explicitAuthRef.current = true
+
     try {
       const normalizedEmail = normalizeEmail(email)
 
-      const response = await fetch(buildApiUrl('api/auth/register'), {
+      const response = await fetchWithTimeout(buildApiUrl('api/auth/register'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -383,12 +428,14 @@ export function AuthProvider({ children }) {
       })
 
       applyAuthenticatedUser(resolvedUser)
-      await runPostLoginUpdates(resolvedUser.id)
+      schedulePostLoginUpdates(resolvedUser.id)
 
       return { success: true, message: data.message, user: resolvedUser }
     } catch (error) {
       console.error('Erro no cadastro:', error)
       return { success: false, message: i18n.t('auth:ctx.serverError') }
+    } finally {
+      explicitAuthRef.current = false
     }
   }
 
@@ -423,6 +470,8 @@ export function AuthProvider({ children }) {
   }
 
   const login = async (email, password) => {
+    explicitAuthRef.current = true
+
     try {
       const normalizedEmail = normalizeEmail(email)
 
@@ -473,21 +522,66 @@ export function AuthProvider({ children }) {
       })
 
       applyAuthenticatedUser(resolvedUser)
-      await runPostLoginUpdates(resolvedUser.id)
+      schedulePostLoginUpdates(resolvedUser.id)
 
       return { success: true, user: resolvedUser }
     } catch (error) {
       console.error('Erro no login:', error)
       return { success: false, message: i18n.t('auth:ctx.serverError') }
+    } finally {
+      explicitAuthRef.current = false
     }
+  }
+
+  const completeOAuthFromUrl = async (url) => {
+    const params = parseAuthCallbackUrl(url)
+
+    if (params.error) {
+      const message = params.error_description || params.error
+      notifyOAuthUi({ success: false, message })
+      return { success: false, message }
+    }
+
+    if (params.code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(params.code)
+      if (error) {
+        const message = error.message || i18n.t('auth:ctx.googleLoginFailed')
+        notifyOAuthUi({ success: false, message })
+        return { success: false, message }
+      }
+      notifyOAuthUi({ success: true })
+      return { success: true, session: data.session }
+    }
+
+    if (params.access_token && params.refresh_token) {
+      const { data, error } = await supabase.auth.setSession({
+        access_token: params.access_token,
+        refresh_token: params.refresh_token,
+      })
+      if (error) {
+        const message = error.message || i18n.t('auth:ctx.googleLoginFailed')
+        notifyOAuthUi({ success: false, message })
+        return { success: false, message }
+      }
+      notifyOAuthUi({ success: true })
+      return { success: true, session: data.session }
+    }
+
+    notifyOAuthUi({ success: false, message: i18n.t('auth:ctx.googleLoginFailed') })
+    return { success: false, message: i18n.t('auth:ctx.googleLoginFailed') }
   }
 
   const loginWithGoogle = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const isNative = Capacitor.isNativePlatform()
+      const redirectTo = getOAuthRedirectTo()
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/login`,
+          redirectTo,
+          // No Android abrimos o Custom Tab manualmente e voltamos via deep link
+          skipBrowserRedirect: isNative,
           queryParams: {
             prompt: 'select_account',
           },
@@ -499,6 +593,16 @@ export function AuthProvider({ children }) {
           success: false,
           message: error.message || i18n.t('auth:ctx.googleLoginFailed'),
         }
+      }
+
+      if (isNative) {
+        if (!data?.url) {
+          return {
+            success: false,
+            message: i18n.t('auth:ctx.googleLoginFailed'),
+          }
+        }
+        await Browser.open({ url: data.url })
       }
 
       return { success: true, redirecting: true }
@@ -585,7 +689,7 @@ export function AuthProvider({ children }) {
       })
 
       applyAuthenticatedUser(resolvedUser)
-      await runPostLoginUpdates(resolvedUser.id)
+      schedulePostLoginUpdates(resolvedUser.id)
 
       return { success: true, user: resolvedUser }
     } catch (error) {
@@ -768,6 +872,45 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const deleteAccount = async () => {
+    if (!user) {
+      return { success: false, message: i18n.t('auth:ctx.mustBeLoggedIn') }
+    }
+
+    try {
+      const response = await authFetch('api/auth/user/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const data = await response.json()
+
+      if (data.status === 'success') {
+        localStorage.removeItem(`portfolio_full_${user.id}`)
+        localStorage.removeItem(`watchlist_full_${user.id}`)
+
+        try {
+          await supabase.auth.signOut()
+        } catch (signOutError) {
+          console.error('Erro ao encerrar sessão após exclusão:', signOutError)
+        }
+
+        setUser(null)
+        setPendingMfa(null)
+        clearMfaPendingFlag()
+
+        return { success: true, message: data.message }
+      }
+
+      return { success: false, message: data.message }
+    } catch (error) {
+      console.error('Erro ao excluir conta:', error)
+      return { success: false, message: i18n.t('auth:ctx.serverError') }
+    }
+  }
+
   const value = {
     user,
     loading,
@@ -784,6 +927,7 @@ export function AuthProvider({ children }) {
     logout,
     updateProfile,
     updatePassword,
+    deleteAccount,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

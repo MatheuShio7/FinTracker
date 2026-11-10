@@ -15,7 +15,7 @@ import TransactionButton from './components/TransactionButton'
 function Explorar() {
   const { t } = useTranslation(['explore', 'common'])
   const { user } = useAuth()
-  const { cache, addToPortfolio } = usePortfolio()
+  const { cache, invalidatePortfolioFullCache, loadPortfolioData } = usePortfolio()
   const [watchlistData, setWatchlistData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -160,25 +160,10 @@ function Explorar() {
     }
 
     try {
-      const response = await authFetch('api/portfolio/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ticker: transaction.ticker,
-          quantity: transaction.quantity
-        })
-      })
-
-      const data = await response.json()
-      if (response.ok && data.status === 'success') {
-        addToPortfolio(transaction.ticker)
-      } else {
-        console.error('❌ Erro ao sincronizar carteira:', data.message)
-      }
+      invalidatePortfolioFullCache()
+      await loadPortfolioData(true)
     } catch (error) {
-      console.error('Erro ao sincronizar carteira após transação:', error)
+      console.error('Erro ao atualizar carteira após transação:', error)
     }
   }
 

@@ -7,7 +7,7 @@ from typing import Dict, Optional
 
 # Importa serviços de busca externa
 from services.brapi_price_service import fetch_prices_from_brapi
-from services.yahoo_dividend_service import fetch_dividends_from_yahoo
+from services.dividend_service import fetch_dividends
 
 # Importa serviços de cache
 from services.price_cache_service import (
@@ -200,7 +200,7 @@ def update_stock_on_page_view(ticker: str, range_param: str, force_update: bool 
                 print("\n[PASSO 4c] Buscando dividendos do Yahoo Finance...")
                 
                 # Busca dividendos da API externa
-                dividends_from_api = fetch_dividends_from_yahoo(ticker)
+                dividends_from_api = fetch_dividends(ticker)
                 
                 if dividends_from_api is None:
                     print("[ERRO] Erro ao buscar dividendos do Yahoo Finance - Continuando...")

@@ -3,6 +3,16 @@
   max-width: 900px;
   margin: 20px auto 70px;
   padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.transaction-history-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .transaction-history-title {
@@ -24,6 +34,7 @@
   display: flex;
   flex-direction: column;
   max-height: 520px;
+  min-width: 0;
 }
 
 .transaction-history-table thead {
@@ -296,10 +307,6 @@
   .transaction-history-container {
     padding: 0 12px;
     margin: 20px auto 50px;
-    /* A tabela tem até 7 colunas: no celular ela rola na horizontal */
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
   }
 
   .transaction-history-table {

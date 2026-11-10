@@ -1,0 +1,57 @@
+{
+  "backHome": "Voltar ao início",
+  "eyebrow": "Documento legal",
+  "title": "Política de Privacidade",
+  "updatedAt": "Última atualização: {{date}}",
+  "intro": "Esta Política de Privacidade descreve como o FinTracker coleta, usa, armazena e protege os dados pessoais dos usuários do site e do aplicativo. O FinTracker é uma ferramenta de acompanhamento e simulação de carteiras de ações; não é uma corretora e não executa ordens no mercado.",
+  "sections": {
+    "controller": {
+      "title": "1. Responsável pelo tratamento",
+      "body": "O tratamento dos dados é realizado pelo FinTracker, na qualidade de controlador das informações fornecidas pelos usuários para criação e uso da conta."
+    },
+    "data": {
+      "title": "2. Quais dados coletamos",
+      "intro": "Coletamos apenas os dados necessários para operar a plataforma:",
+      "items": {
+        "account": "Dados de conta: nome, sobrenome, e-mail e senha (a senha é processada de forma segura pelo provedor de autenticação; não é armazenada em texto puro). Se você entrar com Google, também recebemos informações básicas do perfil autorizadas por você.",
+        "portfolio": "Dados de uso financeiro informados por você: transações de compra e venda (ativo, quantidade, preço e data), posições da carteira e watchlist.",
+        "groups": "Dados de colaboração: grupos criados ou dos quais você participa, convites, permissões e notificações relacionadas.",
+        "chat": "Mensagens enviadas ao assistente de IA do FinTracker, usadas para gerar respostas no contexto do serviço.",
+        "prefs": "Preferências locais do dispositivo ou navegador, como tema, idioma e tamanho de fonte.",
+        "tech": "Dados técnicos básicos necessários ao funcionamento (por exemplo, tokens de sessão e registros de autenticação)."
+      }
+    },
+    "purpose": {
+      "title": "3. Para que usamos os dados",
+      "body": "Utilizamos os dados para autenticar o usuário, prestar o serviço de acompanhamento de carteira, permitir recursos colaborativos (grupos), enviar notificações relacionadas à conta, operar o assistente de IA e melhorar a segurança e a estabilidade da plataforma. Não usamos os dados para fins de marketing de terceiros."
+    },
+    "storage": {
+      "title": "4. Onde os dados ficam guardados",
+      "body": "Os dados da conta, da carteira, das transações, dos grupos e das notificações são armazenados em infraestrutura de nuvem do Supabase (banco PostgreSQL e autenticação). Preferências de interface podem permanecer apenas no seu dispositivo (armazenamento local)."
+    },
+    "sharing": {
+      "title": "5. Compartilhamento e venda de dados",
+      "body": "Não vendemos dados pessoais. Podemos compartilhar informações apenas com provedores essenciais à operação do serviço — em especial Supabase (armazenamento e autenticação), Google (login com Google, quando utilizado, e processamento do assistente de IA via Gemini) e APIs de cotação de mercado (dados públicos de preços, não dados pessoais). Em grupos colaborativos, outros membros só veem informações da sua carteira conforme as permissões que você conceder. Também poderemos divulgar dados se houver obrigação legal."
+    },
+    "rights": {
+      "title": "6. Seus direitos",
+      "body": "Você pode acessar e atualizar nome e e-mail nas Configurações do aplicativo, bem como editar ou excluir transações e outros dados que você mesmo registrou. Também pode excluir permanentemente a conta em Configurações → Excluir Conta, ou seguir as instruções em /excluir-conta. Responderemos a solicitações adicionais em prazo razoável, observadas as exigências legais aplicáveis (incluindo a LGPD, quando cabível)."
+    },
+    "security": {
+      "title": "7. Segurança",
+      "body": "Adotamos medidas razoáveis de proteção, incluindo autenticação com sessão segura (JWT), Row Level Security no banco e opção de autenticação em dois fatores (MFA/TOTP). Nenhum sistema é 100% isento de riscos; recomendamos o uso de senha forte e, quando possível, MFA."
+    },
+    "children": {
+      "title": "8. Menores de idade",
+      "body": "O FinTracker não se destina a menores de 13 anos. Se soubermos que coletamos dados de um menor sem consentimento adequado, tomaremos medidas para removê-los."
+    },
+    "changes": {
+      "title": "9. Alterações nesta política",
+      "body": "Podemos atualizar esta Política de Privacidade periodicamente. A data da última atualização será indicada no topo desta página. O uso contínuo do serviço após a publicação de alterações significa ciência da versão vigente."
+    },
+    "contact": {
+      "title": "10. Contato",
+      "body": "Dúvidas sobre privacidade ou solicitações relacionadas aos seus dados podem ser enviadas para o e-mail de suporte informado na ficha do aplicativo nas lojas (Google Play / App Store) ou pelo canal de contato disponibilizado pelo FinTracker."
+    }
+  }
+}

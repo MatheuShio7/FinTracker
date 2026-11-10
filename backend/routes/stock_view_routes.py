@@ -167,7 +167,7 @@ def refresh_stock(ticker: str):
         # IMPORTAÇÕES NECESSÁRIAS (dentro da função para evitar importação circular)
         # ========================================================================
         from services.brapi_price_service import get_current_stock_price
-        from services.yahoo_dividend_service import fetch_dividends_from_yahoo
+        from services.dividend_service import fetch_dividends
         from services.price_cache_service import get_stock_id_by_ticker
         from services.save_service import save_prices, save_dividends
         from services.dividend_cache_service import get_dividends_from_cache
@@ -243,8 +243,8 @@ def refresh_stock(ticker: str):
         dividends_result = []
         
         try:
-            # Busca dividendos do Yahoo Finance
-            dividends_from_api = fetch_dividends_from_yahoo(ticker)
+            # Busca dividendos (BraAPI + fallback Yahoo)
+            dividends_from_api = fetch_dividends(ticker)
             
             if dividends_from_api is not None:
                 if len(dividends_from_api) > 0:

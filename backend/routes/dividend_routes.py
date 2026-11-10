@@ -2,7 +2,7 @@
 Rotas para consulta de dividendos de ações
 """
 from flask import Blueprint, jsonify, request
-from services.yahoo_dividend_service import fetch_dividends_from_yahoo
+from services.dividend_service import fetch_dividends
 from utils.helpers import format_response, format_error
 
 bp = Blueprint('dividends', __name__, url_prefix='/api')
@@ -37,7 +37,7 @@ def get_stock_dividends(ticker):
     """
     try:
         # Busca os dividendos no Yahoo Finance
-        dividends = fetch_dividends_from_yahoo(ticker)
+        dividends = fetch_dividends(ticker)
         
         # Se o ticker não existe
         if dividends is None:
@@ -88,7 +88,7 @@ def test_dividend_service():
     try:
         # Testa com PETR4
         ticker = "PETR4"
-        dividends = fetch_dividends_from_yahoo(ticker)
+        dividends = fetch_dividends(ticker)
         
         if dividends is not None and dividends:
             return jsonify(format_response(

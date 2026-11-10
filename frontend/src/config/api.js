@@ -5,8 +5,15 @@ const API_CONFIG = {
   port: import.meta.env.VITE_BACKEND_PORT || '5001'
 };
 
-// URL base da API
-export const API_BASE_URL = `${API_CONFIG.protocol}://${API_CONFIG.host}:${API_CONFIG.port}`;
+const isDefaultPort =
+  !API_CONFIG.port ||
+  (API_CONFIG.protocol === 'https' && API_CONFIG.port === '443') ||
+  (API_CONFIG.protocol === 'http' && API_CONFIG.port === '80');
+
+// URL base da API (omite porta padrão / vazia — útil para Railway/Vercel)
+export const API_BASE_URL = isDefaultPort
+  ? `${API_CONFIG.protocol}://${API_CONFIG.host}`
+  : `${API_CONFIG.protocol}://${API_CONFIG.host}:${API_CONFIG.port}`;
 
 // Função helper para construir URLs da API
 export const buildApiUrl = (endpoint) => {

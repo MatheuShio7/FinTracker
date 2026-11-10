@@ -1,0 +1,43 @@
+{
+  "backHome": "Voltar ao início",
+  "eyebrow": "FinTracker",
+  "title": "Exclusão de conta e dados",
+  "intro": "Esta página explica como solicitar a exclusão da sua conta e dos dados associados no FinTracker, em conformidade com as exigências do Google Play.",
+  "steps": {
+    "title": "Como solicitar a exclusão",
+    "items": {
+      "login": "Abra o aplicativo ou o site do FinTracker e faça login na sua conta.",
+      "settings": "Vá em Configurações.",
+      "section": "Na seção Conta, abaixo de Alterar Dados Pessoais e Alterar Senha, toque em Excluir minha conta.",
+      "confirm": "Confirme a exclusão digitando EXCLUIR. A remoção é permanente e imediata."
+    }
+  },
+  "deleted": {
+    "title": "Dados excluídos",
+    "intro": "Ao confirmar, removemos:",
+    "items": {
+      "profile": "Dados de perfil (nome, sobrenome e e-mail) e credenciais de autenticação",
+      "portfolio": "Carteira, watchlist e histórico de transações",
+      "groups": "Participações em grupos e grupos dos quais você é fundador",
+      "notifications": "Notificações e mensagens relacionadas à conta",
+      "local": "Caches locais da carteira e watchlist no dispositivo/navegador após o logout"
+    }
+  },
+  "retained": {
+    "title": "Dados retidos",
+    "body": "Não mantemos uma cópia dos seus dados pessoais após a exclusão da conta. Dados públicos de mercado (cotações e dividendos) não são pessoais e permanecem no sistema. Registros técnicos mínimos de segurança/operação, se existirem, só são mantidos quando exigidos por lei e pelo menor prazo possível."
+  },
+  "period": {
+    "title": "Prazo",
+    "body": "A exclusão é processada imediatamente após a confirmação no aplicativo. Não há período adicional de retenção dos dados da conta."
+  },
+  "offline": {
+    "title": "Se você não conseguir acessar a conta",
+    "body": "Entre em contato pelo e-mail de suporte informado na ficha do FinTracker no Google Play, solicitando a exclusão da conta e informando o e-mail cadastrado."
+  },
+  "cta": {
+    "login": "Ir para o login",
+    "settings": "Abrir Configurações",
+    "privacy": "Política de Privacidade"
+  }
+}

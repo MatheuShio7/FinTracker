@@ -6,7 +6,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
-from config.config import Config
+from config.config import config as config_map
 from routes import health_routes
 from routes import supabase_example_routes  # Descomente para habilitar rotas de exemplo do Supabase
 from routes import price_routes  # Rotas de preços de ações
@@ -22,13 +22,18 @@ from routes import group_routes  # Rotas de grupos
 # Carrega variáveis de ambiente
 load_dotenv()
 
-def create_app(config_class=Config):
+def create_app(config_class=None):
     """Factory function para criar a aplicação Flask"""
+    if config_class is None:
+        env = os.getenv('FLASK_ENV', 'development')
+        config_class = config_map.get(env, config_map['default'])
+
     app = Flask(__name__)
     app.config.from_object(config_class)
     
-    # Habilita CORS
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    # Habilita CORS (CORS_ORIGINS no .env; "*" libera qualquer origem)
+    cors_origins = app.config.get('CORS_ORIGINS', ['*'])
+    CORS(app, resources={r"/api/*": {"origins": cors_origins}})
     
     # Registra blueprints (rotas)
     app.register_blueprint(health_routes.bp)

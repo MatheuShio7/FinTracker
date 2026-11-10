@@ -57,5 +57,19 @@
     "confirm": "Confirm New Password",
     "success": "Password updated successfully!",
     "error": "Error updating password"
+  },
+  "deleteAccount": {
+    "title": "Delete Account",
+    "description": "This action is permanent. Your personal data, portfolio, transactions, watchlist, notifications, and groups you founded will be removed. There is no additional retention period for this data.",
+    "button": "Delete my account",
+    "modalTitle": "Confirm account deletion",
+    "modalAria": "FinTracker account deletion confirmation",
+    "modalCloseAria": "Close account deletion confirmation",
+    "modalMessage": "Are you sure you want to permanently delete your FinTracker account? This action cannot be undone.",
+    "confirmLabel": "To confirm, type DELETE",
+    "confirmPlaceholder": "DELETE",
+    "confirmWord": "DELETE",
+    "confirmButton": "Delete account permanently",
+    "error": "Could not delete the account. Please try again."
   }
 }

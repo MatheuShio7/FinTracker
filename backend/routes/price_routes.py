@@ -3,6 +3,8 @@ Rotas para consulta de preços de ações
 """
 from flask import Blueprint, jsonify, request
 from services.brapi_price_service import fetch_prices_from_brapi, validate_range_period
+from services.price_cache_service import get_latest_cached_price
+from services.quote_cache_service import get_or_set
 from utils.helpers import format_response, format_error
 
 bp = Blueprint('prices', __name__, url_prefix='/api')
@@ -52,7 +54,11 @@ def get_stock_prices(ticker):
             ))
         
         # Busca os preços na BraAPI
-        prices = fetch_prices_from_brapi(ticker, range_period)
+        prices = get_or_set(
+            f"history:{ticker.upper()}:{range_period}",
+            lambda: fetch_prices_from_brapi(ticker, range_period),
+            force_refresh=request.args.get('force', '').lower() == 'true',
+        )
         
         # Se não encontrou dados
         if prices is None:
@@ -79,6 +85,50 @@ def get_stock_prices(ticker):
             code=500,
             details=str(e)
         ))
+
+
+@bp.route('/stocks/quote/<ticker>', methods=['GET'])
+def get_stock_quote(ticker):
+    """Return a current quote, using the latest local value on provider failure."""
+    normalized_ticker = ticker.upper().strip()
+    force_refresh = request.args.get('force', '').lower() == 'true'
+
+    try:
+        quote = get_or_set(
+            f"quote:{normalized_ticker}",
+            lambda: fetch_prices_from_brapi(normalized_ticker, '3m'),
+            force_refresh=force_refresh,
+        )
+        if quote is not None:
+            if isinstance(quote, list):
+                payload = {
+                    'ticker': normalized_ticker,
+                    'prices': quote,
+                    'count': len(quote),
+                }
+            else:
+                payload = quote
+            payload['isFallback'] = False
+            return jsonify({'status': 'success', 'data': payload}), 200
+
+        fallback = get_latest_cached_price(normalized_ticker)
+        if fallback:
+            fallback['isFallback'] = True
+            return jsonify({'status': 'success', 'data': fallback}), 200
+        return jsonify({
+            'status': 'error',
+            'message': 'Cotação indisponível e sem histórico local',
+        }), 503
+    except Exception as error:
+        fallback = get_latest_cached_price(normalized_ticker)
+        if fallback:
+            fallback['isFallback'] = True
+            return jsonify({'status': 'success', 'data': fallback}), 200
+        return jsonify({
+            'status': 'error',
+            'message': 'Cotação indisponível',
+            'details': str(error),
+        }), 503
 
 
 @bp.route('/prices/test', methods=['GET'])
@@ -116,4 +166,3 @@ def test_brapi_service():
             code=500,
             details=str(e)
         ))
-

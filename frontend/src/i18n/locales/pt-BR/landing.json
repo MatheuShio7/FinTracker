@@ -166,6 +166,8 @@
   },
   "footer": {
     "rights": "Todos os direitos reservados.",
-    "disclaimer": "O FinTracker é uma ferramenta de acompanhamento e não constitui recomendação de investimento."
+    "disclaimer": "O FinTracker é uma ferramenta de acompanhamento e não constitui recomendação de investimento.",
+    "privacy": "Política de Privacidade",
+    "deleteAccount": "Excluir conta"
   }
 }

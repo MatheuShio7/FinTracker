@@ -16,6 +16,7 @@ function Configuracoes() {
     logout,
     updateProfile,
     updatePassword,
+    deleteAccount,
     getMfaStatus,
     startMfaEnrollment,
     confirmMfaEnrollment,
@@ -61,6 +62,12 @@ function Configuracoes() {
   const [savingPassword, setSavingPassword] = useState(false)
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
+
+  // Estados de exclusão de conta
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deletingAccount, setDeletingAccount] = useState(false)
+  const [deleteAccountError, setDeleteAccountError] = useState('')
 
   const normalizeMfaUiMessage = useCallback((message = '', fallback = t('settings:mfa.fallbackGeneric')) => {
     const lower = (message || '').toLowerCase()
@@ -116,6 +123,21 @@ function Configuracoes() {
 
     loadMfa()
   }, [user, getMfaStatus, normalizeMfaUiMessage, t])
+
+  useEffect(() => {
+    if (!isDeleteModalOpen) return undefined
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape' && !deletingAccount) {
+        setIsDeleteModalOpen(false)
+        setDeleteConfirmText('')
+        setDeleteAccountError('')
+      }
+    }
+
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [isDeleteModalOpen, deletingAccount])
   
   // Detectar se houve mudanças
   const hasChanges = 
@@ -221,6 +243,45 @@ function Configuracoes() {
   const handleLogout = async () => {
     await logout()
     navigate('/login')
+  }
+
+  const deleteConfirmWord = t('settings:deleteAccount.confirmWord')
+  const canConfirmDeleteAccount =
+    deleteConfirmText.trim().toUpperCase() === deleteConfirmWord.toUpperCase()
+
+  const handleOpenDeleteModal = () => {
+    setDeleteAccountError('')
+    setDeleteConfirmText('')
+    setIsDeleteModalOpen(true)
+  }
+
+  const handleCloseDeleteModal = () => {
+    if (deletingAccount) return
+    setIsDeleteModalOpen(false)
+    setDeleteConfirmText('')
+    setDeleteAccountError('')
+  }
+
+  const handleConfirmDeleteAccount = async () => {
+    if (!canConfirmDeleteAccount || deletingAccount) return
+
+    setDeletingAccount(true)
+    setDeleteAccountError('')
+
+    try {
+      const result = await deleteAccount()
+
+      if (result.success) {
+        navigate('/')
+        return
+      }
+
+      setDeleteAccountError(result.message || t('settings:deleteAccount.error'))
+    } catch {
+      setDeleteAccountError(t('settings:deleteAccount.error'))
+    } finally {
+      setDeletingAccount(false)
+    }
   }
 
   const handleStartMfa = async () => {
@@ -659,6 +720,21 @@ function Configuracoes() {
           </div>
         </div>
 
+        <div className="delete-account-section">
+          <h3 className="configuracoes-section-title">{t('settings:deleteAccount.title')}</h3>
+          <p className="delete-account-description">
+            {t('settings:deleteAccount.description')}
+          </p>
+          <button
+            type="button"
+            className="delete-account-button"
+            onClick={handleOpenDeleteModal}
+          >
+            <i className="bi bi-trash3-fill" aria-hidden="true"></i>
+            {t('settings:deleteAccount.button')}
+          </button>
+        </div>
+
         {/* Visível só em telas ≤768px (sidebar com logout some nesse breakpoint) */}
         <div className="mobile-logout-section">
           <button
@@ -671,6 +747,78 @@ function Configuracoes() {
           </button>
         </div>
       </div>
+
+      {isDeleteModalOpen && (
+        <div
+          className="delete-account-modal-overlay"
+          onClick={handleCloseDeleteModal}
+          role="presentation"
+        >
+          <div
+            className="delete-account-modal-card"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('settings:deleteAccount.modalAria')}
+          >
+            <div className="delete-account-modal-header">
+              <h3>{t('settings:deleteAccount.modalTitle')}</h3>
+              <button
+                type="button"
+                className="delete-account-modal-close"
+                onClick={handleCloseDeleteModal}
+                disabled={deletingAccount}
+                aria-label={t('settings:deleteAccount.modalCloseAria')}
+              >
+                <i className="bi bi-x-lg" aria-hidden="true"></i>
+              </button>
+            </div>
+
+            <div className="delete-account-modal-body">
+              <p>{t('settings:deleteAccount.modalMessage')}</p>
+
+              <label className="delete-account-confirm-label" htmlFor="delete-account-confirm">
+                {t('settings:deleteAccount.confirmLabel')}
+              </label>
+              <input
+                id="delete-account-confirm"
+                type="text"
+                className="delete-account-confirm-input"
+                value={deleteConfirmText}
+                onChange={(event) => setDeleteConfirmText(event.target.value)}
+                placeholder={t('settings:deleteAccount.confirmPlaceholder')}
+                disabled={deletingAccount}
+                autoComplete="off"
+              />
+
+              {deleteAccountError && (
+                <div className="profile-error">{deleteAccountError}</div>
+              )}
+
+              <div className="delete-account-modal-actions">
+                <button
+                  type="button"
+                  className="delete-account-cancel-button"
+                  onClick={handleCloseDeleteModal}
+                  disabled={deletingAccount}
+                >
+                  {t('common:cancel')}
+                </button>
+                <button
+                  type="button"
+                  className="delete-account-confirm-button"
+                  onClick={handleConfirmDeleteAccount}
+                  disabled={!canConfirmDeleteAccount || deletingAccount}
+                >
+                  {deletingAccount
+                    ? t('common:deleting')
+                    : t('settings:deleteAccount.confirmButton')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
