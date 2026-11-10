@@ -1,0 +1,9 @@
+{
+  "mode": "off",
+  "testops": {
+    "project": "FINTRACKER",
+    "api": {
+      "token": ""
+    }
+  }
+}
